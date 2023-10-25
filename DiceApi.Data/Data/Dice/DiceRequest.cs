@@ -12,6 +12,6 @@ namespace DiceApi.Data.Data.Dice
 
         public int Persent { get; set; }
 
-        public long Sum { get; set; }
+        public double Sum { get; set; }
     }
 }

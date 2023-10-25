@@ -13,9 +13,9 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task<Wagering> GetActiveWageringByUserId(long userId);
 
-        Task UpdateWagering(long userId, long addWagerSub);
+        Task UpdateWagering(long userId, double addWagerSub);
 
-        Task UpdatePlayed(long userId, long addPlayedSub);
+        Task UpdatePlayed(long userId, double addPlayedSub);
 
         Task DeactivateWagering(int wagerId);
 

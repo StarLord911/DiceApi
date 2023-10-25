@@ -61,5 +61,13 @@ namespace DiceApi.DataAcces.Repositoryes
                 return (await db.QueryAsync<DiceGame>("SELECT * FROM DiceGame where userId = @userId", new { userId })).ToList();
             }
         }
+
+        public async Task<List<DiceGame>> GetLastGames()
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                return (await db.QueryAsync<DiceGame>("SELECT top(20) * FROM DiceGame order by gameTime desc")).ToList();
+            }
+        }
     }
 }

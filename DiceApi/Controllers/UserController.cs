@@ -2,6 +2,7 @@
 using DiceApi.Common.Configuration;
 using DiceApi.Data;
 using DiceApi.Services;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -12,6 +13,7 @@ using System.Threading.Tasks;
 namespace DiceApi.Controllers
 {
     [Route("api/useController")]
+    [EnableCors("AllowAll")]
     [ApiController]
     public class UserController : ControllerBase
     {

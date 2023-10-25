@@ -13,6 +13,6 @@ namespace DiceApi.Services.Contracts
 
         Task<List<DiceGame>> GetAllDiceGamesByUserId(long userId);
 
-        Task<List<DiceGame>> GetAllDiceGames();
+        Task<List<DiceGame>> GetLastGames();
     }
 }

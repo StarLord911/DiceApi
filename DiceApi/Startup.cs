@@ -55,7 +55,17 @@ namespace DiceApi
             services.AddTransient<IPromocodeService, PromocodeService>();
             services.AddTransient<IPromocodeRepository, PromocodeRepository>();
             services.AddTransient<IPromocodeActivationHistory, PromocodeActivationHistory>();
-            services.AddTransient<IWageringRepository, WageringRepository>(); 
+            services.AddTransient<IWageringRepository, WageringRepository>();
+
+            //регаем репы.
+            services.AddTransient<IPaymentRepository, PaymentRepository>();
+
+
+            //регаем сервисы
+            services.AddTransient<IPaymentService, PaymentService>();
+            services.AddTransient<IPaymentAdapterService, PaymentAdapterService>();
+
+
 
         }
 
@@ -68,12 +78,10 @@ namespace DiceApi
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiceApi v1"));
             }
-            app.UseCors("AllowAll");
-
-
-            app.UseHttpsRedirection();
-
             app.UseRouting();
+
+            app.UseCors("AllowAll");
+            app.UseHttpsRedirection();
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthorization();
 

@@ -10,9 +10,7 @@ namespace DiceApi.Common
     {
         public static string GetConnectionString()
         {
-            return $@"Server=(localdb)\MSSQLLocalDB;Database=diceDB;Trusted_Connection=False;";
-
-            
+            return "Server=217.28.223.127,17160;User Id=user_18ecf;Password=nZ+5A2w$}eK7;Database=db_e8adc;TrustServerCertificate=True;Encrypt=False;";
         }
     }
 }

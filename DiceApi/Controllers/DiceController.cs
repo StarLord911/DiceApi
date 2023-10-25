@@ -1,6 +1,7 @@
 ﻿using DiceApi.Attributes;
 using DiceApi.Data.Data.Dice;
 using DiceApi.Services.Contracts;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,12 @@ using System.Threading.Tasks;
 namespace DiceApi.Controllers
 {
     [Route("api/dice")]
+    [EnableCors("AllowAll")]
     [ApiController]
     public class DiceController : ControllerBase
     {
         private readonly IDiceService _diceService;
+
         public DiceController(IDiceService diceService)
         {
             _diceService = diceService;
@@ -23,14 +26,8 @@ namespace DiceApi.Controllers
         [HttpPost("start")]
         public async Task<DiceResponce> Start(DiceRequest request)
         {
+            //HttpContext.Items[]
             return await _diceService.StartDice(request);
-        }
-
-        [Authorize]
-        [HttpPost("getAllGames")]
-        public async Task<List<DiceGame>> GetAllGames( )
-        {
-            return await _diceService.GetAllDiceGames();
         }
 
         [Authorize]
@@ -42,9 +39,9 @@ namespace DiceApi.Controllers
 
         [Authorize]
         [HttpPost("getLastGames")]
-        public async Task<List<DiceGame>> GetLastGames(GetDiceGamesRequest request)
+        public async Task<List<DiceGame>> GetLastGames()
         {
-            return await _diceService.GetAllDiceGamesByUserId(request.UserId);
+            return await _diceService.GetLastGames();
         }
     }
 }

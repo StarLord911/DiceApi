@@ -72,7 +72,7 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task UpdatePlayed(long userId, long addPlayedSub)
+        public async Task UpdatePlayed(long userId, double addPlayedSub)
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
@@ -84,7 +84,7 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task UpdateWagering(long userId, long addWagerSub)
+        public async Task UpdateWagering(long userId, double addWagerSub)
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {

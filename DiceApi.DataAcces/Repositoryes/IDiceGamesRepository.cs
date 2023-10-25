@@ -15,5 +15,7 @@ namespace DiceApi.DataAcces.Repositoryes
         Task<List<DiceGame>> GetAll();
 
         Task<List<DiceGame>> GetByUserId(long userId);
+
+        Task<List<DiceGame>> GetLastGames();
     }
 }

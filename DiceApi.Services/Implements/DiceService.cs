@@ -13,6 +13,7 @@ namespace DiceApi.Services.Implements
         private readonly IUserService _userService;
         private readonly IDiceGamesRepository _diceGamesRepository;
         private readonly IWageringRepository _wageringRepository;
+        private readonly IPaymentAdapterService _paymentAdapterService;
 
         private readonly ILogRepository _logRepository;
 
@@ -21,12 +22,14 @@ namespace DiceApi.Services.Implements
         public DiceService(IUserService userService,
             IDiceGamesRepository diceGamesRepository,
             ILogRepository logRepository,
-            IWageringRepository wageringRepository)
+            IWageringRepository wageringRepository,
+            IPaymentAdapterService paymentAdapterService)
         {
             _userService = userService;
             _diceGamesRepository = diceGamesRepository;
             _logRepository = logRepository;
             _wageringRepository = wageringRepository;
+            _paymentAdapterService = paymentAdapterService;
         }
 
         public async Task<DiceResponce> StartDice(DiceRequest request)
@@ -44,12 +47,23 @@ namespace DiceApi.Services.Implements
             var user = _userService.GetById(request.UserId);
 
             var random = new Random().Next(1, 100);
+            var currentBallance = await _paymentAdapterService.GetCurrentBallance();
 
-            if (request.Persent > random)
+            //антиминус логика, если наш баланс больше чем ставка то игра играется, иначе игра проигрывается.
+            if (currentBallance > request.Sum)
             {
-                responce.IsSucces = true;
-                responce.NewBallance = user.Ballance += winSum;
-                await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
+                if (request.Persent > random)
+                {
+                    responce.IsSucces = true;
+                    responce.NewBallance = user.Ballance += (winSum - request.Sum);
+                    await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
+                }
+                else
+                {
+                    responce.IsSucces = false;
+                    responce.NewBallance = user.Ballance -= request.Sum;
+                    await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
+                }
             }
             else
             {
@@ -57,6 +71,8 @@ namespace DiceApi.Services.Implements
                 responce.NewBallance = user.Ballance -= request.Sum;
                 await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
             }
+
+            
 
             var diceGame = new DiceGame()
             {
@@ -87,9 +103,9 @@ namespace DiceApi.Services.Implements
             return responce;
         }
 
-        public async Task<List<DiceGame>> GetAllDiceGames()
+        public async Task<List<DiceGame>> GetLastGames()
         {
-            return await _diceGamesRepository.GetAll();
+            return await _diceGamesRepository.GetLastGames();
         }
 
         public async Task<List<DiceGame>> GetAllDiceGamesByUserId(long userId)
