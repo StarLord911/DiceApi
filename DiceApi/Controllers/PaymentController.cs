@@ -1,6 +1,7 @@
 ﻿using DiceApi.Attributes;
 using DiceApi.Data;
 using DiceApi.Data.Data.Payment;
+using DiceApi.Services;
 using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -30,8 +31,6 @@ namespace DiceApi.Controllers
         [HttpPost("createPayment")]
         public async Task<string> CreatePayment(CreatePaymentRequest createPaymentRequest)
         {
-            var paymentForm = "Ссылка";//await _paymentAdapterService.CreatePaymentForm(createPaymentRequest);
-
             var payment = new Payment
             {
                 Amount = createPaymentRequest.Amount,
@@ -41,7 +40,12 @@ namespace DiceApi.Controllers
                 UserId = createPaymentRequest.UserId
             };
 
-            await _paymentService.AddPayment(payment);
+            var paymentId = await _paymentService.AddPayment(payment);
+            var ipAddress = HttpContext.Connection.RemoteIpAddress.ToString();
+
+            var request = FreeKassHelper.CreateOrderRequest((int)paymentId, createPaymentRequest.Amount, 1, ipAddress);
+
+            var paymentForm = await _paymentAdapterService.CreatePaymentForm(request);
 
             return paymentForm;
         }

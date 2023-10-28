@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace DiceApi.Common.Configuration
+namespace DiceApi.Common
 {
     public static class ConfigHelper
     {

@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using DiceApi.Attributes;
-using DiceApi.Common.Configuration;
 using DiceApi.Data;
 using DiceApi.Data.Api.Model;
 using DiceApi.Data.Data.Payment;

@@ -20,7 +20,7 @@ namespace DiceApi.DataAcces.Repositoryes
             _connectionString = DataAccesHelper.GetConnectionString();
         }
 
-        public async Task CreatePayment(Payment payment)
+        public async Task<long> CreatePayment(Payment payment)
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
@@ -38,7 +38,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     UserId = payment.UserId
                 };
 
-                await connection.ExecuteAsync(query, parameters);
+                return await connection.ExecuteAsync(query, parameters);
             }
         }
 

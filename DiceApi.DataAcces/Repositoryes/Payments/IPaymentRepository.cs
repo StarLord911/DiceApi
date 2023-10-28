@@ -9,7 +9,7 @@ namespace DiceApi.DataAcces.Repositoryes
 {
     public interface IPaymentRepository
     {
-        Task CreatePayment(Payment payment);
+        Task<long> CreatePayment(Payment payment);
 
         Task<List<Payment>> GetPaymentsByUserId(long userId);
 

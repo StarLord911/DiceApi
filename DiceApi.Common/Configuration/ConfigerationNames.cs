@@ -8,7 +8,10 @@ namespace DiceApi.Common
 {
     public static class ConfigerationNames
     {
-        public const string FreeKassaMerchantId = "FreeKassaMerchantId";
+        public const string FreeKassaShopId = "FreeKassaShopId";
+
+        public const string FreeKassaSecretOne = "FreeKassaSecretOne";
+
 
         public const string DbConnectionString = "DbConnectionString";
     }

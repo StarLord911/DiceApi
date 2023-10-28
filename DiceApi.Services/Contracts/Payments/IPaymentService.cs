@@ -12,7 +12,7 @@ namespace DiceApi.Services.Contracts
     /// </summary>
     public interface IPaymentService
     {
-        Task AddPayment(Payment payment);
+        Task<long> AddPayment(Payment payment);
 
         Task ConfirmPayment(ConfirmPayment payment);
 

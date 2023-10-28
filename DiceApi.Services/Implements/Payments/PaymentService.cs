@@ -21,9 +21,9 @@ namespace DiceApi.Services.Implements
             _userService = userService;
         }
 
-        public async Task AddPayment(Payment payment)
+        public async Task<long> AddPayment(Payment payment)
         {
-            await _paymentRepository.CreatePayment(payment);
+            return await _paymentRepository.CreatePayment(payment);
         }
 
         public async Task ConfirmPayment(ConfirmPayment payment)

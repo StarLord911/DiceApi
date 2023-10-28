@@ -1,4 +1,4 @@
-using DiceApi.Common.Configuration;
+using DiceApi.Common;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Mappings;
 using DiceApi.MiddleWares;

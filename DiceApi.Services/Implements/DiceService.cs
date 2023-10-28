@@ -72,8 +72,6 @@ namespace DiceApi.Services.Implements
                 await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
             }
 
-            
-
             var diceGame = new DiceGame()
             {
                 UserId = request.UserId,

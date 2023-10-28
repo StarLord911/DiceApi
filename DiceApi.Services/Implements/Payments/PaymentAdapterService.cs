@@ -1,7 +1,9 @@
 ﻿using DiceApi.Common;
+using DiceApi.Data;
 using DiceApi.Data.Data.Payment;
 using DiceApi.Services.Contracts;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -21,9 +23,13 @@ namespace DiceApi.Services.Implements
 
         private double _currentBallance = -1;
 
-        public PaymentAdapterService(IConfiguration configuration)
+
+        private readonly HttpClient _httpClient;
+
+
+        public PaymentAdapterService()
         {
-            merchantId = configuration[ConfigerationNames.FreeKassaMerchantId];
+            _httpClient = new HttpClient();
         }
 
         public Task<string> CheckPaymentStatus(string paymentId)
@@ -31,31 +37,26 @@ namespace DiceApi.Services.Implements
             throw new NotImplementedException();
         }
 
-        public async Task<string> CreatePaymentForm(CreatePaymentRequest createPaymentRequest)
+        public async Task<string> CreatePaymentForm(CreateOrderRequest createPaymentRequest)
         {
-            string apiUrl = "https://pay.freekassa.ru/api/v1/create_payment";
+            string apiUrl = "https://api.freekassa.ru/v1/orders/create";
 
-            // Формируем параметры запроса
-            var parameters = new Dictionary<string, string>
+            string jsonRequest = JsonConvert.SerializeObject(createPaymentRequest);
+            var httpContent = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, httpContent);
+
+            if (response.IsSuccessStatusCode)
             {
-                { "merchant_id", merchantId },
-                { "shopId", _shopId },
-                //{ "nonce", createPaymentRequest.PaymentId.ToString() },
-
-                //{ "amount", createPaymentRequest.Amount.ToString() },
-                //{ "order_id", createPaymentRequest.PaymentId.ToString()}
-            };
-
-            AddSignature(parameters);
-
-            using (var httpClient = new HttpClient())
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+                return jsonResponse;
+            }
+            else
             {
-                var response = await httpClient.PostAsync(apiUrl, new FormUrlEncodedContent(parameters));
-                response.EnsureSuccessStatusCode();
-
-                return await response.Content.ReadAsStringAsync();
+                throw new ApplicationException($"Failed to create order. Status code: {response.StatusCode}");
             }
         }
+    
 
         public async Task<double> GetCurrentBallance()
         {
@@ -74,20 +75,6 @@ namespace DiceApi.Services.Implements
         public void UpdateCurrentBallance(double sum)
         {
             _currentBallance += sum;
-        }
-
-        private void AddSignature(Dictionary<string, string> parameters)
-        {
-            var sortedParameters = new SortedDictionary<string, string>(parameters);
-            var signatureString = string.Join(":", sortedParameters.Values) + secretKey;
-
-            using (var sha256 = SHA256.Create())
-            {
-                var signatureBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(signatureString));
-                var signature = BitConverter.ToString(signatureBytes).Replace("-", "").ToLower();
-
-                parameters.Add("signature", signature);
-            }
         }
 
         /// <summary>
