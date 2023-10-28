@@ -1,5 +1,7 @@
 ﻿using DiceApi.Attributes;
+using DiceApi.Data;
 using DiceApi.Data.Data.Payment;
+using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -14,11 +16,34 @@ namespace DiceApi.Controllers
     [ApiController]
     public class PaymentController : ControllerBase
     {
-        //[Authorize]
-        //[HttpPost("createPayment")]
-        //public async Task CreatePayment(CreatePaymentRequest createPaymentRequest)
-        //{
-        //    return new string[] { "value1", "value2" };
-        //}
+        private readonly IPaymentService _paymentService;
+        private readonly IPaymentAdapterService _paymentAdapterService;
+
+        public PaymentController(IPaymentService paymentService,
+            IPaymentAdapterService paymentAdapterService)
+        {
+            _paymentService = paymentService;
+            _paymentAdapterService = paymentAdapterService;
+        }
+
+        [Authorize]
+        [HttpPost("createPayment")]
+        public async Task<string> CreatePayment(CreatePaymentRequest createPaymentRequest)
+        {
+            var paymentForm = "Ссылка";//await _paymentAdapterService.CreatePaymentForm(createPaymentRequest);
+
+            var payment = new Payment
+            {
+                Amount = createPaymentRequest.Amount,
+                OrderId = Guid.NewGuid().ToString(),
+                Status = PaymentStatus.New,
+                CreatedAt = DateTime.Now,
+                UserId = createPaymentRequest.UserId
+            };
+
+            await _paymentService.AddPayment(payment);
+
+            return paymentForm;
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace DiceApi.DataAcces.Repositoryes
 {
     public interface IUserRepository
     {
-        Task<long> Add(UserRegister user);
+        Task<long> Add(UserRegisterResponce user);
 
         User GetById(long id);
         

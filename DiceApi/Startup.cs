@@ -1,21 +1,17 @@
+using DiceApi.Common.Configuration;
 using DiceApi.DataAcces.Repositoryes;
+using DiceApi.Mappings;
 using DiceApi.MiddleWares;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.Implements;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DiceApi
 {
@@ -31,6 +27,9 @@ namespace DiceApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAutoMapper(typeof(Startup));
+            services.AddSingleton<MappingProfile>();
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll",
@@ -45,6 +44,27 @@ namespace DiceApi
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "DiceApi", Version = "v1" });
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    In = ParameterLocation.Header,
+                    Description = "Токен авторизации пользователя",
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new List<string>()
+                     }
+                });
             });
 
             services.AddTransient<ILogRepository, LogRepository>();
@@ -60,13 +80,12 @@ namespace DiceApi
             //регаем репы.
             services.AddTransient<IPaymentRepository, PaymentRepository>();
 
-
             //регаем сервисы
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddTransient<IPaymentAdapterService, PaymentAdapterService>();
 
 
-
+            ConfigHelper.LoadConfig(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,7 +108,6 @@ namespace DiceApi
             {
                 endpoints.MapControllers();
             });
-
         }
     }
 }

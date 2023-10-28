@@ -12,14 +12,30 @@ namespace DiceApi.Services.Implements
     public class PaymentService : IPaymentService
     {
         private readonly IPaymentRepository _paymentRepository;
-        public PaymentService(IPaymentRepository paymentRepository)
+        private readonly IUserService _userService;
+
+        public PaymentService(IPaymentRepository paymentRepository,
+            IUserService userService)
         {
             _paymentRepository = paymentRepository;
+            _userService = userService;
         }
 
         public async Task AddPayment(Payment payment)
         {
             await _paymentRepository.CreatePayment(payment);
+        }
+
+        public async Task ConfirmPayment(ConfirmPayment payment)
+        {
+            var user = _userService.GetById(payment.UserId);
+
+            //Обновление баланса владельца акка.
+            if (user.OwnerId != null && user.OwnerId.Value != 0)
+            {
+                var updateOwnerBallance = payment.Amount / 10;
+                await _userService.UpdateUserBallance(user.OwnerId.Value, (double)updateOwnerBallance);
+            }
         }
     }
 }

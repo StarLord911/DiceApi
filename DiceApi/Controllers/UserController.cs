@@ -1,7 +1,12 @@
-﻿using DiceApi.Attributes;
+﻿using AutoMapper;
+using DiceApi.Attributes;
 using DiceApi.Common.Configuration;
 using DiceApi.Data;
+using DiceApi.Data.Api.Model;
+using DiceApi.Data.Data.Payment;
+using DiceApi.Data.Requests;
 using DiceApi.Services;
+using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,10 +23,13 @@ namespace DiceApi.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly IMapper _mapper;
 
-        public UserController(IUserService userService)
+        public UserController(IUserService userService,
+            IMapper mapper)
         {
             _userService = userService;
+            _mapper = mapper;
         }
 
         [HttpPost("authenticate")]
@@ -36,7 +44,7 @@ namespace DiceApi.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(UserRegister userModel)
+        public async Task<IActionResult> Register(UserRegisterResponce userModel)
         {
             var response = await _userService.Register(userModel);
 
@@ -49,11 +57,17 @@ namespace DiceApi.Controllers
         }
 
         [Authorize]
-        [HttpGet]
-        public IActionResult GetAll()
+        [HttpPost("getUserById")]
+        public UserApi GetUserById(GetUserByIdRequest request)
         {
-            var users = _userService.GetAll();
-            return Ok(users);
+            var user = _userService.GetById(request.Id);
+
+            if (user == null)
+            {
+                throw new NullReferenceException($"Cannot find user by id {user}");
+            }
+
+            return _mapper.Map<UserApi>(user);
         }
     }
 }

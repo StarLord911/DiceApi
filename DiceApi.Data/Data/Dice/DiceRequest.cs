@@ -10,7 +10,7 @@ namespace DiceApi.Data.Data.Dice
     {
         public long UserId { get; set; }
 
-        public int Persent { get; set; }
+        public double Persent { get; set; }
 
         public double Sum { get; set; }
     }

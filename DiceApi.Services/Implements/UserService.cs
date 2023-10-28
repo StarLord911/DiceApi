@@ -38,7 +38,7 @@ namespace DiceApi.Services
             return new AuthenticateResponse(user, token) {Info = "Authenticate succes" };
         }
 
-        public async Task<AuthenticateResponse> Register(UserRegister userModel)
+        public async Task<AuthenticateResponse> Register(UserRegisterResponce userModel)
         {
             try
             {

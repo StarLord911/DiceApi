@@ -4,15 +4,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiceApi.Data.Data.Payment
+namespace DiceApi.Data
 {
     /// <summary>
-    /// Запрос на пополнение баланса.
+    /// Модель подтверждения платежа.
     /// </summary>
-    public class CreatePaymentRequest
+    public class ConfirmPayment
     {
-        public decimal Amount { get; set; }
-
         public long UserId { get; set; }
+
+        public decimal Amount { get; set; }
     }
 }

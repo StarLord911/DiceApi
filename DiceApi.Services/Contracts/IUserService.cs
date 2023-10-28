@@ -11,7 +11,7 @@ namespace DiceApi.Services
     {
         Task<AuthenticateResponse> Authenticate(AuthenticateRequest model);
 
-        Task<AuthenticateResponse> Register(UserRegister userModel);
+        Task<AuthenticateResponse> Register(UserRegisterResponce userModel);
 
         IEnumerable<User> GetAll();
 

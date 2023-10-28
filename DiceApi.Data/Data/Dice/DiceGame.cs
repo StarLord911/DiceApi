@@ -24,7 +24,7 @@ namespace DiceApi.Data.Data.Dice
         /// <summary>
         /// Возможный процент выигрыша
         /// </summary>
-        public int Persent { get; set; }
+        public double Persent { get; set; }
 
         /// <summary>
         /// Ставка

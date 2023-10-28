@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data
 {
-    public class UserRegister
+    public class UserRegisterResponce
     {
         [JsonProperty("name")]
         public string Name { get; set; }

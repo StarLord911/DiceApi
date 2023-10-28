@@ -1,5 +1,7 @@
-﻿using DiceApi.Data.Data.Payment;
+﻿using DiceApi.Common;
+using DiceApi.Data.Data.Payment;
 using DiceApi.Services.Contracts;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -13,14 +15,15 @@ namespace DiceApi.Services.Implements
 {
     public class PaymentAdapterService : IPaymentAdapterService
     {
-        private readonly string merchantId = "your_merchant_id";
+        private readonly string merchantId;
         private readonly string secretKey = "your_secret_key";
         private readonly string _shopId = "your_secret_key";
 
         private double _currentBallance = -1;
 
-        public PaymentAdapterService()
+        public PaymentAdapterService(IConfiguration configuration)
         {
+            merchantId = configuration[ConfigerationNames.FreeKassaMerchantId];
         }
 
         public Task<string> CheckPaymentStatus(string paymentId)
@@ -37,10 +40,10 @@ namespace DiceApi.Services.Implements
             {
                 { "merchant_id", merchantId },
                 { "shopId", _shopId },
-                { "nonce", createPaymentRequest.PaymentId.ToString() },
+                //{ "nonce", createPaymentRequest.PaymentId.ToString() },
 
-                { "amount", createPaymentRequest.Amount.ToString() },
-                { "order_id", createPaymentRequest.PaymentId.ToString()}
+                //{ "amount", createPaymentRequest.Amount.ToString() },
+                //{ "order_id", createPaymentRequest.PaymentId.ToString()}
             };
 
             AddSignature(parameters);

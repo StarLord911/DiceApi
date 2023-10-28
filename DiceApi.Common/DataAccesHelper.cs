@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DiceApi.Common.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,7 +11,7 @@ namespace DiceApi.Common
     {
         public static string GetConnectionString()
         {
-            return "Server=217.28.223.127,17160;User Id=user_18ecf;Password=nZ+5A2w$}eK7;Database=db_e8adc;TrustServerCertificate=True;Encrypt=False;";
+            return ConfigHelper.GetConfigValue(ConfigerationNames.DbConnectionString);
         }
     }
 }

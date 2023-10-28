@@ -53,5 +53,10 @@ namespace DiceApi.DataAcces.Repositoryes
                 return (await connection.QueryAsync<Payment>(query, parameters)).ToList();
             }
         }
+
+        public Task UpdatePaymentStatus(string paymentId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

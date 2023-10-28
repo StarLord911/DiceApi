@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,30 +11,18 @@ namespace DiceApi.Common.Configuration
 {
     public static class ConfigHelper
     {
-        private static readonly string configFilePath;
-        private static readonly Dictionary<string, string> configValues;
+        private static IConfiguration _configuration;
+        private static Dictionary<string, string> configValues;
 
-
-        static ConfigHelper()
+        public static void LoadConfig(IConfiguration configuration)
         {
-            var appDirectory = $@"C:\Users\UYANAEV\source\repos\DiceApi\DiceApi.Common\Configuration\";
-            configFilePath = Path.Combine(appDirectory, "dice.config");
             configValues = new Dictionary<string, string>();
-            LoadConfig();
-        }
 
-        private static void LoadConfig()
-        {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(configFilePath);
-            XmlNode root = doc.DocumentElement;
+            _configuration = configuration;
 
-            foreach (XmlNode node in root.ChildNodes)
+            foreach (var config in _configuration.AsEnumerable())
             {
-                string key = node.Attributes["key"].Value;
-                string value = node.InnerText;
-
-                configValues[key] = value;
+                configValues[config.Key] = config.Value;
             }
         }
 

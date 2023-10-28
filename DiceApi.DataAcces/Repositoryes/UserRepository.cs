@@ -36,7 +36,7 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task<long> Add(UserRegister user)
+        public async Task<long> Add(UserRegisterResponce user)
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
             {

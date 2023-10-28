@@ -39,6 +39,6 @@ namespace DiceApi.Data
         /// <summary>
         /// Статус
         /// </summary>
-        public string Status { get; set; }
+        public PaymentStatus Status { get; set; }
     }
 }
