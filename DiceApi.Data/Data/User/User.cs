@@ -19,7 +19,7 @@ namespace DiceApi.Data
         public string Password { get; set; }
 
         [JsonProperty("ballance")]
-        public double Ballance { get; set; }
+        public decimal Ballance { get; set; }
         
         [JsonProperty("ownerId")]
         public long? OwnerId { get; set; }

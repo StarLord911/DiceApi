@@ -82,21 +82,11 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task UpdateUserBallance(long userId, double newBallance)
+        public async Task UpdateUserBallance(long userId, decimal newBallance)
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 var query = $@"update Users set ballance = @newBallance where Id = @id";
-
-                await db.ExecuteAsync(query, new { id = userId, newBallance });
-            }
-        }
-
-        public async Task UpdateUserPromoBallance(long userId, double newBallance)
-        {
-            using (IDbConnection db = new SqlConnection(_connectionString))
-            {
-                var query = $@"update Users set promoBallance = @newBallance where Id = @id";
 
                 await db.ExecuteAsync(query, new { id = userId, newBallance });
             }

@@ -17,9 +17,6 @@ namespace DiceApi.Services
 
         User GetById(long id);
 
-        Task UpdateUserBallance(long userId, double sum);
-
-        Task UpdateUserPromoBallance(long userId, double sum);
-
+        Task UpdateUserBallance(long userId, decimal sum);
     }
 }

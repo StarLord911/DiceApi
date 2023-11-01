@@ -34,7 +34,7 @@ namespace DiceApi.Services.Implements
             if (user.OwnerId != null && user.OwnerId.Value != 0)
             {
                 var updateOwnerBallance = payment.Amount / 10;
-                await _userService.UpdateUserBallance(user.OwnerId.Value, (double)updateOwnerBallance);
+                await _userService.UpdateUserBallance(user.OwnerId.Value, updateOwnerBallance);
             }
         }
     }

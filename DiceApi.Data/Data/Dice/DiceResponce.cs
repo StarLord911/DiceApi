@@ -10,6 +10,6 @@ namespace DiceApi.Data.Data.Dice
     {
         public bool IsSucces { get; set; }
 
-        public double NewBallance { get; set; }
+        public decimal NewBallance { get; set; }
     }
 }

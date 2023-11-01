@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data.Data.Dice
 {
+    /// <summary>
+    /// Запрос игры в дайс
+    /// </summary>
     public class DiceRequest
     {
         public long UserId { get; set; }
 
         public double Persent { get; set; }
 
-        public double Sum { get; set; }
+        public decimal Sum { get; set; }
     }
 }

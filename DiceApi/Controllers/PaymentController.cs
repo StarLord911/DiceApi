@@ -19,12 +19,15 @@ namespace DiceApi.Controllers
     {
         private readonly IPaymentService _paymentService;
         private readonly IPaymentAdapterService _paymentAdapterService;
+        private readonly IWithdrawalsService _withdrawalsService;
 
         public PaymentController(IPaymentService paymentService,
-            IPaymentAdapterService paymentAdapterService)
+            IPaymentAdapterService paymentAdapterService,
+            IWithdrawalsService withdrawalsService)
         {
             _paymentService = paymentService;
             _paymentAdapterService = paymentAdapterService;
+            _withdrawalsService = withdrawalsService;
         }
 
         [Authorize]
@@ -43,11 +46,18 @@ namespace DiceApi.Controllers
             var paymentId = await _paymentService.AddPayment(payment);
             var ipAddress = HttpContext.Connection.RemoteIpAddress.ToString();
 
-            var request = FreeKassHelper.CreateOrderRequest((int)paymentId, createPaymentRequest.Amount, 1, ipAddress);
+            var request = FreeKassHelper.CreateOrderRequest(11, createPaymentRequest.Amount, 1, "61.4.112.166");
 
             var paymentForm = await _paymentAdapterService.CreatePaymentForm(request);
 
             return paymentForm;
+        }
+
+        [Authorize]
+        [HttpPost("createWithdrawal")]
+        public async Task<CreateWithdrawalResponce> CreateWithdrawal(CreateWithdrawalRequest createWithdrawalRequest)
+        {
+            return await _withdrawalsService.CreateWithdrawalRequest(createWithdrawalRequest);
         }
     }
 }

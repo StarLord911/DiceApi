@@ -13,48 +13,53 @@ namespace DiceApi.Services
     {
         public static CreateOrderRequest CreateOrderRequest(int paymentId, decimal amount, int paySystemId, string clientIp)
         {
-            return new CreateOrderRequest
+            var req = new CreateOrderRequest
             {
                 Amount = amount,
                 Currency = "RUB",
                 Email = "example@gmail.com",
                 I = paySystemId,
                 Ip = clientIp,
-                Nonce = paymentId,
+                Nonce = (int)DateTime.Now.Ticks,
                 PaymentId = paymentId.ToString(),
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
-                Signature = GetSignature(paymentId, amount)
             };
+
+            req.Signature = GetSignature(req);
+
+            return req;
         }
 
-        private static string GetSignature(int paymentId, decimal amount)
+        private static string GetSignature(CreateOrderRequest request)
         {
             string signature = string.Empty;
 
             // Convert OrderRequestModel to key-value pairs
             Dictionary<string, string> parameters = new Dictionary<string, string>()
             {
-                { "paymentId", paymentId.ToString() },
-                { "amount", amount.ToString() },
+                { "paymentId", request.PaymentId.ToString() },
+                { "currency", request.Currency.ToString() },
+                { "Email", request.Email.ToString() },
+                { "i", request.I.ToString() },
+                { "ip", request.Ip.ToString() },
+                { "nonce", request.Nonce.ToString() },
+                { "shopId", request.ShopId.ToString() },
+
             };
+            //cb67a126d4bc65972b2ed97d42c9a045
 
-            // Sort the parameters by key
-            SortedDictionary<string, string> sortedParameters = new SortedDictionary<string, string>(parameters);
+            var sortedData = new SortedDictionary<string, string>(parameters);
 
-            // Concatenate the parameter key-value pairs
-            string concatenatedParameters = string.Join("", sortedParameters.Values);
+            var signString = string.Join("|", sortedData.Values);
+            var apiKey = ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaSecretOne);
 
-            // Concatenate the secret key with the concatenated parameters
-            string input = ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaSecretOne) + concatenatedParameters;
-
-            // Compute the SHA256 hash of the input string
-            using (SHA256 sha256 = SHA256.Create())
+            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes("cb67a126d4bc65972b2ed97d42c9a045")))
             {
-                byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-                byte[] hashBytes = sha256.ComputeHash(inputBytes);
-                signature = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-            }
+                var signatureBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(signString));
+                signature = BitConverter.ToString(signatureBytes).Replace("-", "").ToLower();
 
+                sortedData.Add("signature", signature);
+            }
             return signature;
         }
     }

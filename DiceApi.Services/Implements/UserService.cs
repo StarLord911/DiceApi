@@ -73,7 +73,7 @@ namespace DiceApi.Services
             return _userRepository.GetById(id);
         }
 
-        public async Task UpdateUserBallance(long userId, double sum)
+        public async Task UpdateUserBallance(long userId, decimal sum)
         {
             var user = _userRepository.GetById(userId);
 
@@ -82,23 +82,8 @@ namespace DiceApi.Services
                 return;
             }
 
-            var newBallance = user.Ballance = sum;
-
-            await _userRepository.UpdateUserBallance(userId, newBallance);
+            await _userRepository.UpdateUserBallance(userId, sum);
         }
 
-        public async Task UpdateUserPromoBallance(long userId, double sum)
-        {
-            var user = _userRepository.GetById(userId);
-
-            if (user == null)
-            {
-                //log
-            }
-
-            var newBallance = user.Ballance = sum;
-
-            await _userRepository.UpdateUserPromoBallance(userId, newBallance);
-        }
     }
 }

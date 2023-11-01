@@ -29,7 +29,7 @@ namespace DiceApi.Data.Data.Dice
         /// <summary>
         /// Ставка
         /// </summary>
-        public double Sum { get; set; }
+        public decimal Sum { get; set; }
 
         /// <summary>
         /// Победил или проиграл
@@ -39,7 +39,7 @@ namespace DiceApi.Data.Data.Dice
         /// <summary>
         /// Возможный выигрыш.
         /// </summary>
-        public double CanWin { get; set; }
+        public decimal CanWin { get; set; }
 
         /// <summary>
         /// Время когда была игры

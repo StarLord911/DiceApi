@@ -42,7 +42,7 @@ namespace DiceApi.Services.Implements
             //отладить надо
             var responce = new DiceResponce();
 
-            var win = (100.0 / request.Persent) * request.Sum;
+            var win = Convert.ToDecimal((100.0 / request.Persent)) * request.Sum;
             var winSum = Math.Round(win, 2);
             var user = _userService.GetById(request.UserId);
 
@@ -55,7 +55,7 @@ namespace DiceApi.Services.Implements
                 if (request.Persent > random)
                 {
                     responce.IsSucces = true;
-                    responce.NewBallance = user.Ballance += (winSum - request.Sum);
+                    responce.NewBallance = (user.Ballance += (winSum - request.Sum));
                     await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
                 }
                 else
@@ -115,8 +115,7 @@ namespace DiceApi.Services.Implements
         {
             var containsUser = _userService.GetById(request.UserId);
 
-            if (request.Persent < 1 || request.Persent > 95 || containsUser == null || request.Sum > _maxBet
-                 || request.Sum > containsUser.Ballance)
+            if (request.Persent < 1 || request.Persent > 95 || containsUser == null || request.Sum > containsUser.Ballance)
             {
                 return false;
             }

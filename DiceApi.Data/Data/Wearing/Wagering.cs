@@ -21,12 +21,12 @@ namespace DiceApi.Data
         /// <summary>
         /// Сколько нужно отыграть по промокоду
         /// </summary>
-        public float Wageringed { get; set; }
+        public decimal Wageringed { get; set; }
 
         /// <summary>
         /// Сколько отыграно по промокоду
         /// </summary>
-        public float Played { get; set; }
+        public decimal Played { get; set; }
 
         /// <summary>
         /// Активен ли отыгрыш

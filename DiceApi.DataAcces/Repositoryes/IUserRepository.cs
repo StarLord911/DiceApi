@@ -15,9 +15,7 @@ namespace DiceApi.DataAcces.Repositoryes
         
         List<User> GetAll();
 
-        Task UpdateUserBallance(long userId, double newBallance);
-
-        Task UpdateUserPromoBallance(long userId, double newBallance);
+        Task UpdateUserBallance(long userId, decimal newBallance);
 
     }
 }

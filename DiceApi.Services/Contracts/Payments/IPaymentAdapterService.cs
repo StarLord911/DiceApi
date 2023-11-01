@@ -24,13 +24,15 @@ namespace DiceApi.Services.Contracts
         /// Получение баланса для антиминуса.
         /// </summary>
         /// <returns></returns>
-        Task<double> GetCurrentBallance();
+        Task<decimal> GetCurrentBallance();
 
         /// <summary>
         /// Обновление баланса для антиминуса при пополнений.
         /// </summary>
         /// <param name="sum"></param>
         /// <returns></returns>
-        void UpdateCurrentBallance(double sum);
+        void UpdateCurrentBallance(decimal sum);
+
+        //Task CreateWithdrawal
     }
 }

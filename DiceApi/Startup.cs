@@ -79,10 +79,12 @@ namespace DiceApi
 
             //регаем репы.
             services.AddTransient<IPaymentRepository, PaymentRepository>();
+            services.AddTransient<IWithdrawalsRepository, WithdrawalsRepository>();
 
             //регаем сервисы
             services.AddTransient<IPaymentService, PaymentService>();
-            services.AddTransient<IPaymentAdapterService, PaymentAdapterService>();
+            services.AddSingleton<IPaymentAdapterService, PaymentAdapterService>();
+            services.AddTransient<IWithdrawalsService, WithdrawalsService>();
 
 
             ConfigHelper.LoadConfig(Configuration);
