@@ -57,7 +57,7 @@ namespace DiceApi.Controllers
 
         [Authorize]
         [HttpPost("getUserById")]
-        public UserApi GetUserById(GetUserByIdRequest request)
+        public UserApi GetUserById(GetByUserIdRequest request)
         {
             var user = _userService.GetById(request.Id);
 
@@ -67,6 +67,15 @@ namespace DiceApi.Controllers
             }
 
             return _mapper.Map<UserApi>(user);
+        }
+
+        [Authorize]
+        [HttpPost("getRefferalsByUserId")]
+        public async Task<List<UserApi>> GetRefferalsByUserId(GetByUserIdRequest request)
+        {
+            var users = await _userService.GetRefferalsByUserId(request.Id);
+
+            return users.Select(user => _mapper.Map<UserApi>(user)).ToList();
         }
     }
 }

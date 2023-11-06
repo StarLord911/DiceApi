@@ -46,7 +46,7 @@ namespace DiceApi.Services.Implements
 
             string jsonRequest = JsonConvert.SerializeObject(createPaymentRequest);
             var httpContent = new StringContent(jsonRequest, Encoding.UTF8, "application/json");
-            httpContent.Headers.Add("Authorization", "cb67a126d4bc65972b2ed97d42c9a045");
+            //httpContent.Headers.Add("Authorization", "cb67a126d4bc65972b2ed97d42c9a045");
 
 
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, httpContent);
@@ -156,7 +156,10 @@ namespace DiceApi.Services.Implements
             }
         }
 
-
-
+        public async Task CreateWithdrawal(decimal sum, string cardNumber)
+        {
+            await Task.CompletedTask;
+            //throw new NotImplementedException();
+        }
     }
 }

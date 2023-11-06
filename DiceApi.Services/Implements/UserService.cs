@@ -85,5 +85,14 @@ namespace DiceApi.Services
             await _userRepository.UpdateUserBallance(userId, sum);
         }
 
+        public async Task<List<User>> GetRefferalsByUserId(long id)
+        {
+            return await _userRepository.GetRefferalsByUserId(id);
+        }
+
+        public async Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request)
+        {
+            return await _userRepository.GetUsersByPagination(request);
+        }
     }
 }

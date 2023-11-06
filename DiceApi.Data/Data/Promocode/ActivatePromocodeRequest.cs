@@ -12,4 +12,11 @@ namespace DiceApi.Data
 
         public long UserId { get; set; }
     }
+
+    public class ActivatePromocodeResponce
+    {
+        public string Message { get; set; }
+
+        public bool Successful { get; set; }
+    }
 }

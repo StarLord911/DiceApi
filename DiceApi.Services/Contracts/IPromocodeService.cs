@@ -11,6 +11,6 @@ namespace DiceApi.Services.Contracts
     {
         Task<Promocode> CreatePromocode(CreatePromocodeRequest request);
 
-        Task ActivetePromocode(ActivatePromocodeRequest request);
+        Task<ActivatePromocodeResponce> ActivetePromocode(ActivatePromocodeRequest request);
     }
 }

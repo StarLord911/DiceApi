@@ -17,5 +17,8 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task UpdateUserBallance(long userId, decimal newBallance);
 
+        Task<List<User>> GetRefferalsByUserId(long ownerId);
+
+        Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request);
     }
 }

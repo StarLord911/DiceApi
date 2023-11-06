@@ -27,7 +27,8 @@ namespace DiceApi.DataAcces.Repositoryes
                
                 string query = @"
                     INSERT INTO Payments (orderId, amount, createdAt, status, userId)
-                    VALUES (@OrderId, @Amount, @CreatedAt, @Status, @UserId)";
+                    VALUES (@OrderId, @Amount, @CreatedAt, @Status, @UserId)
+                    SELECT CAST(SCOPE_IDENTITY() AS int)";
 
                 var parameters = new
                 {
@@ -38,7 +39,19 @@ namespace DiceApi.DataAcces.Repositoryes
                     UserId = payment.UserId
                 };
 
-                return await connection.ExecuteAsync(query, parameters);
+                return await connection.ExecuteScalarAsync<long>(query, parameters);
+            }
+        }
+
+        public async Task<Payment> GetPaymentsById(long paymentId)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT * FROM Payments WHERE Id = @Id";
+
+                var parameters = new { Id = paymentId };
+
+                return await connection.QueryFirstAsync<Payment>(query, parameters);
             }
         }
 
@@ -54,9 +67,16 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public Task UpdatePaymentStatus(string paymentId)
+        public async Task UpdatePaymentStatus(long paymentId, PaymentStatus status)
         {
-            throw new NotImplementedException();
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = $"update Payments set Status = '{status}' WHERE Id = @Id";
+
+                var parameters = new { Id = paymentId };
+
+                await connection.ExecuteAsync(query, parameters);
+            }
         }
     }
 }

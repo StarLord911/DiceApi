@@ -30,5 +30,7 @@ namespace DiceApi.Data
         [JsonProperty("isActive")]
         public bool IsActive { get; set; }
 
+        public string Role { get; set; }
+
     }
 }

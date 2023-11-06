@@ -16,5 +16,12 @@ namespace DiceApi.Services.Contracts
 
         Task ConfirmPayment(ConfirmPayment payment);
 
+        Task<List<Payment>> GetPaymentsByUserId(long userId);
+
+        Task<Payment> GetPaymentsById(long paymentId);
+
+        Task UpdatePaymentStatus(long paymentId, PaymentStatus status);
+
+
     }
 }

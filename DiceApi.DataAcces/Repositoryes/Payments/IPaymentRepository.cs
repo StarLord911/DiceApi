@@ -13,6 +13,9 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task<List<Payment>> GetPaymentsByUserId(long userId);
 
-        Task UpdatePaymentStatus(string paymentId);
+        Task UpdatePaymentStatus(long paymentId, PaymentStatus status);
+
+        Task<Payment> GetPaymentsById(long paymentId);
+
     }
 }

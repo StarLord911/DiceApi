@@ -18,5 +18,10 @@ namespace DiceApi.Services
         User GetById(long id);
 
         Task UpdateUserBallance(long userId, decimal sum);
+
+        Task<List<User>> GetRefferalsByUserId(long id);
+
+        Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request);
+
     }
 }

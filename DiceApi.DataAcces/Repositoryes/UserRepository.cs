@@ -91,5 +91,26 @@ namespace DiceApi.DataAcces.Repositoryes
                 await db.ExecuteAsync(query, new { id = userId, newBallance });
             }
         }
+
+        public async Task<List<User>> GetRefferalsByUserId(long ownerId)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                return (await db.QueryAsync<User>("SELECT * FROM Users WHERE isActive = 1 and ownerId = @ownerId", new { ownerId })).ToList();
+            }
+        }
+
+        public async Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                string query = "SELECT * FROM Users ORDER BY Id OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                int offset = (request.PageNumber - 1) * request.PageSize;
+
+                var users = await db.QueryAsync<User>(query, new { Offset = offset, PageSize = request.PageSize });
+
+                return users.ToList();
+            }
+        }
     }
 }

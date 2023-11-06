@@ -28,31 +28,40 @@ namespace DiceApi.Services.Implements
             _wageringRepository = wageringRepository;
         }
 
-        public async Task ActivetePromocode(ActivatePromocodeRequest request)
+        public async Task<ActivatePromocodeResponce> ActivetePromocode(ActivatePromocodeRequest request)
         {
             var promocode = await _promocodeRepository.GetPromocode(request.Promocode);
+            var responce = new ActivatePromocodeResponce();
 
             if (promocode == null)
             {
-                throw new Exception($"Promocode does not contains {request.Promocode}");
+                responce.Message = "Неверный промокод";
+                responce.Successful = false;
+                return responce;
             }
 
             var activateHistory = await _promocodeActivationHistory.GetPromocodeActivates(promocode.PromoCode);
 
             if (!promocode.IsActive)
             {
-                throw new Exception($"Promocode not active {request.Promocode}");
+                responce.Message = "Неверный промокод";
+                responce.Successful = false;
+                return responce;
             }
 
             if (activateHistory.Count >= promocode.ActivationCount)
             {
                 await _promocodeRepository.DiactivatePromocode(request.Promocode);
-                throw new Exception($"Promocode not active {request.Promocode}");
+                responce.Message = "Превышено количество активаций промокода";
+                responce.Successful = false;
+                return responce;
             }
 
             if (activateHistory.Any(p => p.Promocode == request.Promocode && p.UserId == request.UserId))
             {
-                throw new Exception($"This user already activate this promocode {request.Promocode}");
+                responce.Message = "Вы уже активировали этот промокод";
+                responce.Successful = false;
+                return responce;
             }
 
             var user = _userService.GetById(request.UserId);
@@ -90,7 +99,11 @@ namespace DiceApi.Services.Implements
                 await _wageringRepository.AddWearing(wearing);
             }
 
+            responce.Message = "Промокод активирован";
+            responce.Successful = true;
             await _promocodeActivationHistory.AddPromocodeActivation(promocodeActivation);
+
+            return responce;
         }
 
         public async Task<Promocode> CreatePromocode(CreatePromocodeRequest request)

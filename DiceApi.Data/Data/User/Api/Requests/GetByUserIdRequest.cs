@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data.Requests
 {
-    public class GetUserByIdRequest
+    public class GetByUserIdRequest
     {
         [JsonProperty("userId")]
         public long Id { get; set; }

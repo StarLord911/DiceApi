@@ -11,6 +11,15 @@ namespace DiceApi.DataAcces.Repositoryes
     {
         Task AddWithdrawal(Withdrawal withdrawal);
 
-        
+        Task<List<Withdrawal>> GetAll();
+
+        Task<Withdrawal> GetById(long id);
+
+        Task<List<Withdrawal>> GetAllByUserId(long userId);
+
+        Task UpdateIsActive(long id);
+
+
+
     }
 }

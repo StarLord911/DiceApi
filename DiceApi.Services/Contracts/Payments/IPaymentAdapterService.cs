@@ -33,6 +33,11 @@ namespace DiceApi.Services.Contracts
         /// <returns></returns>
         void UpdateCurrentBallance(decimal sum);
 
-        //Task CreateWithdrawal
+        /// <summary>
+        /// Сделать вывод.
+        /// </summary>
+        /// <returns></returns>
+        Task CreateWithdrawal(decimal sum, string cardNumber);
+
     }
 }

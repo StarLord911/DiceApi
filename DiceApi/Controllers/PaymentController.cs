@@ -1,6 +1,7 @@
 ﻿using DiceApi.Attributes;
 using DiceApi.Data;
 using DiceApi.Data.Data.Payment;
+using DiceApi.Data.Requests;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
@@ -58,6 +59,20 @@ namespace DiceApi.Controllers
         public async Task<CreateWithdrawalResponce> CreateWithdrawal(CreateWithdrawalRequest createWithdrawalRequest)
         {
             return await _withdrawalsService.CreateWithdrawalRequest(createWithdrawalRequest);
+        }
+
+        [Authorize]
+        [HttpPost("confirmWithdrawal")]
+        public async Task ConfirmWithdrawal(ConfirmWithdrawalRequest request)
+        {
+            await _withdrawalsService.СonfirmWithdrawal(request.WithdrawalId);
+        }
+
+        [Authorize]
+        [HttpPost("getPaymentsByUserId")]
+        public async Task<List<Payment>> GetPaymentsByUserId(GetByUserIdRequest request)
+        {
+            return await _paymentService.GetPaymentsByUserId(request.Id);
         }
     }
 }

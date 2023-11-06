@@ -14,14 +14,17 @@ namespace DiceApi.Services.Implements
         private readonly IWageringRepository _wageringRepository;
         private readonly IUserService _userService;
         private readonly IWithdrawalsRepository _withdrawalsRepository;
+        private readonly IPaymentAdapterService _paymentAdapterService;
 
         public WithdrawalsService(IWageringRepository wageringRepository,
             IUserService userService,
-            IWithdrawalsRepository withdrawalsRepository)
+            IWithdrawalsRepository withdrawalsRepository,
+            IPaymentAdapterService paymentAdapterService)
         {
             _wageringRepository = wageringRepository;
             _userService = userService;
             _withdrawalsRepository = withdrawalsRepository;
+            _paymentAdapterService = paymentAdapterService;
         }
 
         public async Task<CreateWithdrawalResponce> CreateWithdrawalRequest(CreateWithdrawalRequest request)
@@ -41,7 +44,7 @@ namespace DiceApi.Services.Implements
             if (user != null && !user.IsActive)
             {
                 responce.Succses = false;
-                responce.Message = $"Cannot find user";
+                responce.Message = $"Не нашли юзера";
 
                 return responce;
             }
@@ -63,7 +66,7 @@ namespace DiceApi.Services.Implements
                 IsActive = true
             };
 
-            await _userService.UpdateUserBallance(request.UserId, -request.Amount);
+            await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.Amount);
 
             await _withdrawalsRepository.AddWithdrawal(withdrowal);
 
@@ -71,6 +74,23 @@ namespace DiceApi.Services.Implements
             responce.Message = $"Заявка на вывод принята";
 
             return responce;
+        }
+
+        public async Task<List<Withdrawal>> GetAll()
+        {
+            return await _withdrawalsRepository.GetAll();
+        }
+
+        public async Task<List<Withdrawal>> GetByUserId(long userId)
+        {
+            return await _withdrawalsRepository.GetAllByUserId(userId);
+        }
+
+        public async Task СonfirmWithdrawal(long id)
+        {
+            var withdrawal = await _withdrawalsRepository.GetById(id);
+            await _paymentAdapterService.CreateWithdrawal(withdrawal.Amount, withdrawal.CardNumber);
+            await _withdrawalsRepository.UpdateIsActive(id);
         }
     }
 }

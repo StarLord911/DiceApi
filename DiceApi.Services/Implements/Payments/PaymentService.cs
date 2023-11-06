@@ -37,5 +37,20 @@ namespace DiceApi.Services.Implements
                 await _userService.UpdateUserBallance(user.OwnerId.Value, updateOwnerBallance);
             }
         }
+
+        public async Task<Payment> GetPaymentsById(long paymentId)
+        {
+            return await _paymentRepository.GetPaymentsById(paymentId);
+        }
+
+        public async Task<List<Payment>> GetPaymentsByUserId(long userId)
+        {
+            return await _paymentRepository.GetPaymentsByUserId(userId);
+        }
+
+        public async Task UpdatePaymentStatus(long paymentId, PaymentStatus status)
+        {
+            await _paymentRepository.UpdatePaymentStatus(paymentId, status);
+        }
     }
 }

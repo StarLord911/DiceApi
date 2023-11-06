@@ -26,4 +26,15 @@ namespace DiceApi.Data
         /// </summary>
         public string CartNumber { get; set; }
     }
+
+    /// <summary>
+    /// Подтверждения вывода.
+    /// </summary>
+    public class ConfirmWithdrawalRequest
+    {
+        /// <summary>
+        /// Id вывода
+        /// </summary>
+        public long WithdrawalId { get; set; }
+    }
 }
