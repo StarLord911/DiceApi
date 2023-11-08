@@ -66,15 +66,15 @@ namespace DiceApi.Controllers
             return res;
         }
 
-        public string ReplaceAt(string input, int index, char newChar)
+        private string ReplaceAt(string input, int index, char newChar)
         {
-            if (startIndex < 0 || startIndex >= input.Length)
+            if (index < 0 || index >= input.Length)
             {
-                throw new ArgumentOutOfRangeException("startIndex", "Start index is out of range");
+                return input;
             }
 
             char[] chars = input.ToCharArray();
-            for (int i = startIndex; i < input.Length; i++)
+            for (int i = index; i < input.Length; i++)
             {
                 chars[i] = newChar;
             }

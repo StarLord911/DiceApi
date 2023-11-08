@@ -46,6 +46,11 @@ namespace DiceApi.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserRegisterResponce userModel)
         {
+            if (userModel.Name.Length < 5)
+            {
+                return BadRequest(new { message = "Short name. Name leght should be > 5" });
+            }
+
             var response = await _userService.Register(userModel);
 
             if (response == null)
