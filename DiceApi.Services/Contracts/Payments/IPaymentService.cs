@@ -14,7 +14,7 @@ namespace DiceApi.Services.Contracts
     {
         Task<long> AddPayment(Payment payment);
 
-        Task ConfirmPayment(ConfirmPayment payment);
+        Task ConfirmReferalOwnerPayment(ConfirmPayment payment);
 
         Task<List<Payment>> GetPaymentsByUserId(long userId);
 

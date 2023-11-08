@@ -26,15 +26,24 @@ namespace DiceApi.Services.Implements
             return await _paymentRepository.CreatePayment(payment);
         }
 
-        public async Task ConfirmPayment(ConfirmPayment payment)
+        public async Task ConfirmReferalOwnerPayment(ConfirmPayment payment)
         {
             var user = _userService.GetById(payment.UserId);
 
             //Обновление баланса владельца акка.
             if (user.OwnerId != null && user.OwnerId.Value != 0)
             {
-                var updateOwnerBallance = payment.Amount / 10;
-                await _userService.UpdateUserBallance(user.OwnerId.Value, updateOwnerBallance);
+                var owner = _userService.GetById(user.OwnerId.Value);
+                //добавить к полю referalSum updateOwnerBallance
+
+                var updateOwnerBallance = (payment.Amount / 100) * owner.ReferalPercent;
+
+                // var updateOwnerBallance + user.ReferalSum
+                // UpdateUserReferalSum
+
+                await _userService.UpdateReferalSum(user.Id, updateOwnerBallance + user.ReferalSum);
+
+                await _userService.UpdateUserBallance(user.OwnerId.Value, owner.Ballance + updateOwnerBallance);
             }
         }
 

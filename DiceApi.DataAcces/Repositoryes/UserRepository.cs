@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using DiceApi.Common;
 using DiceApi.Data;
+using DiceApi.Data.Api;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -47,8 +48,8 @@ namespace DiceApi.DataAcces.Repositoryes
                     throw new Exception("Is user contains");
                 }
 
-                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive )
-                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive)
+                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent )
+                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent)
                                     SELECT CAST(SCOPE_IDENTITY() AS int)";
 
                 var parameters = new
@@ -58,7 +59,8 @@ namespace DiceApi.DataAcces.Repositoryes
                     Ballance = 0,
                     OwnerId = user.OwnerId,
                     RegistrationDate = DateTime.Now,
-                    IsActive = true
+                    IsActive = true,
+                    ReferalPercent = 10
                 };
 
                 var userId = await db.ExecuteScalarAsync<long>(query, parameters);
@@ -92,11 +94,25 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task<List<User>> GetRefferalsByUserId(long ownerId)
+        public async Task<GetPainatidDataByUserIdResponce<User>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)
         {
+            var result = new GetPainatidDataByUserIdResponce<User>();
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
-                return (await db.QueryAsync<User>("SELECT * FROM Users WHERE isActive = 1 and ownerId = @ownerId", new { ownerId })).ToList();
+                int offset = (request.PageNumber - 1) * request.PageSize;
+
+                var queryResult = (await db.QueryAsync<User>($@"SELECT * FROM Users WHERE isActive = 1 and ownerId = @ownerId 
+                                ORDER BY Id OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY",
+                                new { ownerId = request.Id, Offset = offset, PageSize = request.PageSize })).ToList();
+
+                var countQuery = await db.ExecuteScalarAsync<int>($@"SELECT count(*) FROM Users WHERE isActive = 1 and ownerId = @ownerId", new { ownerId = request.Id });
+                var pageCont = (int)Math.Ceiling((double)countQuery / request.PageSize);
+
+                result.PaginatedData = new PaginatedList<User>(queryResult, pageCont, request.PageNumber);
+
+                return result;
+
+               
             }
         }
 
@@ -110,6 +126,16 @@ namespace DiceApi.DataAcces.Repositoryes
                 var users = await db.QueryAsync<User>(query, new { Offset = offset, PageSize = request.PageSize });
 
                 return users.ToList();
+            }
+        }
+
+        public async Task UpdateReferalSum(long userId, decimal sum)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                var query = $@"update Users set referalSum = @sum where Id = @id";
+
+                await db.ExecuteAsync(query, new { id = userId, sum });
             }
         }
     }

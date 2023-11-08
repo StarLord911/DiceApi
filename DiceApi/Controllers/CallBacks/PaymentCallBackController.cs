@@ -20,6 +20,7 @@ namespace DiceApi.Controllers.CallBacks
         private IUserService _userService;
         private ILogRepository _logRepository;
 
+
         public PaymentCallBackController(IPaymentService paymentService,
             IUserService userService,
             ILogRepository logRepository)
@@ -38,6 +39,8 @@ namespace DiceApi.Controllers.CallBacks
             {
                 return;
             }
+
+            await _paymentService.ConfirmReferalOwnerPayment(new ConfirmPayment { UserId = payment.UserId, Amount = payment.Amount });
 
             await _paymentService.UpdatePaymentStatus(payment.Id, PaymentStatus.Payed);
 

@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.Api;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,8 +18,10 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task UpdateUserBallance(long userId, decimal newBallance);
 
-        Task<List<User>> GetRefferalsByUserId(long ownerId);
+        Task<GetPainatidDataByUserIdResponce<User>> GetRefferalsByUserId(GetReferalsByUserIdRequest request);
 
         Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request);
+
+        Task UpdateReferalSum(long userId, decimal sum);
     }
 }

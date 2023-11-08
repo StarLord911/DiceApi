@@ -32,5 +32,15 @@ namespace DiceApi.Data
 
         public string Role { get; set; }
 
+        /// <summary>
+        /// Процент начислений на балланс от депозитов рефералов.
+        /// </summary>
+        public int ReferalPercent { get; set; }
+
+        /// <summary>
+        /// Сколько денег в общем принес своему реф овнеру
+        /// </summary>
+        public decimal ReferalSum { get; set; }
+
     }
 }

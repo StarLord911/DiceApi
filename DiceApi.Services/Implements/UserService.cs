@@ -1,5 +1,7 @@
-﻿using DiceApi.Common;
+﻿using AutoMapper;
+using DiceApi.Common;
 using DiceApi.Data;
+using DiceApi.Data.Api;
 using DiceApi.DataAcces.Repositoryes;
 using System;
 using System.Collections.Generic;
@@ -12,12 +14,16 @@ namespace DiceApi.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ILogRepository _logRepository;
+        private readonly IMapper _mapper;
+
 
         public UserService(IUserRepository userRepository,
-            ILogRepository logRepository)
+            ILogRepository logRepository,
+            IMapper mapper)
         {
             _userRepository = userRepository;
             _logRepository = logRepository;
+            _mapper = mapper;
         }
 
         public async Task<AuthenticateResponse> Authenticate(AuthenticateRequest model)
@@ -85,14 +91,25 @@ namespace DiceApi.Services
             await _userRepository.UpdateUserBallance(userId, sum);
         }
 
-        public async Task<List<User>> GetRefferalsByUserId(long id)
+        public async Task<GetPainatidDataByUserIdResponce<UserReferral>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)
         {
-            return await _userRepository.GetRefferalsByUserId(id);
+            var dbResult = await _userRepository.GetRefferalsByUserId(request);
+
+            var res = new GetPainatidDataByUserIdResponce<UserReferral>();
+            res.PaginatedData = new PaginatedList<UserReferral>(dbResult.PaginatedData.Items.Select(u => _mapper.Map<UserReferral>(u)).ToList(),
+                dbResult.PaginatedData.TotalPages, dbResult.PaginatedData.PageIndex);
+
+            return res;
         }
 
         public async Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request)
         {
             return await _userRepository.GetUsersByPagination(request);
+        }
+
+        public async Task UpdateReferalSum(long userId, decimal sum)
+        {
+            await _userRepository.UpdateReferalSum(userId, sum);
         }
     }
 }

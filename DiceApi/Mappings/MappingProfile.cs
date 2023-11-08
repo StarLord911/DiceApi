@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using DiceApi.Data;
+using DiceApi.Data.Api;
 using DiceApi.Data.Api.Model;
+using DiceApi.Data.Data.Dice;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,12 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
 
+            CreateMap<User, UserReferral>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Profit, opt => opt.MapFrom(src => src.ReferalSum))
+                .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate));
+
+            
         }
     }
 }

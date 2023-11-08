@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using DiceApi.Attributes;
 using DiceApi.Data;
+using DiceApi.Data.Api;
 using DiceApi.Data.Api.Model;
 using DiceApi.Data.Data.Payment;
 using DiceApi.Data.Requests;
@@ -71,11 +72,9 @@ namespace DiceApi.Controllers
 
         [Authorize]
         [HttpPost("getRefferalsByUserId")]
-        public async Task<List<UserApi>> GetRefferalsByUserId(GetByUserIdRequest request)
+        public async Task<GetPainatidDataByUserIdResponce<UserReferral>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)
         {
-            var users = await _userService.GetRefferalsByUserId(request.Id);
-
-            return users.Select(user => _mapper.Map<UserApi>(user)).ToList();
+            return await _userService.GetRefferalsByUserId(request);
         }
     }
 }
