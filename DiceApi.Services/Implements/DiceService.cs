@@ -32,11 +32,11 @@ namespace DiceApi.Services.Implements
             _paymentAdapterService = paymentAdapterService;
         }
 
-        public async Task<DiceResponce> StartDice(DiceRequest request)
+        public async Task<(DiceResponce, DiceGame)> StartDice(DiceRequest request)
         {
             if (!ValidateDiceRequest(request))
             {
-                return new DiceResponce { IsSucces = false };
+                return (new DiceResponce { IsSucces = false }, new DiceGame());
             }
 
             //отладить надо
@@ -98,7 +98,7 @@ namespace DiceApi.Services.Implements
 
             await _logRepository.LogInfo("Add new dice game");
 
-            return responce;
+            return (responce, diceGame);
         }
 
         public async Task<List<DiceGame>> GetLastGames()

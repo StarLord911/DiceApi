@@ -66,7 +66,7 @@ namespace DiceApi.DataAcces.Repositoryes
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
-                return (await db.QueryAsync<DiceGame>("SELECT top(20) * FROM DiceGame order by gameTime desc")).ToList();
+                return (await db.QueryAsync<DiceGame>("SELECT top(10) * FROM DiceGame order by gameTime desc")).ToList();
             }
         }
     }

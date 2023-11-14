@@ -33,6 +33,12 @@ namespace DiceApi.Data.Data.Dice
         [JsonProperty("canWinSum")]
         public decimal CanWinSum { get; set; }
 
-        
+        /// <summary>
+        /// Выиграл или проиграл
+        /// </summary>
+        [JsonProperty("win")]
+        public bool Win { get; set; }
+
+
     }
 }

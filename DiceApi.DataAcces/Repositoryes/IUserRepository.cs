@@ -18,10 +18,12 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task UpdateUserBallance(long userId, decimal newBallance);
 
-        Task<GetPainatidDataByUserIdResponce<User>> GetRefferalsByUserId(GetReferalsByUserIdRequest request);
+        Task<GetPaginatedDataByUserIdResponce<User>> GetRefferalsByUserId(GetReferalsByUserIdRequest request);
 
         Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request);
 
         Task UpdateReferalSum(long userId, decimal sum);
+
+        Task<List<User>> GetRefferalsByUserId(long ownerId);
     }
 }

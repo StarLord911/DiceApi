@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data.Api
 {
-    public class GetPainatidDataByUserIdResponce<T>
+    public class GetPaginatedDataByUserIdResponce<T>
     {
         [JsonProperty("paginatedData")]
         public PaginatedList<T> PaginatedData { get; set; }

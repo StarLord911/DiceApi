@@ -59,7 +59,7 @@ namespace DiceApi.DataAcces.Repositoryes
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
-                string query = "SELECT * FROM Payments WHERE userId = @UserId";
+                string query = "SELECT * FROM Payments WHERE userId = @UserId ";
 
                 var parameters = new { UserId = userId };
 

@@ -75,12 +75,7 @@ namespace DiceApi.Controllers
             return _mapper.Map<UserApi>(user);
         }
 
-        [Authorize]
-        [HttpPost("getRefferalsByUserId")]
-        public async Task<GetPainatidDataByUserIdResponce<UserReferral>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)
-        {
-            return await _userService.GetRefferalsByUserId(request);
-        }
+        
     }
 }
 

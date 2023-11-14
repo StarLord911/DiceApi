@@ -94,9 +94,9 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task<GetPainatidDataByUserIdResponce<User>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)
+        public async Task<GetPaginatedDataByUserIdResponce<User>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)
         {
-            var result = new GetPainatidDataByUserIdResponce<User>();
+            var result = new GetPaginatedDataByUserIdResponce<User>();
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 int offset = (request.PageNumber - 1) * request.PageSize;
@@ -136,6 +136,15 @@ namespace DiceApi.DataAcces.Repositoryes
                 var query = $@"update Users set referalSum = @sum where Id = @id";
 
                 await db.ExecuteAsync(query, new { id = userId, sum });
+            }
+        }
+
+        public async Task<List<User>> GetRefferalsByUserId(long ownerId)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                return (await db.QueryAsync<User>($@"SELECT * FROM Users WHERE isActive = 1 and ownerId = @ownerId",
+                                new { ownerId })).ToList();
             }
         }
     }

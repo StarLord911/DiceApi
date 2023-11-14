@@ -53,7 +53,7 @@ namespace DiceApi.DataAcces.Repositoryes
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
-                return await db.QueryFirstAsync<Promocode>("SELECT * FROM PromoCodes WHERE promocode = @code", new { code = promocode });
+                return (await db.QueryAsync<Promocode>("SELECT * FROM PromoCodes WHERE promocode = @code", new { code = promocode })).FirstOrDefault();
             }
         }
 

@@ -14,5 +14,8 @@ namespace DiceApi.Common
 
 
         public const string DbConnectionString = "DbConnectionString";
+
+        public const string SignalRHubAddres = "SignalRHubAddres";
+
     }
 }

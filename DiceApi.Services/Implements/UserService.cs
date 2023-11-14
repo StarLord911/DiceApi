@@ -91,11 +91,11 @@ namespace DiceApi.Services
             await _userRepository.UpdateUserBallance(userId, sum);
         }
 
-        public async Task<GetPainatidDataByUserIdResponce<UserReferral>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)
+        public async Task<GetPaginatedDataByUserIdResponce<UserReferral>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)
         {
             var dbResult = await _userRepository.GetRefferalsByUserId(request);
 
-            var res = new GetPainatidDataByUserIdResponce<UserReferral>();
+            var res = new GetPaginatedDataByUserIdResponce<UserReferral>();
             res.PaginatedData = new PaginatedList<UserReferral>(dbResult.PaginatedData.Items.Select(u => _mapper.Map<UserReferral>(u)).ToList(),
                 dbResult.PaginatedData.TotalPages, dbResult.PaginatedData.PageIndex);
 
@@ -110,6 +110,11 @@ namespace DiceApi.Services
         public async Task UpdateReferalSum(long userId, decimal sum)
         {
             await _userRepository.UpdateReferalSum(userId, sum);
+        }
+
+        public async Task<List<User>> GetRefferalsByUserId(long ownerId)
+        {
+            return await _userRepository.GetRefferalsByUserId(ownerId);
         }
     }
 }

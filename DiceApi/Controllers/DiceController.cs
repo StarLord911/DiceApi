@@ -31,7 +31,8 @@ namespace DiceApi.Controllers
         public async Task<DiceResponce> Start(DiceRequest request)
         {
             //HttpContext.Items[]
-            return await _diceService.StartDice(request);
+            var res = await _diceService.StartDice(request);
+            return res.Item1;
         }
 
         [Authorize]

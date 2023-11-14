@@ -30,9 +30,9 @@ namespace DiceApi.Controllers
 
         [Authorize]
         [HttpPost("activatePromocode")]
-        public async Task ActivatePromocode(ActivatePromocodeRequest promoCode)
+        public async Task<ActivatePromocodeResponce> ActivatePromocode(ActivatePromocodeRequest promoCode)
         {
-            await _promocodeService.ActivetePromocode(promoCode);
+            return await _promocodeService.ActivetePromocode(promoCode);
         }
 
     }
