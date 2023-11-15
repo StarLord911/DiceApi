@@ -43,6 +43,16 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
+        public async Task<List<Payment>> GetAllPayedPayments()
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = $"SELECT * FROM Payments WHERE Status = '{PaymentStatus.Payed}'";
+
+                return (await connection.QueryAsync<Payment>(query)).ToList();
+            }
+        }
+
         public async Task<Payment> GetPaymentsById(long paymentId)
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))

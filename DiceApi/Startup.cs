@@ -1,5 +1,6 @@
 using DiceApi.Common;
 using DiceApi.DataAcces.Repositoryes;
+using DiceApi.Hubs;
 using DiceApi.Mappings;
 using DiceApi.MiddleWares;
 using DiceApi.Services;
@@ -29,6 +30,7 @@ namespace DiceApi
         {
             services.AddAutoMapper(typeof(Startup));
             services.AddSingleton<MappingProfile>();
+            services.AddSignalR();
 
             services.AddCors(options =>
             {
@@ -108,6 +110,8 @@ namespace DiceApi
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<NHub>(ConfigHelper.GetConfigValue(ConfigerationNames.SignalRHubAddres));
+
                 endpoints.MapControllers();
             });
         }

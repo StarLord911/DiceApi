@@ -39,6 +39,19 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 connection.Open();
 
+                string query = $@"Select * From Withdrawal";
+
+                return (await connection.QueryAsync<Withdrawal>(query)).ToList();
+
+            }
+        }
+
+        public async Task<List<Withdrawal>> GetAllActive()
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
                 string query = $@"Select * From Withdrawal where IsActive = 1";
 
                 return (await connection.QueryAsync<Withdrawal>(query)).ToList();

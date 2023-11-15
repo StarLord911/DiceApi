@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.Data.Payment;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,8 @@ namespace DiceApi.Services.Contracts
 
         Task UpdatePaymentStatus(long paymentId, PaymentStatus status);
 
+        Task<List<Payment>> GetAllPayedPayments();
 
+        Task<PaymentStats> GetPaymentStats();
     }
 }

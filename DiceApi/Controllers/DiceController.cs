@@ -43,17 +43,17 @@ namespace DiceApi.Controllers
         }
 
         [HttpPost("getLastGames")]
-        public async Task<List<DiceGameApi>> GetLastGames()
+        public async Task<List<GameApiModel>> GetLastGames()
         {
             var games = await _diceService.GetLastGames();
 
-            var res = new List<DiceGameApi>();
+            var res = new List<GameApiModel>();
 
             foreach (var game in games)
             {
                 var user = _userService.GetById(game.UserId);
 
-                var apiModel = new DiceGameApi
+                var apiModel = new GameApiModel
                 {
                     UserName = ReplaceAt(user.Name, 3, '*'),
                     Sum = game.Sum,

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data.Data.Dice
 {
-    public class DiceGameApi
+    public class GameApiModel
     {
         /// <summary>
         /// Какой юзер играл
@@ -39,6 +39,10 @@ namespace DiceApi.Data.Data.Dice
         [JsonProperty("win")]
         public bool Win { get; set; }
 
-
+        /// <summary>
+        /// Вид игры
+        /// </summary>
+        [JsonProperty("gameType")]
+        public GameType GameType { get; set; }
     }
 }

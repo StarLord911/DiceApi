@@ -36,7 +36,7 @@ namespace DiceApi.Controllers
             var referals = await _userService.GetRefferalsByUserId(request.Id);
             var responce = new GetReferalStatsResponce();
             responce.ToDayReferals = referals.Count(r => r.RegistrationDate.Date == DateTime.Today);
-            responce.ToMonthReferals = referals.Count(r => IsThisWeek(r.RegistrationDate.Date));
+            responce.ToMonthReferals = referals.Count(r => IsThisMonth(r.RegistrationDate.Date));
 
             responce.ToAllTimeReferals = referals.Count();
 
@@ -67,23 +67,18 @@ namespace DiceApi.Controllers
                 var toDayPayment = payments.Where(r => r.CreatedAt.Date == DateTime.Today);
                 result.ToDayReferals += toDayPayment.Select(p => (p.Amount / 100) * owner.ReferalPercent).Sum();
 
-                var toWeekPayment = payments.Where(r => IsThisWeek(r.CreatedAt.Date));
-                result.ToMonthReferals += toWeekPayment.Select(p => (p.Amount / 100) * owner.ReferalPercent).Sum();
+                var toMonthReferals = payments.Where(r => IsThisMonth(r.CreatedAt));
+                result.ToMonthReferals += toMonthReferals.Select(p => (p.Amount / 100) * owner.ReferalPercent).Sum();
 
-                result.ToDayReferals += payments.Select(p => (p.Amount / 100) * owner.ReferalPercent).Sum();
+                result.ToAllTimeReferals += payments.Select(p => (p.Amount / 100) * owner.ReferalPercent).Sum();
             }
 
             return result;
         }
 
-        private bool IsThisWeek(DateTime dateTime)
+        private bool IsThisMonth(DateTime dateTime)
         {
-            Calendar calendar = CultureInfo.CurrentCulture.Calendar;
-
-            int currentWeek = calendar.GetWeekOfYear(DateTime.Today, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
-            int targetWeek = calendar.GetWeekOfYear(dateTime, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
-
-            return currentWeek == targetWeek;
+            return dateTime.Month == DateTime.Now.Month && dateTime.Year == DateTime.Now.Year;
         }
 
     }

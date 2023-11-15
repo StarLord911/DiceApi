@@ -2,7 +2,10 @@
 using DiceApi.Attributes;
 using DiceApi.Data;
 using DiceApi.Data.Api.Model;
+using DiceApi.Data.Data.Admin;
+using DiceApi.Data.Data.Payment;
 using DiceApi.Services;
+using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -19,11 +22,17 @@ namespace DiceApi.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly IPaymentService _paymentService;
+        private readonly IWithdrawalsService _withdrawalsService;
 
         public AdminController(IUserService userService,
+            IPaymentService paymentService,
+            IWithdrawalsService withdrawalsService,
             IMapper mapper)
         {
             _userService = userService;
+            _paymentService = paymentService;
+            _withdrawalsService = withdrawalsService;
             _mapper = mapper;
         }
 
@@ -36,6 +45,18 @@ namespace DiceApi.Controllers
             return users.Select(u => _mapper.Map<UserApi>(u)).ToList();
         }
 
-        
+        [Authorize(true)]
+        [HttpPost("getMainPageStats")]
+        public async Task<AdminMainPageStats> GetMainPageStats()
+        {
+            var result = new AdminMainPageStats();
+
+            result.PaymentStats = await _paymentService.GetPaymentStats();
+            result.WithdrawalStats = await _withdrawalsService.GetWithdrawalStats();
+            return result;
+        }
+
+
+
     }
 }
