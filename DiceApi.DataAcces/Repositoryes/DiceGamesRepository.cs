@@ -34,7 +34,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     sum = diceGame.Sum,
                     win = diceGame.Win,
                     canWin = diceGame.CanWin,
-                    gameTime = diceGame.GameDateTime
+                    gameTime = diceGame.GameTime
                 };
 
                 // SQL-запрос на вставку данных

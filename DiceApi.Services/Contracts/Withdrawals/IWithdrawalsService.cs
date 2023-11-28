@@ -11,7 +11,9 @@ namespace DiceApi.Services.Contracts
 
         Task<List<Withdrawal>> GetAll();
 
-        Task<List<Withdrawal>> GetByUserId(long userId);
+        Task<List<Withdrawal>> GetAllByUserId(long userId);
+
+        Task<List<Withdrawal>> GetAllActiveByUserId(long userId);
 
         Task СonfirmWithdrawal(long id);
 

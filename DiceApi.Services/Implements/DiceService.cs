@@ -79,7 +79,7 @@ namespace DiceApi.Services.Implements
                 Sum = request.Sum,
                 CanWin = winSum,
                 Win = responce.IsSucces,
-                GameDateTime = DateTime.Now
+                GameTime = DateTime.Now
             };
 
             await _diceGamesRepository.Add(diceGame);

@@ -1,9 +1,13 @@
 ﻿using DiceApi.Attributes;
 using DiceApi.Data.Data.Dice;
+using DiceApi.Data.Dice;
+using DiceApi.Hubs;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,12 +22,19 @@ namespace DiceApi.Controllers
     {
         private readonly IDiceService _diceService;
         private readonly IUserService _userService;
+        private IHubContext<NewGameHub> _hubContext;
+
 
         public DiceController(IDiceService diceService,
-            IUserService userService)
+            IUserService userService,
+            IHubContext<NewGameHub> hubContext)
         {
             _diceService = diceService;
             _userService = userService;
+
+            _hubContext = hubContext;
+
+            
         }
 
         [Authorize]
@@ -32,6 +43,22 @@ namespace DiceApi.Controllers
         {
             //HttpContext.Items[]
             var res = await _diceService.StartDice(request);
+            var user = _userService.GetById(res.Item2.UserId);
+
+            var apiModel = new GameApiModel
+            {
+                UserName = ReplaceAt(user.Name, 4, '*'),
+                Sum = res.Item2.Sum,
+                CanWinSum = res.Item2.CanWin,
+                Multiplier = Math.Round(res.Item2.CanWin / res.Item2.Sum, 2),
+                Win = res.Item2.Win,
+                GameType = Data.GameType.DiceGame
+            };
+
+            var gameJson = JsonConvert.SerializeObject(apiModel);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+
             return res.Item1;
         }
 
@@ -55,7 +82,7 @@ namespace DiceApi.Controllers
 
                 var apiModel = new GameApiModel
                 {
-                    UserName = ReplaceAt(user.Name, 3, '*'),
+                    UserName = ReplaceAt(user.Name, 4, '*'),
                     Sum = game.Sum,
                     CanWinSum = game.CanWin,
                     Multiplier = Math.Round(game.CanWin / game.Sum, 2)

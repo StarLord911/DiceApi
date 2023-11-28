@@ -83,9 +83,14 @@ namespace DiceApi.Services.Implements
             return await _withdrawalsRepository.GetAllActive();
         }
 
-        public async Task<List<Withdrawal>> GetByUserId(long userId)
+        public async Task<List<Withdrawal>> GetAllActiveByUserId(long userId)
         {
-            return await _withdrawalsRepository.GetAllByUserId(userId);
+            return await _withdrawalsRepository.GetAllActiveByUserId(userId);
+        }
+
+        public async Task<List<Withdrawal>> GetAllByUserId(long userId)
+        {
+            return await _withdrawalsRepository.GetAllActiveByUserId(userId);
         }
 
         public async Task<WithdrawalStats> GetWithdrawalStats()

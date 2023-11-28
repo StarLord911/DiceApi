@@ -47,5 +47,15 @@ namespace DiceApi.DataAcces.Repositoryes
                 return (await connection.QueryAsync<PrimocodeActivation>(query, new { code = promocode })).ToList();
             }
         }
+
+        public async Task<List<PrimocodeActivation>> GetPromocodeActivatesByUserId(long userId)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                var query = "select * from PromoCodeActivationHistory where userId = @id";
+
+                return (await connection.QueryAsync<PrimocodeActivation>(query, new { id = userId })).ToList();
+            }
+        }
     }
 }

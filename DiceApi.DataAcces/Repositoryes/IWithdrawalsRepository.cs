@@ -18,11 +18,10 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task<Withdrawal> GetById(long id);
 
-        Task<List<Withdrawal>> GetAllByUserId(long userId);
+        Task<List<Withdrawal>> GetAllActiveByUserId(long userId);
 
         Task UpdateIsActive(long id);
 
-
-
+        Task<List<Withdrawal>> GetByUserIdAll(long userId);
     }
 }

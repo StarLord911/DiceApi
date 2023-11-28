@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiceApi.Data.Data.Dice
+namespace DiceApi.Data.Dice
 {
     public class GameApiModel
     {
@@ -38,6 +38,12 @@ namespace DiceApi.Data.Data.Dice
         /// </summary>
         [JsonProperty("win")]
         public bool Win { get; set; }
+
+        /// <summary>
+        /// Дата игры
+        /// </summary>
+        [JsonProperty("gameDate")]
+        public DateTime GameDate { get; set; }
 
         /// <summary>
         /// Вид игры

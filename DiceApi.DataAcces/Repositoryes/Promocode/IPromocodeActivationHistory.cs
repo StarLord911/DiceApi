@@ -12,5 +12,8 @@ namespace DiceApi.DataAcces.Repositoryes
         Task<List<PrimocodeActivation>> GetPromocodeActivates(string promocode);
 
         Task AddPromocodeActivation(PrimocodeActivation activation);
+
+        Task<List<PrimocodeActivation>> GetPromocodeActivatesByUserId(long userId);
+
     }
 }

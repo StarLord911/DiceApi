@@ -82,6 +82,7 @@ namespace DiceApi
             //регаем репы.
             services.AddTransient<IPaymentRepository, PaymentRepository>();
             services.AddTransient<IWithdrawalsRepository, WithdrawalsRepository>();
+            services.AddTransient<IPaymentRequisitesRepository, PaymentRequisitesRepository>();
 
             //регаем сервисы
             services.AddTransient<IPaymentService, PaymentService>();
@@ -110,7 +111,8 @@ namespace DiceApi
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<NHub>(ConfigHelper.GetConfigValue(ConfigerationNames.SignalRHubAddres));
+                endpoints.MapHub<NewGameHub>(ConfigHelper.GetConfigValue(ConfigerationNames.SignalRHubAddres));
+                endpoints.MapHub<OnlineUsersHub>("/onlineusershub");
 
                 endpoints.MapControllers();
             });

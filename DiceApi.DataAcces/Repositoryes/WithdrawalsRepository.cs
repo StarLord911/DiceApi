@@ -59,7 +59,7 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task<List<Withdrawal>> GetAllByUserId(long userId)
+        public async Task<List<Withdrawal>> GetAllActiveByUserId(long userId)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
@@ -81,6 +81,19 @@ namespace DiceApi.DataAcces.Repositoryes
                 string query = $@"Select * From Withdrawal where IsActive = 1 and Id = {id}";
 
                 return (await connection.QueryAsync<Withdrawal>(query)).FirstOrDefault();
+
+            }
+        }
+
+        public async Task<List<Withdrawal>> GetByUserIdAll(long userId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = $@"Select * From Withdrawal where UserId = {userId}";
+
+                return (await connection.QueryAsync<Withdrawal>(query)).ToList();
 
             }
         }

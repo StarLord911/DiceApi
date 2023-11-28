@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,6 +45,7 @@ namespace DiceApi.Data.Data.Dice
         /// <summary>
         /// Время когда была игры
         /// </summary>
-        public DateTime GameDateTime { get; set; }
+        [Column("gameTime")]
+        public DateTime GameTime { get; set; }
     }
 }
