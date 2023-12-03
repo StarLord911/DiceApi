@@ -4,12 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiceApi.Data
+namespace DiceApi.Data.ApiReqRes
 {
-    public enum PaymentStatus
+    public class WithdrawalRequest
     {
-        New = 0,
-        Payed = 1,
-        Error = 8,
+        public int Id { get; set; }
     }
 }

@@ -83,6 +83,7 @@ namespace DiceApi
             services.AddTransient<IPaymentRepository, PaymentRepository>();
             services.AddTransient<IWithdrawalsRepository, WithdrawalsRepository>();
             services.AddTransient<IPaymentRequisitesRepository, PaymentRequisitesRepository>();
+            services.AddTransient<ICooperationRequestRepository, CooperationRequestRepository>();
 
             //регаем сервисы
             services.AddTransient<IPaymentService, PaymentService>();

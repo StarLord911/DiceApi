@@ -5,8 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiceApi.Data
-
+namespace DiceApi.Data.ApiReqRes
 {
     public class CreatePromocodeRequest
     {

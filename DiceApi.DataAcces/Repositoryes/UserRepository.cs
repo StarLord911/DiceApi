@@ -2,6 +2,8 @@
 using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.Api;
+using DiceApi.Data.ApiModels;
+using DiceApi.Data.ApiReqRes;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -55,7 +57,7 @@ namespace DiceApi.DataAcces.Repositoryes
                 var parameters = new
                 {
                     Name = user.Name,
-                    Password = HashHelper.GetSHA256Hash(user.Password), //хешировать
+                    Password = user.Password, //хешировать
                     Ballance = 0,
                     OwnerId = user.OwnerId,
                     RegistrationDate = DateTime.Now,
@@ -112,7 +114,7 @@ namespace DiceApi.DataAcces.Repositoryes
 
                 return result;
 
-               
+
             }
         }
 
@@ -145,6 +147,142 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 return (await db.QueryAsync<User>($@"SELECT * FROM Users WHERE isActive = 1 and ownerId = @ownerId",
                                 new { ownerId })).ToList();
+            }
+        }
+
+        public async Task<PaginatedList<User>> GetUsersByName(FindUserByNameRequest request)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                int offset = (request.Pagination.PageNumber - 1) * request.Pagination.PageSize;
+
+                var queryResult = (await db.QueryAsync<User>($@"SELECT * FROM Users WHERE name like '%{request.Name}%' 
+                                ORDER BY Id OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY",
+                                new { Offset = offset, PageSize = request.Pagination.PageSize })).ToList();
+
+                var countQuery = await db.ExecuteScalarAsync<int>($@"SELECT count(*) FROM Users WHERE name like '%{request.Name}%'");
+                var pageCont = (int)Math.Ceiling((double)countQuery / request.Pagination.PageSize);
+
+                return new PaginatedList<User>(queryResult, pageCont, request.Pagination.PageNumber);
+            }
+        }
+
+        public async Task UpdateUserInformation(UpdateUserRequest request)
+        {
+            var query = new StringBuilder("UPDATE Users SET ");
+            var parameters = new DynamicParameters();
+
+            if (request.Ballance.HasValue)
+            {
+                query.Append("ballance = @Ballance, ");
+                parameters.Add("@Ballance", request.Ballance.Value);
+            }
+
+            if (!string.IsNullOrEmpty(request.Name))
+            {
+                query.Append("name = @Name, ");
+                parameters.Add("@Name", request.Name);
+            }
+
+            if (!string.IsNullOrEmpty(request.Password))
+            {
+                query.Append("password = @Password, ");
+                parameters.Add("@Password", request.Password);
+            }
+
+            if (request.ReffetalPercent != null)
+            {
+                query.Append("referalPercent = @ReferalPercent, ");
+                parameters.Add("@ReferalPercent", request.ReffetalPercent.Value);
+            }
+
+            if (request.BlockUser != null)
+            {
+                query.Append("isActive = @BlockUser, ");
+                parameters.Add("@BlockUser", request.BlockUser.Value);
+            }
+
+            query.Length -= 2;
+
+            query.Append(" WHERE Id = @UserId;");
+            parameters.Add("@UserId", request.UserId);
+
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                await db.ExecuteAsync(query.ToString(), parameters);
+            }
+        }
+
+        public async Task<PaginatedList<UserPaymentInfo>> GetUserPaymentInfoByPagination(PaginationRequest request)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                // Выполнение SQL-запроса с использованием Dapper
+                string sql = @"
+                    SELECT u.id, u.name, SUM(p.Amount) AS TotalPaymentAmount
+                    FROM Users u
+                    LEFT JOIN Payments p ON u.id = p.UserId
+                    WHERE p.Status = 'Payed'
+                    GROUP BY u.id, u.name
+                    ORDER BY TotalPaymentAmount DESC
+                    OFFSET @Offset ROWS
+                    FETCH NEXT @PageSize ROWS ONLY";
+
+                string countSql = @"
+                    SELECT COUNT(*)
+                    FROM (
+                        SELECT u.id, u.name, SUM(p.Amount) AS TotalPaymentAmount
+                        FROM Users u
+                        LEFT JOIN Payments p ON u.id = p.UserId
+                        WHERE p.Status = 'Payed'
+                        GROUP BY u.id, u.name
+                    ) AS subquery";
+
+                // Выполнение SQL-запроса для получения количества записей
+                int totalCount = connection.ExecuteScalar<int>(countSql);
+                var pageCont = (int)Math.Ceiling((double)totalCount / request.PageSize);
+
+                // Выполнение SQL-запроса с параметрами
+                var queryResult = connection.Query<UserPaymentInfo>(sql, new { Offset = (request.PageNumber - 1) * request.PageSize, PageSize = request.PageSize });
+
+                return new PaginatedList<UserPaymentInfo>(queryResult.ToList(), pageCont, request.PageNumber);
+            }
+        }
+
+
+        public async Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfoByPagination(PaginationRequest request)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                // Выполнение SQL-запроса с использованием Dapper
+                string sql = @"
+                    SELECT u.id, u.name, SUM(p.Amount) AS TotalPaymentWithdrawalAmount
+                    FROM Users u
+                    LEFT JOIN Withdrawal p ON u.id = p.UserId
+                    WHERE p.Status = 2
+                    GROUP BY u.id, u.name
+                    ORDER BY TotalPaymentWithdrawalAmount DESC
+                    OFFSET @Offset ROWS
+                    FETCH NEXT @PageSize ROWS ONLY";
+
+                string countSql = @"
+                    SELECT COUNT(*)
+                    FROM (
+                        SELECT u.id, u.name, SUM(p.Amount) AS TotalPaymentWithdrawalAmount
+                        FROM Users u
+                        LEFT JOIN Withdrawal p ON u.id = p.UserId
+                        WHERE p.Status = 2
+                        GROUP BY u.id, u.name
+                    ) AS subquery";
+
+                // Выполнение SQL-запроса для получения количества записей
+                int totalCount = connection.ExecuteScalar<int>(countSql);
+                var pageCont = (int)Math.Ceiling((double)totalCount / request.PageSize);
+
+                // Выполнение SQL-запроса с параметрами
+                var queryResult = await connection.QueryAsync<UserPaymentWithdrawalInfo>(sql, new { Offset = (request.PageNumber - 1) * request.PageSize, PageSize = request.PageSize });
+
+                return new PaginatedList<UserPaymentWithdrawalInfo>(queryResult.ToList(), pageCont, request.PageNumber);
             }
         }
     }

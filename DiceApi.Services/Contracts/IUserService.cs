@@ -1,5 +1,7 @@
 ﻿using DiceApi.Data;
 using DiceApi.Data.Api;
+using DiceApi.Data.ApiModels;
+using DiceApi.Data.ApiReqRes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,5 +30,12 @@ namespace DiceApi.Services
 
         Task UpdateReferalSum(long userId, decimal sum);
 
+        Task<PaginatedList<User>> GetUsersByName(FindUserByNameRequest request);
+
+        Task UpdateUserInformation(UpdateUserRequest request);
+
+        Task<PaginatedList<UserPaymentInfo>> GetUserPaymentInfoByPagination(PaginationRequest request);
+
+        Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfoByPagination(PaginationRequest request);
     }
 }

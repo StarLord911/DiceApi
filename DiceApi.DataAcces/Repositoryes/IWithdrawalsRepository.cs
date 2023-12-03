@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +16,13 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task<List<Withdrawal>> GetAll();
 
-
         Task<Withdrawal> GetById(long id);
 
         Task<List<Withdrawal>> GetAllActiveByUserId(long userId);
 
-        Task UpdateIsActive(long id);
+        Task DeactivateWithdrawal(long id);
 
         Task<List<Withdrawal>> GetByUserIdAll(long userId);
+        Task<PaginatedList<Withdrawal>> GetPaginatedWithdrawals(GetPaymentWithdrawalsRequest request);
     }
 }

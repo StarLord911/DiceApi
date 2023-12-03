@@ -1,4 +1,6 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.ApiModels;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
 using System;
@@ -106,7 +108,7 @@ namespace DiceApi.Services.Implements
             return responce;
         }
 
-        public async Task<Promocode> CreatePromocode(CreatePromocodeRequest request)
+        public async Task<string> CreatePromocode(CreatePromocodeRequest request)
         {
             var promocode = new Promocode()
             {
@@ -121,12 +123,77 @@ namespace DiceApi.Services.Implements
 
             if (promocodeContains)
             {
-                throw new Exception("Is promocode already contains");
+                return "Такой промокод уже существует";
             }
 
             await _promocodeRepository.CreatePromocode(promocode);
 
-            return promocode;
+            return "Промокод успешно создан";
+        }
+
+        public async Task<PaginatedList<PromocodeApiModel>> GetPromocodeByNameByLike(GetPromocodesByNameRequest request)
+        {
+            var promocodes = await _promocodeRepository.GetPromocodeByLike(request.Name);
+
+            promocodes = promocodes.Skip((request.Pagination.PageNumber - 1) * request.Pagination.PageSize)
+                .Take(request.Pagination.PageSize).ToList();
+
+            var result = new List<PromocodeApiModel>();
+
+            foreach (var code in promocodes)
+            {
+                var activationCount = (await _promocodeActivationHistory.GetPromocodeActivates(code.PromoCode)).Count;
+
+                result.Add(new PromocodeApiModel
+                {
+                    Name = code.PromoCode,
+                    ActivatedCount = activationCount,
+                    AllActivationCount = code.ActivationCount,
+                    BallanceAdd = code.BallanceAdd,
+                    Wagering = code.Wagering
+                });
+            }
+
+            var totalItemCount = promocodes.Count;
+
+            var totalPages = (int)Math.Ceiling((double)totalItemCount / request.Pagination.PageSize);
+
+            return new PaginatedList<PromocodeApiModel>(result, totalPages, request.Pagination.PageNumber);
+        }
+
+        public async Task<PaginatedList<PromocodeApiModel>> GetPromocodesByPagination(GetPromocodesByPaginationRequest request)
+        {
+            var promocodes = await _promocodeRepository.GetAllPromocodes();
+
+            if (request.OnlyActivePromocodes)
+            {
+                promocodes = promocodes.Where(p => p.IsActive).ToList();
+            }
+
+            promocodes = promocodes.Skip((request.Pagination.PageNumber - 1) * request.Pagination.PageSize)
+                .Take(request.Pagination.PageSize).ToList();
+
+            var result = new List<PromocodeApiModel>();
+
+            foreach (var code in promocodes)
+            {
+                var activationCount = (await _promocodeActivationHistory.GetPromocodeActivates(code.PromoCode)).Count;
+
+                result.Add(new PromocodeApiModel
+                {
+                    Name = code.PromoCode,
+                    ActivatedCount = activationCount,
+                    AllActivationCount = code.ActivationCount,
+                    BallanceAdd = code.BallanceAdd,
+                    Wagering = code.Wagering
+                });
+            }
+
+            var totalItemCount = promocodes.Count;
+
+            var totalPages = (int)Math.Ceiling((double)totalItemCount / request.Pagination.PageSize);
+
+            return new PaginatedList<PromocodeApiModel>(result, totalPages, request.Pagination.PageNumber);
         }
     }
 }

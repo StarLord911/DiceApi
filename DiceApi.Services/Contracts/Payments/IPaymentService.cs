@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Payment;
 using System;
 using System.Collections.Generic;
@@ -26,5 +27,6 @@ namespace DiceApi.Services.Contracts
         Task<List<Payment>> GetAllPayedPayments();
 
         Task<PaymentStats> GetPaymentStats();
+        Task<PaginatedList<Payment>> GetPaginatedPayments(GetPaymentsRequest request);
     }
 }

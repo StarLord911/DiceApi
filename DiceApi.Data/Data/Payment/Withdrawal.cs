@@ -19,6 +19,6 @@ namespace DiceApi.Data
 
         public DateTime CreateDate { get; set; }
 
-        public bool IsActive { get; set; }
+        public WithdrawalStatus Status { get; set; }
     }
 }

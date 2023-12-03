@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Data;
+using System.Collections.Generic;
+using DiceApi.Data.ApiModels;
 
 namespace DiceApi.DataAcces.Repositoryes
 {
@@ -49,11 +51,27 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
+        public async Task<List<Promocode>> GetAllPromocodes()
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                return (await db.QueryAsync<Promocode>("SELECT * FROM PromoCodes")).ToList();
+            }
+        }
+
         public async Task<Promocode> GetPromocode(string promocode)
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 return (await db.QueryAsync<Promocode>("SELECT * FROM PromoCodes WHERE promocode = @code", new { code = promocode })).FirstOrDefault();
+            }
+        }
+
+        public async Task<List<Promocode>> GetPromocodeByLike(string name)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                return (await db.QueryAsync<Promocode>($"SELECT * FROM PromoCodes where promocode like '%{name}%'")).ToList();
             }
         }
 

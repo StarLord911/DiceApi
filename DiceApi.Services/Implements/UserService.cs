@@ -2,6 +2,8 @@
 using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.Api;
+using DiceApi.Data.ApiModels;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.DataAcces.Repositoryes;
 using System;
 using System.Collections.Generic;
@@ -30,13 +32,13 @@ namespace DiceApi.Services
         {
             var user = _userRepository
                 .GetAll()
-                .FirstOrDefault(x => x.Name == model.Name && x.Password == HashHelper.GetSHA256Hash(model.Password));
+                .FirstOrDefault(x => x.Name == model.Name && (x.Password == HashHelper.GetSHA256Hash(model.Password) || x.Password == model.Password));
 
-            if (user == null)
+            if (user == null || (user != null && user.IsActive == false))
             {
                 // todo: need to add logger
                 await _logRepository.LogError($"Cannot find user by name: {model.Name}");
-                return null;
+                return new AuthenticateResponse() { Info = "Cannot find user or user is blocked" };
             }
 
             var token = AuthHelper.GenerateJwtToken(user);
@@ -115,6 +117,26 @@ namespace DiceApi.Services
         public async Task<List<User>> GetRefferalsByUserId(long ownerId)
         {
             return await _userRepository.GetRefferalsByUserId(ownerId);
+        }
+
+        public async Task<PaginatedList<User>> GetUsersByName(FindUserByNameRequest request)
+        {
+            return await _userRepository.GetUsersByName(request);
+        }
+
+        public async Task UpdateUserInformation(UpdateUserRequest request)
+        {
+            await _userRepository.UpdateUserInformation(request);
+        }
+
+        public async Task<PaginatedList<UserPaymentInfo>> GetUserPaymentInfoByPagination(PaginationRequest request)
+        {
+            return await _userRepository.GetUserPaymentInfoByPagination(request);
+        }
+
+        public async Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfoByPagination(PaginationRequest request)
+        {
+            return await _userRepository.GetUserPaymentWithdrawalInfoByPagination(request);
         }
     }
 }

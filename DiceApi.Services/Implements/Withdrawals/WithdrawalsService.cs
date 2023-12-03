@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Payment;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
@@ -65,7 +66,7 @@ namespace DiceApi.Services.Implements
                 Amount = request.Amount,
                 CardNumber = request.CartNumber,
                 CreateDate = DateTime.Now,
-                IsActive = true
+                Status = WithdrawalStatus.New
             };
 
             await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.Amount);
@@ -76,6 +77,11 @@ namespace DiceApi.Services.Implements
             responce.Message = $"Заявка на вывод принята";
 
             return responce;
+        }
+
+        public async Task DeactivateWithdrawal(int id)
+        {
+            await _withdrawalsRepository.DeactivateWithdrawal(id);
         }
 
         public async Task<List<Withdrawal>> GetAll()
@@ -93,11 +99,16 @@ namespace DiceApi.Services.Implements
             return await _withdrawalsRepository.GetAllActiveByUserId(userId);
         }
 
+        public async Task<PaginatedList<Withdrawal>> GetPaginatedWithdrawals(GetPaymentWithdrawalsRequest request)
+        {
+            return await _withdrawalsRepository.GetPaginatedWithdrawals(request);
+        }
+
         public async Task<WithdrawalStats> GetWithdrawalStats()
         {
             var result = new WithdrawalStats();
             var allWithdrawals = await _withdrawalsRepository.GetAll();
-            var withdrawals = allWithdrawals.Where(w => w.IsActive == false);
+            var withdrawals = allWithdrawals.Where(w => w.Status == WithdrawalStatus.New);
 
             result.ToDay = withdrawals.Where(r => r.CreateDate.Date == DateTime.Today).Sum(w => w.Amount);
 
@@ -107,7 +118,7 @@ namespace DiceApi.Services.Implements
 
             result.AllDays = withdrawals.Sum(w => w.Amount);
 
-            result.WithdrawalWaitSum = allWithdrawals.Where(w => w.IsActive == true).Sum(w => w.Amount);
+            result.WithdrawalWaitSum = allWithdrawals.Where(w => w.Status == WithdrawalStatus.New).Sum(w => w.Amount);
 
             return result;
 
@@ -117,7 +128,7 @@ namespace DiceApi.Services.Implements
         {
             var withdrawal = await _withdrawalsRepository.GetById(id);
             await _paymentAdapterService.CreateWithdrawal(withdrawal.Amount, withdrawal.CardNumber);
-            await _withdrawalsRepository.UpdateIsActive(id);
+            await _withdrawalsRepository.DeactivateWithdrawal(id);
         }
 
         private bool IsThisMonth(DateTime dateTime)

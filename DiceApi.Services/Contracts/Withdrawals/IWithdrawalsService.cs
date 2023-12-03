@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Payment;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ namespace DiceApi.Services.Contracts
         Task СonfirmWithdrawal(long id);
 
         Task<WithdrawalStats> GetWithdrawalStats();
-
+        Task DeactivateWithdrawal(int id);
+        Task<PaginatedList<Withdrawal>> GetPaginatedWithdrawals(GetPaymentWithdrawalsRequest request);
     }
 }

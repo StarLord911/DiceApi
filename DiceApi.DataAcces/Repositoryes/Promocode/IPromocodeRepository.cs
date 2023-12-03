@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.ApiModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace DiceApi.DataAcces.Repositoryes
 {
+    /// <summary>
+    /// Репозиторий для работы с промокодами
+    /// </summary>
     public interface IPromocodeRepository 
     {
         Task CreatePromocode(Promocode promocode);
@@ -17,5 +21,8 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task DiactivatePromocode(string promocode);
 
+        Task<List<Promocode>> GetAllPromocodes();
+
+        Task<List<Promocode>> GetPromocodeByLike(string name);
     }
 }

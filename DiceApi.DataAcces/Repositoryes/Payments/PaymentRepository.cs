@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using DiceApi.Common;
 using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using Microsoft.Data.SqlClient;
 using System;
 using System.Collections.Generic;
@@ -35,7 +36,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     OrderId = payment.OrderId,
                     Amount = payment.Amount,
                     CreatedAt = payment.CreatedAt,
-                    Status = payment.Status,
+                    Status = payment.Status.ToString(),
                     UserId = payment.UserId
                 };
 
@@ -50,6 +51,59 @@ namespace DiceApi.DataAcces.Repositoryes
                 string query = $"SELECT * FROM Payments WHERE Status = '{PaymentStatus.Payed}'";
 
                 return (await connection.QueryAsync<Payment>(query)).ToList();
+            }
+        }
+
+        public async Task<PaginatedList<Payment>> GetPaginatedPayments(GetPaymentsRequest request)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                var query = new StringBuilder();
+
+                DynamicParameters parameters = new DynamicParameters();
+
+                if (request.StartDate != null)
+                {
+                    query.Append($"CreatedAt > @StartDate");
+                    parameters.Add("@StartDate", request.StartDate);
+                }
+
+                if (request.EndDate != null)
+                {
+                    if (query.Length > 0)
+                    {
+                        query.Append(" AND");
+                    }
+                    query.Append($" CreatedAt < @EndDate");
+                    parameters.Add("@EndDate", request.EndDate);
+                }
+
+                if (request.PaymentStatus != null)
+                {
+                    if (query.Length > 0)
+                    {
+                        query.Append(" AND");
+                    }
+                    query.Append($" Status = '@PaymentStatus'");
+                    parameters.Add("@PaymentStatus", request.PaymentStatus.ToString());
+                }
+
+                if (!string.IsNullOrEmpty(query.ToString()))
+                {
+                    query.Insert(0, "where ");
+                }
+
+                parameters.Add("@Offset", (request.Pagination.PageNumber - 1) * request.Pagination.PageSize);
+                parameters.Add("@PageSize", request.Pagination.PageSize);
+
+                var countQuery = $"SELECT COUNT(*) FROM Payments {query.ToString()}";
+                var paymentsQuery = $"SELECT * FROM Payments {query.ToString()} ORDER BY CreatedAt DESC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+                int totalCount = await db.ExecuteScalarAsync<int>(countQuery, parameters);
+                var payments = await db.QueryAsync<Payment>(paymentsQuery, parameters);
+                var pageCount = (int)Math.Ceiling((double)totalCount / request.Pagination.PageSize);
+
+                return new PaginatedList<Payment>(payments.ToList(), pageCount, request.Pagination.PageNumber);
             }
         }
 

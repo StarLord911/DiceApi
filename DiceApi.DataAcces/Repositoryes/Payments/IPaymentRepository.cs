@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,6 @@ namespace DiceApi.DataAcces.Repositoryes
         Task<Payment> GetPaymentsById(long paymentId);
 
         Task<List<Payment>> GetAllPayedPayments();
-
+        Task<PaginatedList<Payment>> GetPaginatedPayments(GetPaymentsRequest request);
     }
 }

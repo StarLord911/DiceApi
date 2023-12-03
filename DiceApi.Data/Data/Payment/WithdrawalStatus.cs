@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data
 {
-    public enum PaymentStatus
+    public enum WithdrawalStatus
     {
-        New = 0,
-        Payed = 1,
-        Error = 8,
+        New = 1,
+        Confirmed = 2,
+        UnConfirmed = 3
     }
 }

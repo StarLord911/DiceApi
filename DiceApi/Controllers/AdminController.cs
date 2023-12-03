@@ -3,6 +3,7 @@ using DiceApi.Attributes;
 using DiceApi.Data;
 using DiceApi.Data.Admin;
 using DiceApi.Data.Api.Model;
+using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Admin;
 using DiceApi.Data.Data.Payment;
@@ -33,6 +34,10 @@ namespace DiceApi.Controllers
         private readonly IDiceService _diceService;
         private readonly IPromocodeActivationHistory _promocodeActivationHistory;
         private readonly IPaymentRequisitesRepository _paymentRequisitesRepository;
+        private readonly IPromocodeService _promocodeService;
+        private readonly IPaymentAdapterService _paymentAdapterService;
+        private readonly ICooperationRequestRepository _cooperationRequestRepository;
+
 
         public AdminController(IUserService userService,
             IPaymentService paymentService,
@@ -40,6 +45,9 @@ namespace DiceApi.Controllers
             IDiceService diceService,
             IPromocodeActivationHistory promocodeActivationHistory,
             IPaymentRequisitesRepository paymentRequisitesRepository,
+            IPromocodeService promocodeService,
+            IPaymentAdapterService paymentAdapterService,
+            ICooperationRequestRepository cooperationRequestRepository,
             IMapper mapper)
         {
             _userService = userService;
@@ -48,9 +56,14 @@ namespace DiceApi.Controllers
             _diceService = diceService;
             _promocodeActivationHistory = promocodeActivationHistory;
             _paymentRequisitesRepository = paymentRequisitesRepository;
+            _promocodeService = promocodeService;
+            _paymentAdapterService = paymentAdapterService;
+            _cooperationRequestRepository = cooperationRequestRepository;
+
             _mapper = mapper;
         }
 
+        #region users
         [Authorize(true)]
         [HttpPost("getUsersByPage")]
         public async Task<List<AdminUserInfo>> GetUsersByPage(GetUsersByPaginationRequest request)
@@ -70,6 +83,23 @@ namespace DiceApi.Controllers
             result.WithdrawalStats = await _withdrawalsService.GetWithdrawalStats();
             return result;
         }
+        //FindUserByNameRequest
+
+        [HttpPost("updateUserInformation")]
+        public async Task UpdateUserInformation(UpdateUserRequest request)
+        {
+            await _userService.UpdateUserInformation(request);
+        }
+
+        [HttpPost("findUserByName")]
+        public async Task<PaginatedList<AdminUserInfo>> FindUsersByName(FindUserByNameRequest request)
+        {
+            var users = await _userService.GetUsersByName(request);
+
+            var result = users.Items.Select(u => _mapper.Map<AdminUserInfo>(u)).ToList();
+
+            return new PaginatedList<AdminUserInfo>(result, users.TotalPages, users.PageIndex);
+        }
 
         //[Authorize(true)]
         [HttpPost("getUserById")]
@@ -83,7 +113,7 @@ namespace DiceApi.Controllers
             mappedUser.RegistrationIpAddres = "";
 
             mappedUser.BallanceAdd = (await _paymentService.GetPaymentsByUserId(user.Id)).Where(p => p.Status == PaymentStatus.Payed).Sum(s => s.Amount);
-            mappedUser.ExitBallance = (await _withdrawalsService.GetAllActiveByUserId(user.Id)).Where(w => !w.IsActive).Sum(s => s.Amount);
+            mappedUser.ExitBallance = (await _withdrawalsService.GetAllActiveByUserId(user.Id)).Where(w => w.Status == WithdrawalStatus.Confirmed).Sum(s => s.Amount);
             //TODO: допилить еще для маинса
             var diceGames = (await _diceService.GetAllDiceGamesByUserId(user.Id));
 
@@ -177,17 +207,156 @@ namespace DiceApi.Controllers
 
         //[Authorize(true)]
         [HttpPost("getPaymantsByUserId")]
-        public async Task<List<Payment>> GetPaymantsByUserId(GetByUserIdRequest request)
+        public async Task<PaginatedList<Payment>> GetPaymantsByUserId(GetPaymentsByUserIdRequest request)
         {
-            return await _paymentService.GetPaymentsByUserId(request.Id);
+            var payments = await _paymentService.GetPaymentsByUserId(request.UserId);
+
+            var result = payments.Skip((request.Pagination.PageNumber - 1) * request.Pagination.PageSize)
+                .Take(request.Pagination.PageSize)
+                .ToList();
+
+            var totalItemCount = payments.Count;
+
+            var totalPages = (int)Math.Ceiling((double)totalItemCount / request.Pagination.PageSize);
+
+            return new PaginatedList<Payment>(result, totalPages, request.Pagination.PageNumber);
+
         }
 
         //[Authorize(true)]
         [HttpPost("getWithdrawalsByUserId")]
-        public async Task<List<Withdrawal>> GetWithdrawalsByUserId(GetByUserIdRequest request)
+        public async Task<PaginatedList<Withdrawal>> GetWithdrawalsByUserId(GetWithdrawalsByUserId request)
         {
-            return await _withdrawalsService.GetAllByUserId(request.Id);
+            var withdrawals = await _withdrawalsService.GetAllByUserId(request.UserId);
+
+            var result = withdrawals.Skip((request.Pagination.PageNumber - 1) * request.Pagination.PageSize)
+               .Take(request.Pagination.PageSize)
+               .ToList();
+
+            var totalItemCount = withdrawals.Count;
+
+            var totalPages = (int)Math.Ceiling((double)totalItemCount / request.Pagination.PageSize);
+
+            return new PaginatedList<Withdrawal>(result, totalPages, request.Pagination.PageNumber);
+
         }
+        #endregion
+
+        #region promocodes
+
+        [HttpPost("generatePromocode")]
+        public async Task<string> GeneratePromocode(CreatePromocodeRequest request)
+        {
+            return await _promocodeService.CreatePromocode(request);
+        }
+        
+
+       [HttpPost("getPromocodes")]
+        public async Task<PaginatedList<PromocodeApiModel>> GetPromocodes(GetPromocodesByPaginationRequest request)
+        {
+            return await _promocodeService.GetPromocodesByPagination(request);
+        }
+
+        [HttpPost("getPromocodeByNameByLike")]
+        public async Task<PaginatedList<PromocodeApiModel>> GetPromocodeByNameByLike(GetPromocodesByNameRequest request)
+        {
+            return await _promocodeService.GetPromocodeByNameByLike(request);
+        }
+        #endregion
+
+        #region withdrawals
+        [HttpPost("getWithdrawals")]
+        public async Task<PaginatedList<Withdrawal>> GetWithdrawals(GetWithdrawalsRequest request)
+        {
+            var withdrawals = (await _withdrawalsService.GetAll()).OrderByDescending(w => w.CreateDate).ToList();
+
+            if (request.OnlyActiveWithdrawals)
+            {
+                withdrawals = withdrawals.Where(w => w.Status == WithdrawalStatus.New).ToList();
+            }
+
+            var result = withdrawals.Skip((request.Pagination.PageNumber - 1) * request.Pagination.PageSize)
+               .Take(request.Pagination.PageSize)
+               .ToList();
+
+            var totalItemCount = withdrawals.Count;
+
+            var totalPages = (int)Math.Ceiling((double)totalItemCount / request.Pagination.PageSize);
+
+            return new PaginatedList<Withdrawal>(result, totalPages, request.Pagination.PageNumber);
+
+        }
+
+        [HttpPost("confirmWithdrawal")]
+        public async Task ConfirmWithdrawals(WithdrawalRequest request)
+        {
+            await _withdrawalsService.СonfirmWithdrawal(request.Id);
+        }
+
+        [HttpPost("unconfirmWithdrawal")]
+        public async Task UnconfirmWithdrawals(WithdrawalRequest request)
+        {
+            await _withdrawalsService.DeactivateWithdrawal(request.Id);
+        }
+
+
+        #endregion
+
+        #region payments
+        [HttpPost("getPayments")]
+        public async Task<PaginatedList<Payment>> GetPayments(GetPaymentsRequest request)
+        {
+            return await _paymentService.GetPaginatedPayments(request);
+        }
+
+        [HttpPost("getPaymentWithdrawals")]
+        public async Task<PaginatedList<Withdrawal>> GetPaymentWithdrawals(GetPaymentWithdrawalsRequest request)
+        {
+            return await _withdrawalsService.GetPaginatedWithdrawals(request);
+        }
+
+        #endregion
+
+        #region cooperation
+        [HttpPost("createCooperationRequest")]
+        public async Task CreateCooperationRequest(CooperationRequest request)
+        {
+            await _cooperationRequestRepository.CreateCooperationRequest(request);
+        }
+
+        [HttpPost("getAllCooperationRequest")]
+        public async Task<PaginatedList<CooperationRequest>> GetAllCooperationRequest(PaginationRequest request)
+        {
+            var requests = (await _cooperationRequestRepository.GetAllCooperationRequests()).ToList();
+
+            var result = requests.Skip((request.PageNumber - 1) * request.PageSize)
+               .Take(request.PageSize)
+               .ToList();
+
+            var totalItemCount = requests.Count;
+
+            var totalPages = (int)Math.Ceiling((double)totalItemCount / request.PageSize);
+
+            return new PaginatedList<CooperationRequest>(result, totalPages, request.PageNumber);
+        }
+
+        #endregion
+
+        #region top dwGetUserPaymentWithdrawalInfoByPagination
+
+        [HttpPost("getUserPaymentInfo")]
+        public async Task<PaginatedList<UserPaymentInfo>> GetUserPaymentInfo(PaginationRequest request)
+        {
+             return await _userService.GetUserPaymentInfoByPagination(request);
+        }
+
+        [HttpPost("getUserPaymentWithdrawalInfo")]
+        public async Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfo(PaginationRequest request)
+        {
+            return await _userService.GetUserPaymentWithdrawalInfoByPagination(request);
+        }
+
+        #endregion
 
         private int DivideWithCeiling(int dividend, int divisor)
         {
@@ -219,7 +388,8 @@ namespace DiceApi.Controllers
 
             foreach (var referal in referals)
             {
-                result += (await _withdrawalsService.GetAllActiveByUserId(referal.Id)).Where(p => p.IsActive).Sum(s => s.Amount);
+                result += (await _withdrawalsService.GetAllActiveByUserId(referal.Id))
+                    .Where(p => p.Status == WithdrawalStatus.New).Sum(s => s.Amount);
             }
 
             return result;

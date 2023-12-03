@@ -1,4 +1,5 @@
 ﻿using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Payment;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
@@ -52,6 +53,11 @@ namespace DiceApi.Services.Implements
         public async Task<List<Payment>> GetAllPayedPayments()
         {
             return await _paymentRepository.GetAllPayedPayments();
+        }
+
+        public async Task<PaginatedList<Payment>> GetPaginatedPayments(GetPaymentsRequest request)
+        {
+            return await _paymentRepository.GetPaginatedPayments(request);
         }
 
         public async Task<Payment> GetPaymentsById(long paymentId)

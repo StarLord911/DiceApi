@@ -1,5 +1,6 @@
 ﻿using DiceApi.Attributes;
 using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,13 +20,6 @@ namespace DiceApi.Controllers
         public PromocodeController(IPromocodeService promocodeService)
         {
             _promocodeService = promocodeService;
-        }
-
-        [Authorize]
-        [HttpPost("createPromocode")]
-        public async Task<Promocode> CreatePromoCode(CreatePromocodeRequest promoCode)
-        {
-            return await _promocodeService.CreatePromocode(promoCode);
         }
 
         [Authorize]
