@@ -42,5 +42,13 @@ namespace DiceApi.Data
         /// </summary>
         public decimal ReferalSum { get; set; }
 
+        public string RegistrationIp { get; set; }
+
+        public string BlockReason { get; set; }
+
+        /// <summary>
+        /// Какой депозит должен сделать пользователь чтобы создать вывод.
+        /// </summary>
+        public decimal PaymentForWithdrawal { get; set; }
     }
 }

@@ -46,7 +46,7 @@ namespace DiceApi.Services
             return new AuthenticateResponse(user, token) {Info = "Authenticate succes" };
         }
 
-        public async Task<AuthenticateResponse> Register(UserRegisterResponce userModel)
+        public async Task<AuthenticateResponse> Register(UserRegistrationModel userModel)
         {
             try
             {
@@ -104,7 +104,7 @@ namespace DiceApi.Services
             return res;
         }
 
-        public async Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request)
+        public async Task<PaginatedList<User>> GetUsersByPagination(GetUsersByPaginationRequest request)
         {
             return await _userRepository.GetUsersByPagination(request);
         }
@@ -137,6 +137,21 @@ namespace DiceApi.Services
         public async Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfoByPagination(PaginationRequest request)
         {
             return await _userRepository.GetUserPaymentWithdrawalInfoByPagination(request);
+        }
+
+        public async Task<PaginatedList<UserRefferalInfo>> GetUserUserRefferalInfoByPagination(PaginationRequest request)
+        {
+            return await _userRepository.GetUserUserRefferalInfoByPagination(request);
+        }
+
+        public async Task<int> GetUserCount()
+        {
+            return await _userRepository.GetUsersCount();
+        }
+
+        public async Task<PaginatedList<UserMultyAccaunt>> GetMultyAccauntsByUserId(GetMultyAccauntsByUserIdRequest request)
+        {
+            return await _userRepository.GetMultyAccauntsByUserId(request);
         }
     }
 }

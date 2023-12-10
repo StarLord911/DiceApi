@@ -21,5 +21,6 @@ namespace DiceApi.Services.Contracts
         Task<WithdrawalStats> GetWithdrawalStats();
         Task DeactivateWithdrawal(int id);
         Task<PaginatedList<Withdrawal>> GetPaginatedWithdrawals(GetPaymentWithdrawalsRequest request);
+        Task<decimal> GetWithdrawalWaitSum();
     }
 }

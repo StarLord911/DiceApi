@@ -11,6 +11,8 @@ namespace DiceApi.Data
     /// </summary>
     public class Withdrawal
     {
+        public int Id { get; set; }
+
         public long UserId { get; set; }
 
         public decimal Amount { get; set; }

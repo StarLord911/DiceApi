@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiceApi.Data.Dice
+namespace DiceApi.Data
 {
     public class GameApiModel
     {
@@ -22,7 +22,7 @@ namespace DiceApi.Data.Dice
         public decimal Sum { get; set; }
 
         /// <summary>
-        /// Ставка
+        /// Множитель
         /// </summary>
         [JsonProperty("multiplier")]
         public decimal Multiplier { get; set; }

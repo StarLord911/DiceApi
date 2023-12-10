@@ -12,7 +12,7 @@ namespace DiceApi.DataAcces.Repositoryes
 {
     public interface IUserRepository
     {
-        Task<long> Add(UserRegisterResponce user);
+        Task<long> Add(UserRegistrationModel user);
 
         User GetById(long id);
         
@@ -22,7 +22,7 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task<GetPaginatedDataByUserIdResponce<User>> GetRefferalsByUserId(GetReferalsByUserIdRequest request);
 
-        Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request);
+        Task<PaginatedList<User>> GetUsersByPagination(GetUsersByPaginationRequest request);
 
         Task UpdateReferalSum(long userId, decimal sum);
 
@@ -34,5 +34,8 @@ namespace DiceApi.DataAcces.Repositoryes
         Task<PaginatedList<UserPaymentInfo>> GetUserPaymentInfoByPagination(PaginationRequest request);
 
         Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfoByPagination(PaginationRequest request);
+        Task<PaginatedList<UserRefferalInfo>> GetUserUserRefferalInfoByPagination(PaginationRequest request);
+        Task<int> GetUsersCount();
+        Task<PaginatedList<UserMultyAccaunt>> GetMultyAccauntsByUserId(GetMultyAccauntsByUserIdRequest request);
     }
 }

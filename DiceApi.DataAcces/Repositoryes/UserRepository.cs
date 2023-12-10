@@ -39,7 +39,7 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task<long> Add(UserRegisterResponce user)
+        public async Task<long> Add(UserRegistrationModel user)
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
@@ -50,8 +50,8 @@ namespace DiceApi.DataAcces.Repositoryes
                     throw new Exception("Is user contains");
                 }
 
-                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent )
-                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent)
+                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent, registrationIp )
+                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent, @RegistrationIp)
                                     SELECT CAST(SCOPE_IDENTITY() AS int)";
 
                 var parameters = new
@@ -62,7 +62,8 @@ namespace DiceApi.DataAcces.Repositoryes
                     OwnerId = user.OwnerId,
                     RegistrationDate = DateTime.Now,
                     IsActive = true,
-                    ReferalPercent = 10
+                    ReferalPercent = 10,
+                    RegistrationIp = user.IpAddres
                 };
 
                 var userId = await db.ExecuteScalarAsync<long>(query, parameters);
@@ -118,16 +119,19 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request)
+        public async Task<PaginatedList<User>> GetUsersByPagination(GetUsersByPaginationRequest request)
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
+
                 string query = "SELECT * FROM Users ORDER BY Id OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 int offset = (request.PageNumber - 1) * request.PageSize;
 
+                var countQuery = await db.ExecuteScalarAsync<int>($@"SELECT count(*) FROM Users");
+                var pageCont = (int)Math.Ceiling((double)countQuery / request.PageSize);
                 var users = await db.QueryAsync<User>(query, new { Offset = offset, PageSize = request.PageSize });
 
-                return users.ToList();
+                return new PaginatedList<User>(users.ToList(), pageCont, request.PageNumber);
             }
         }
 
@@ -202,6 +206,18 @@ namespace DiceApi.DataAcces.Repositoryes
                 parameters.Add("@BlockUser", request.BlockUser.Value);
             }
 
+            if (!string.IsNullOrEmpty(request.BlockReason))
+            {
+                query.Append("blockReason = @BlockReason, ");
+                parameters.Add("@BlockReason", request.BlockReason);
+            }
+
+            if (request.PaymentForWithdrawal != null)
+            {
+                query.Append("paymentForWithdrawal = @PaymentForWithdrawal, ");
+                parameters.Add("@PaymentForWithdrawal", request.PaymentForWithdrawal);
+            }
+
             query.Length -= 2;
 
             query.Append(" WHERE Id = @UserId;");
@@ -239,11 +255,11 @@ namespace DiceApi.DataAcces.Repositoryes
                     ) AS subquery";
 
                 // Выполнение SQL-запроса для получения количества записей
-                int totalCount = connection.ExecuteScalar<int>(countSql);
+                int totalCount = await connection.ExecuteScalarAsync<int>(countSql);
                 var pageCont = (int)Math.Ceiling((double)totalCount / request.PageSize);
 
                 // Выполнение SQL-запроса с параметрами
-                var queryResult = connection.Query<UserPaymentInfo>(sql, new { Offset = (request.PageNumber - 1) * request.PageSize, PageSize = request.PageSize });
+                var queryResult = await connection.QueryAsync<UserPaymentInfo>(sql, new { Offset = (request.PageNumber - 1) * request.PageSize, PageSize = request.PageSize });
 
                 return new PaginatedList<UserPaymentInfo>(queryResult.ToList(), pageCont, request.PageNumber);
             }
@@ -284,6 +300,76 @@ namespace DiceApi.DataAcces.Repositoryes
 
                 return new PaginatedList<UserPaymentWithdrawalInfo>(queryResult.ToList(), pageCont, request.PageNumber);
             }
+        }
+
+        public async Task<PaginatedList<UserRefferalInfo>> GetUserUserRefferalInfoByPagination(PaginationRequest request)
+        {
+            var parameters = new DynamicParameters();
+            parameters.Add("@PageSize", request.PageSize);
+            parameters.Add("@PageNumber", request.PageNumber);
+            parameters.Add("@Offset", (request.PageNumber - 1) * request.PageSize);
+
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                var totalRecords = connection.ExecuteScalar<int>(
+                    @"SELECT COUNT(*) FROM Users");
+
+                var totalPages = (int)Math.Ceiling((double)totalRecords / request.PageSize);
+
+                var results = await connection.QueryAsync<UserRefferalInfo>(
+                    @"SELECT u.id, u.name, COUNT(r.ownerId) AS ReferralCount, u.referalSum AS EarnedMoney
+                    FROM Users u
+                    LEFT JOIN Users r ON u.id = r.ownerId
+                    GROUP BY u.id, u.name, u.referalSum
+                    ORDER BY EarnedMoney DESC
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY",
+                    parameters,
+                    commandType: CommandType.Text
+                );
+
+
+                return new PaginatedList<UserRefferalInfo>(results.ToList(), totalPages, request.PageNumber);
+            }
+        }
+
+        public async Task<int> GetUsersCount()
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                var query = "SELECT COUNT(*) FROM Users";
+                return await connection.ExecuteScalarAsync<int>(query);
+            }
+        }
+
+        public async Task<PaginatedList<UserMultyAccaunt>> GetMultyAccauntsByUserId(GetMultyAccauntsByUserIdRequest request)
+        {
+            var user = GetById(request.UserId);
+
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                // Выполнение SQL-запроса с использованием Dapper
+                string sql = $@"
+                    SELECT *
+                    FROM Users 
+                    WHERE registrationIp = '{user.RegistrationIp}' and id != '{user.Id}'
+                    ORDER BY id
+                    OFFSET @Offset ROWS
+                    FETCH NEXT @PageSize ROWS ONLY";
+
+                string countSql = $@"SELECT COUNT(*) FROM Users where registrationIp = '{user.RegistrationIp}' and id != '{user.Id}'";
+
+                // Выполнение SQL-запроса для получения количества записей
+                int totalCount = connection.ExecuteScalar<int>(countSql);
+                var pageCont = (int)Math.Ceiling((double)totalCount / request.Pagination.PageSize);
+
+                // Выполнение SQL-запроса с параметрами
+                var queryResult = connection.Query<UserMultyAccaunt>(sql, new { Offset = (request.Pagination.PageNumber - 1) * request.Pagination.PageSize, PageSize = request.Pagination.PageSize });
+
+                return new PaginatedList<UserMultyAccaunt>(queryResult.ToList(), pageCont, request.Pagination.PageNumber);
+            }
+
         }
     }
 }

@@ -16,5 +16,11 @@ namespace DiceApi.Data.Data.Admin
 
         public WithdrawalStats WithdrawalStats { get; set; }
 
+        public decimal WithdrawalWaitSum { get; set; }
+
+        public decimal FreeKassaBallance { get; set; }
+
+        public int UsersCount { get; set; }
+
     }
 }

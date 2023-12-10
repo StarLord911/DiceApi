@@ -67,8 +67,10 @@ namespace DiceApi.Controllers
                 return BadRequest(new { message = "Short name. Name leght should be > 5" });
             }
             //TODO: добвить запись айпи входа
+            var userRegister = _mapper.Map<UserRegistrationModel>(userModel);
+            userRegister.IpAddres = ipAddress;
 
-            var response = await _userService.Register(userModel);
+            var response = await _userService.Register(userRegister);
 
             if (response == null)
             {

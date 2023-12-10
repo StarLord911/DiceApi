@@ -17,8 +17,6 @@ namespace DiceApi.Services.Implements
 
         private readonly ILogRepository _logRepository;
 
-        private long _maxBet = 10000;
-
         public DiceService(IUserService userService,
             IDiceGamesRepository diceGamesRepository,
             ILogRepository logRepository,

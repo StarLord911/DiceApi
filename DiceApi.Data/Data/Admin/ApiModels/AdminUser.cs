@@ -51,6 +51,19 @@ namespace DiceApi.Data.Admin
 
         public string Role { get; set; }
 
+        public decimal Wager { get; set; }
+
+        public decimal DepositForWithdrawal { get; set; }
+
         public bool Blocked { get; set; }
+        /// <summary>
+        /// Причина блокировки.
+        /// </summary>
+        public string BlockReason { get; set; }
+
+        /// <summary>
+        /// Какой депозит должен сделать пользователь чтобы создать вывод.
+        /// </summary>
+        public decimal PaymentForWithdrawal { get; set; }
     }
 }

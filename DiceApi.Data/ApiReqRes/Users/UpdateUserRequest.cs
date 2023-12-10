@@ -22,5 +22,9 @@ namespace DiceApi.Data.ApiReqRes
         public int? ReffetalPercent { get; set; }
 
         public bool? BlockUser { get; set; }
+
+        public string? BlockReason { get; set; }
+
+        public decimal? PaymentForWithdrawal { get; set; }
     }
 }

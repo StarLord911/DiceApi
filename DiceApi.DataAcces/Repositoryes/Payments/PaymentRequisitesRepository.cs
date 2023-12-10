@@ -38,7 +38,14 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 var query = $"SELECT * FROM PaymentRequisites where UserId = {userId}";
 
-                return await connection.QueryFirstAsync<PaymentRequisite>(query);
+                var queryResult = await connection.QueryAsync<PaymentRequisite>(query);
+
+                if (queryResult.Any())
+                {
+                    return queryResult.FirstOrDefault();
+                }
+
+                return new PaymentRequisite();
             }
         }
     }

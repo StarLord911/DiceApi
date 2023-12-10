@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace DiceApi
 {
@@ -69,6 +70,12 @@ namespace DiceApi
                 });
             });
 
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = "tough-jay-48712.upstash.io:48712,password=ecd330dc63eb418ebb56b6c4b052c2fc,ssl=False"; // ”кажите адрес и порт вашего Redis-сервера
+                options.InstanceName = "gameCache"; // ќпционально. ”кажите им€ вашего экземпл€ра Redis
+            });
+
             services.AddTransient<ILogRepository, LogRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IUserService, UserService>();
@@ -84,12 +91,14 @@ namespace DiceApi
             services.AddTransient<IWithdrawalsRepository, WithdrawalsRepository>();
             services.AddTransient<IPaymentRequisitesRepository, PaymentRequisitesRepository>();
             services.AddTransient<ICooperationRequestRepository, CooperationRequestRepository>();
+            services.AddTransient<IMinesRepository, MinesRepository>();
 
             //регаем сервисы
             services.AddTransient<IPaymentService, PaymentService>();
             services.AddSingleton<IPaymentAdapterService, PaymentAdapterService>();
             services.AddTransient<IWithdrawalsService, WithdrawalsService>();
-
+            services.AddSingleton<ICacheService, CacheService>();
+            services.AddTransient<IMinesService, MinesService>();
 
             ConfigHelper.LoadConfig(Configuration);
         }
@@ -97,12 +106,11 @@ namespace DiceApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiceApi v1"));
-            }
+            
+            app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiceApi v1"));
+            
             app.UseRouting();
 
             app.UseCors("AllowAll");

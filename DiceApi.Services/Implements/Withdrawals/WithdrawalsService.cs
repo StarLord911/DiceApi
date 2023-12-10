@@ -18,16 +18,19 @@ namespace DiceApi.Services.Implements
         private readonly IUserService _userService;
         private readonly IWithdrawalsRepository _withdrawalsRepository;
         private readonly IPaymentAdapterService _paymentAdapterService;
+        private readonly IPaymentService _paymentService;
 
         public WithdrawalsService(IWageringRepository wageringRepository,
             IUserService userService,
             IWithdrawalsRepository withdrawalsRepository,
-            IPaymentAdapterService paymentAdapterService)
+            IPaymentAdapterService paymentAdapterService,
+            IPaymentService paymentService)
         {
             _wageringRepository = wageringRepository;
             _userService = userService;
             _withdrawalsRepository = withdrawalsRepository;
             _paymentAdapterService = paymentAdapterService;
+            _paymentService = paymentService;
         }
 
         public async Task<CreateWithdrawalResponce> CreateWithdrawalRequest(CreateWithdrawalRequest request)
@@ -35,6 +38,7 @@ namespace DiceApi.Services.Implements
             var wagering = await _wageringRepository.GetActiveWageringByUserId(request.UserId);
             var user = _userService.GetById(request.UserId);
             var responce = new CreateWithdrawalResponce();
+
 
             if (wagering != null && wagering.IsActive)
             {
@@ -56,6 +60,16 @@ namespace DiceApi.Services.Implements
             {
                 responce.Succses = false;
                 responce.Message = $"Нехватка баланса";
+
+                return responce;
+            }
+
+            var payments = await _paymentService.GetPaymentsByUserId(request.UserId);
+
+            if (payments.Any() && user.PaymentForWithdrawal > payments.Sum(p => p.Amount))
+            {
+                responce.Succses = false;
+                responce.Message = $"Недостаточно депозита для создания заявки на вывод";
 
                 return responce;
             }
@@ -122,6 +136,11 @@ namespace DiceApi.Services.Implements
 
             return result;
 
+        }
+
+        public async Task<decimal> GetWithdrawalWaitSum()
+        {
+            return await _withdrawalsRepository.GetWithdrawalWaitSum();
         }
 
         public async Task СonfirmWithdrawal(long id)

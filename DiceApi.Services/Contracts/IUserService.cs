@@ -14,7 +14,7 @@ namespace DiceApi.Services
     {
         Task<AuthenticateResponse> Authenticate(AuthenticateRequest model);
 
-        Task<AuthenticateResponse> Register(UserRegisterResponce userModel);
+        Task<AuthenticateResponse> Register(UserRegistrationModel userModel);
 
         IEnumerable<User> GetAll();
 
@@ -26,7 +26,7 @@ namespace DiceApi.Services
 
         Task<List<User>> GetRefferalsByUserId(long ownerId);
 
-        Task<List<User>> GetUsersByPagination(GetUsersByPaginationRequest request);
+        Task<PaginatedList<User>> GetUsersByPagination(GetUsersByPaginationRequest request);
 
         Task UpdateReferalSum(long userId, decimal sum);
 
@@ -37,5 +37,8 @@ namespace DiceApi.Services
         Task<PaginatedList<UserPaymentInfo>> GetUserPaymentInfoByPagination(PaginationRequest request);
 
         Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfoByPagination(PaginationRequest request);
+        Task<PaginatedList<UserRefferalInfo>> GetUserUserRefferalInfoByPagination(PaginationRequest request);
+        Task<int> GetUserCount();
+        Task<PaginatedList<UserMultyAccaunt>> GetMultyAccauntsByUserId(GetMultyAccauntsByUserIdRequest request);
     }
 }

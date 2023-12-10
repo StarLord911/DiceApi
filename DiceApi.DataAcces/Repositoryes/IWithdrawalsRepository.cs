@@ -24,5 +24,6 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task<List<Withdrawal>> GetByUserIdAll(long userId);
         Task<PaginatedList<Withdrawal>> GetPaginatedWithdrawals(GetPaymentWithdrawalsRequest request);
+        Task<decimal> GetWithdrawalWaitSum();
     }
 }

@@ -1,6 +1,6 @@
 ﻿using DiceApi.Attributes;
+using DiceApi.Data;
 using DiceApi.Data.Data.Dice;
-using DiceApi.Data.Dice;
 using DiceApi.Hubs;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
@@ -33,7 +33,6 @@ namespace DiceApi.Controllers
             _userService = userService;
 
             _hubContext = hubContext;
-
             
         }
 

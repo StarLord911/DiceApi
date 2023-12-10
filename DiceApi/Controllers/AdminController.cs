@@ -7,7 +7,6 @@ using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Admin;
 using DiceApi.Data.Data.Payment;
-using DiceApi.Data.Dice;
 using DiceApi.Data.Payments;
 using DiceApi.Data.Requests;
 using DiceApi.DataAcces.Repositoryes;
@@ -37,7 +36,8 @@ namespace DiceApi.Controllers
         private readonly IPromocodeService _promocodeService;
         private readonly IPaymentAdapterService _paymentAdapterService;
         private readonly ICooperationRequestRepository _cooperationRequestRepository;
-
+        private readonly IWageringRepository _wageringRepository;
+        private readonly IMinesService _minesService;
 
         public AdminController(IUserService userService,
             IPaymentService paymentService,
@@ -48,6 +48,8 @@ namespace DiceApi.Controllers
             IPromocodeService promocodeService,
             IPaymentAdapterService paymentAdapterService,
             ICooperationRequestRepository cooperationRequestRepository,
+            IWageringRepository wageringRepository,
+            IMinesService minesService,
             IMapper mapper)
         {
             _userService = userService;
@@ -59,21 +61,23 @@ namespace DiceApi.Controllers
             _promocodeService = promocodeService;
             _paymentAdapterService = paymentAdapterService;
             _cooperationRequestRepository = cooperationRequestRepository;
+            _wageringRepository = wageringRepository;
+            _minesService = minesService;
 
             _mapper = mapper;
         }
 
         #region users
-        [Authorize(true)]
+        //[Authorize(true)]
         [HttpPost("getUsersByPage")]
-        public async Task<List<AdminUserInfo>> GetUsersByPage(GetUsersByPaginationRequest request)
+        public async Task<PaginatedList<AdminUserInfo>> GetUsersByPage(GetUsersByPaginationRequest request)
         {
-            var users = await _userService.GetUsersByPagination(request);
+            var res = await _userService.GetUsersByPagination(request);
 
-            return users.Select(u => _mapper.Map<AdminUserInfo>(u)).ToList();
+            return new PaginatedList<AdminUserInfo>(res.Items.Select(u => _mapper.Map<AdminUserInfo>(u)).ToList(), res.TotalPages, res.PageIndex);
         }
 
-        [Authorize(true)]
+        //[Authorize(true)]
         [HttpPost("getMainPageStats")]
         public async Task<AdminMainPageStats> GetMainPageStats()
         {
@@ -81,9 +85,13 @@ namespace DiceApi.Controllers
 
             result.PaymentStats = await _paymentService.GetPaymentStats();
             result.WithdrawalStats = await _withdrawalsService.GetWithdrawalStats();
+
+            
+            result.WithdrawalWaitSum = await _withdrawalsService.GetWithdrawalWaitSum();
+            result.FreeKassaBallance = await _paymentAdapterService.GetCurrentBallance();
+            result.UsersCount = await _userService.GetUserCount();
             return result;
         }
-        //FindUserByNameRequest
 
         [HttpPost("updateUserInformation")]
         public async Task UpdateUserInformation(UpdateUserRequest request)
@@ -106,21 +114,26 @@ namespace DiceApi.Controllers
         public async Task<AdminUser> GetUserById(GetByUserIdRequest request)
         {
             var user = _userService.GetById(request.Id);
-
+            var wager = await _wageringRepository.GetActiveWageringByUserId(request.Id);
             var mappedUser = _mapper.Map<AdminUser>(user);
 
             mappedUser.AuthIpAddres = "";
-            mappedUser.RegistrationIpAddres = "";
+            mappedUser.RegistrationIpAddres = user.RegistrationIp;
 
             mappedUser.BallanceAdd = (await _paymentService.GetPaymentsByUserId(user.Id)).Where(p => p.Status == PaymentStatus.Payed).Sum(s => s.Amount);
             mappedUser.ExitBallance = (await _withdrawalsService.GetAllActiveByUserId(user.Id)).Where(w => w.Status == WithdrawalStatus.Confirmed).Sum(s => s.Amount);
             //TODO: допилить еще для маинса
             var diceGames = (await _diceService.GetAllDiceGamesByUserId(user.Id));
+            var minesGames = (await _minesService.GetMinesGamesByUserId(user.Id));
 
-            mappedUser.EarnedMoney = diceGames.Where(d => !d.Win).Sum(s => s.Sum) - diceGames.Where(d => d.Win).Sum(s => s.CanWin);
+            mappedUser.EarnedMoney = (minesGames.Where(d => !d.Win).Sum(s => s.Sum) + diceGames.Where(d => !d.Win).Sum(s => s.Sum)) - (diceGames.Where(d => d.Win).Sum(s => s.CanWin)
+                + minesGames.Where(d => !d.Win).Sum(s => s.CanWin));
+
             mappedUser.ReffsAddedBallance = await GetReffsAddBallance(user.Id);
             mappedUser.ReffsExitBallance = await GetReffsExitBallance(user.Id);
             mappedUser.RefferalCount = (await _userService.GetRefferalsByUserId(user.Id)).Count;
+            mappedUser.Wager = wager != null ? wager.Wageringed - wager.Played : 0;
+            mappedUser.DepositForWithdrawal = 0;
 
             return mappedUser;
         }
@@ -152,6 +165,7 @@ namespace DiceApi.Controllers
         public async Task<GamesStatsResponce> GetGamesStats(GetByUserIdRequest request)
         {
             var diceGames = await _diceService.GetAllDiceGamesByUserId(request.Id);
+            var minesGames = await _minesService.GetMinesGamesByUserId(request.Id);
 
             var result = new GamesStatsResponce();
 
@@ -159,7 +173,12 @@ namespace DiceApi.Controllers
             result.DiceBetCount = diceGames.Count;
             result.DiceLoseSum = diceGames.Where(d => !d.Win).Sum(s => s.Sum);
             result.DiceWinSum = diceGames.Where(d => d.Win).Sum(s => s.CanWin);
-            //TODO: допилить для маинса
+
+            result.MinesAllBetsSum = minesGames.Sum(d => d.Sum);
+            result.MinesBetCount = minesGames.Count;
+            result.MinesLoseSum = minesGames.Where(d => !d.Win).Sum(s => s.Sum);
+            result.MinesWinSum = minesGames.Where(d => d.Win).Sum(s => s.CanWin);
+
             return result;
         }
 
@@ -173,6 +192,7 @@ namespace DiceApi.Controllers
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
+
             //TODO: допилить для маинса
             var totalItemCount = games.Count;
             var totalPages = (int)Math.Ceiling((double)totalItemCount / request.PageSize);
@@ -240,10 +260,16 @@ namespace DiceApi.Controllers
             return new PaginatedList<Withdrawal>(result, totalPages, request.Pagination.PageNumber);
 
         }
+
+        [HttpPost("getMultyAccauntsByUserId")]
+        public async Task<PaginatedList<UserMultyAccaunt>> GetMultyAccaunts(GetMultyAccauntsByUserIdRequest request)
+        {
+            return await _userService.GetMultyAccauntsByUserId(request);
+        }
+
         #endregion
 
         #region promocodes
-
         [HttpPost("generatePromocode")]
         public async Task<string> GeneratePromocode(CreatePromocodeRequest request)
         {
@@ -354,6 +380,12 @@ namespace DiceApi.Controllers
         public async Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfo(PaginationRequest request)
         {
             return await _userService.GetUserPaymentWithdrawalInfoByPagination(request);
+        }
+
+        [HttpPost("getTopRefferals")]
+        public async Task<PaginatedList<UserRefferalInfo>> GetTopRefferals(PaginationRequest request)
+        {
+            return await _userService.GetUserUserRefferalInfoByPagination(request);
         }
 
         #endregion

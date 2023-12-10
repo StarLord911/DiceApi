@@ -3,6 +3,7 @@ using DiceApi.Data;
 using DiceApi.Data.Admin;
 using DiceApi.Data.Api;
 using DiceApi.Data.Api.Model;
+using DiceApi.Data.ApiModels;
 using DiceApi.Data.Data.Dice;
 using System;
 using System.Collections.Generic;
@@ -36,6 +37,8 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password))
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
                 .ForMember(dest => dest.Blocked, opt => opt.MapFrom(src => !src.IsActive))
+                .ForMember(dest => dest.BlockReason, opt => opt.MapFrom(src => src.BlockReason))
+                .ForMember(dest => dest.PaymentForWithdrawal, opt => opt.MapFrom(src => src.PaymentForWithdrawal))
                 .ForMember(dest => dest.RefferalPercent, opt => opt.MapFrom(src => src.ReferalPercent));
 
             CreateMap<User, UserReferral>()
@@ -43,7 +46,25 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.Profit, opt => opt.MapFrom(src => src.ReferalSum))
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate));
 
-            
+            CreateMap<UserRegisterResponce, UserRegistrationModel>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password))
+                .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId));
+
+            CreateMap<Cell, CellApiModel>()
+                .ForMember(destination => destination.IsOpen, opt => opt.MapFrom(source => source.IsOpen))
+                .ForMember(destination => destination.X, opt => opt.MapFrom(source => source.X))
+                .ForMember(destination => destination.Y, opt => opt.MapFrom(source => source.Y));
+
+
+            CreateMap<ActiveMinesGame, MinesGame>()
+                .ForMember(destination => destination.UserId, opt => opt.MapFrom(source => source.UserId))
+                .ForMember(destination => destination.Sum, opt => opt.MapFrom(source => source.BetSum))
+                .ForMember(destination => destination.CanWin, opt => opt.MapFrom(source => source.CanWin))
+                .ForMember(destination => destination.Win, opt => opt.MapFrom(source => source.FinishGame));
+
+
+
         }
     }
 }

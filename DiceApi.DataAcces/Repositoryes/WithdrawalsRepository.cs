@@ -165,5 +165,25 @@ namespace DiceApi.DataAcces.Repositoryes
                 return new PaginatedList<Withdrawal>(withdrawals.ToList(), pageCount, request.Pagination.PageNumber);
             }
         }
+
+        public async Task<decimal> GetWithdrawalWaitSum()
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+                string query = $"SELECT SUM(Amount) FROM Withdrawal WHERE Status = 1";
+                SqlCommand command = new SqlCommand(query, connection);
+                var result = await command.ExecuteScalarAsync();
+
+                if (result != DBNull.Value)
+                {
+                    return Convert.ToDecimal(result);
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
     }
 }
