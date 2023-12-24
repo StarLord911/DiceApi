@@ -50,5 +50,10 @@ namespace DiceApi.Data
         /// Какой депозит должен сделать пользователь чтобы создать вывод.
         /// </summary>
         public decimal PaymentForWithdrawal { get; set; }
+
+        public DateTime LastAuthDate { get; set; }
+
+        public string LastAuthIp { get; set; }
+
     }
 }

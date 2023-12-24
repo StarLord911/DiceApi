@@ -43,7 +43,7 @@ namespace DiceApi.Data
         /// Дата игры
         /// </summary>
         [JsonProperty("gameDate")]
-        public DateTime GameDate { get; set; }
+        public string GameDate { get; set; }
 
         /// <summary>
         /// Вид игры

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data
 {
-    public class Wagering
+    public class Wager
     {
         /// <summary>
         /// Идентификатор промокода
@@ -21,7 +21,7 @@ namespace DiceApi.Data
         /// <summary>
         /// Сколько нужно отыграть по промокоду
         /// </summary>
-        public decimal Wageringed { get; set; }
+        public decimal Wagering { get; set; }
 
         /// <summary>
         /// Сколько отыграно по промокоду

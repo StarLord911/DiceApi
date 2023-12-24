@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using DiceApi.Common;
+using DiceApi.Data;
 
 namespace DiceApi.Services.Implements
 {
@@ -14,6 +16,7 @@ namespace DiceApi.Services.Implements
         private readonly IDiceGamesRepository _diceGamesRepository;
         private readonly IWageringRepository _wageringRepository;
         private readonly IPaymentAdapterService _paymentAdapterService;
+        private readonly ICacheService _cacheService;
 
         private readonly ILogRepository _logRepository;
 
@@ -21,13 +24,15 @@ namespace DiceApi.Services.Implements
             IDiceGamesRepository diceGamesRepository,
             ILogRepository logRepository,
             IWageringRepository wageringRepository,
-            IPaymentAdapterService paymentAdapterService)
+            IPaymentAdapterService paymentAdapterService,
+            ICacheService cacheService)
         {
             _userService = userService;
             _diceGamesRepository = diceGamesRepository;
             _logRepository = logRepository;
             _wageringRepository = wageringRepository;
             _paymentAdapterService = paymentAdapterService;
+            _cacheService = cacheService;
         }
 
         public async Task<(DiceResponce, DiceGame)> StartDice(DiceRequest request)
@@ -46,21 +51,26 @@ namespace DiceApi.Services.Implements
 
             var random = new Random().Next(1, 100);
             var currentBallance = await _paymentAdapterService.GetCurrentBallance();
+            var settingsCache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
+            var cache = SerializationHelper.Deserialize<Settings>(settingsCache);
 
             //антиминус логика, если наш баланс больше чем ставка то игра играется, иначе игра проигрывается.
-            if (currentBallance > request.Sum)
+            if (cache.DiceAntiminus > request.Sum)
             {
                 if (request.Persent > random)
                 {
                     responce.IsSucces = true;
                     responce.NewBallance = (user.Ballance += (winSum - request.Sum));
                     await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
+                    cache.DiceAntiminus -= winSum;
+
                 }
                 else
                 {
                     responce.IsSucces = false;
                     responce.NewBallance = user.Ballance -= request.Sum;
                     await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
+                    cache.DiceAntiminus += request.Sum;
                 }
             }
             else
@@ -68,7 +78,13 @@ namespace DiceApi.Services.Implements
                 responce.IsSucces = false;
                 responce.NewBallance = user.Ballance -= request.Sum;
                 await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
+
+                cache.DiceAntiminus += request.Sum;
             }
+           
+            var newCache = SerializationHelper.Serialize(cache);
+            await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
+            await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
 
             var diceGame = new DiceGame()
             {
@@ -88,7 +104,7 @@ namespace DiceApi.Services.Implements
             {
                 await _wageringRepository.UpdatePlayed(request.UserId, request.Sum);
                 
-                if (wagering.Wageringed < wagering.Played + request.Sum)
+                if (wagering.Wagering < wagering.Played + request.Sum)
                 {
                     await _wageringRepository.DeactivateWagering(wagering.Id);
                 }

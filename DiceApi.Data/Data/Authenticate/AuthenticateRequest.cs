@@ -14,5 +14,8 @@ namespace DiceApi.Data
 
         [Required]
         public string Password { get; set; }
+
+        public string AuthIpAddres { get; set; }
+
     }
 }

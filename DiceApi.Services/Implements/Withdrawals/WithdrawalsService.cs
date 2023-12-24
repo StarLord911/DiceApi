@@ -43,7 +43,7 @@ namespace DiceApi.Services.Implements
             if (wagering != null && wagering.IsActive)
             {
                 responce.Succses = false;
-                responce.Message = $"Нужно отыграть по промокоду {wagering.Wageringed - wagering.Played}";
+                responce.Message = $"Нужно отыграть по промокоду {wagering.Wagering - wagering.Played}";
 
                 return responce;
             }

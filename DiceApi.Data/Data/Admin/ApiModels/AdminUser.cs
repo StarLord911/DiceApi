@@ -17,10 +17,11 @@ namespace DiceApi.Data.Admin
 
         public string Password { get; set; }
 
-        public DateTime RegistrationDate { get; set; }
+        public string RegistrationDate { get; set; }
 
-        public DateTime LastActiveDate { get; set; }
+        public string LastActiveDate { get; set; }
 
+        public string LastAuthIp { get; set; }
 
         public string RegistrationIpAddres { get; set; }
 
@@ -65,5 +66,8 @@ namespace DiceApi.Data.Admin
         /// Какой депозит должен сделать пользователь чтобы создать вывод.
         /// </summary>
         public decimal PaymentForWithdrawal { get; set; }
+
+        public decimal BallanceInGame { get; set; }
+
     }
 }

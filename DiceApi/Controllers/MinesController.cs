@@ -47,18 +47,20 @@ namespace DiceApi.Controllers
         {
             var result = await _minesService.OpenCell(request);
 
-            var user = _userService.GetById(result.Item2.UserId);
 
-            if (result.Item1.Result.GameOver)
+            if (result.Item1.Result != null && result.Item1.Result.GameOver)
             {
+                var user = _userService.GetById(result.Item2.UserId);
+
                 var apiModel = new GameApiModel
                 {
                     UserName = ReplaceAt(user.Name, 4, '*'),
                     Sum = result.Item2.BetSum,
                     CanWinSum = Math.Round(result.Item2.CanWin, 2),
-                    Multiplier = (decimal)Math.Round(result.Item2.Chances[result.Item2.OpenedCellsCount], 2),
-                    Win = false,
-                    GameType = Data.GameType.Mines
+                    Multiplier = (decimal)Math.Round(result.Item2.Chances[result.Item2.OpenedCellsCount - 1], 2),
+                    Win = result.Item2.FinishGame,
+                    GameType = Data.GameType.Mines,
+                    GameDate = DateTime.Now.AddHours(3).ToString("G")
                 };
 
                 var gameJson = JsonConvert.SerializeObject(apiModel);

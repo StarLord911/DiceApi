@@ -84,8 +84,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     {
                         query.Append(" AND");
                     }
-                    query.Append($" Status = '@PaymentStatus'");
-                    parameters.Add("@PaymentStatus", request.PaymentStatus.ToString());
+                    query.Append($" Status = '{Enum.GetName(typeof(PaymentStatus), request.PaymentStatus.Value)}'");
                 }
 
                 if (!string.IsNullOrEmpty(query.ToString()))

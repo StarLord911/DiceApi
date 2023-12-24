@@ -15,5 +15,7 @@ namespace DiceApi.Data
 
         public int PageSize { get; set; }
 
+        public bool? OrderByBallance { get; set; }
+
     }
 }

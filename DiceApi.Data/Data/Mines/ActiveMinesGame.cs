@@ -87,7 +87,6 @@ namespace DiceApi.Data
 
             if (cell.IsOpen)
             {
-                OpenedCellsCount++;
                 return new OpenCellResult { GameOver = false, IsCellOpened = true, FindMine = false };
             }
 
@@ -115,9 +114,16 @@ namespace DiceApi.Data
 
     public class Cell
     {
+        [DataMember]
         public int X { get; }
+
+        [DataMember]
         public int Y { get; }
+
+        [DataMember]
         public bool IsMined { get; set; }
+
+        [DataMember]
         public bool IsOpen { get; set; }
 
         public Cell(int x, int y)

@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiceApi.DataAcces", "DiceAp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiceApi.Data", "DiceApi.Data\DiceApi.Data.csproj", "{9E23AC9C-12F2-4131-987C-8CE44198F7EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiceApi.Common", "DiceApi.Common\DiceApi.Common.csproj", "{14F39556-D1D0-4D65-8600-F178B83AE88D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiceApi.Common", "DiceApi.Common\DiceApi.Common.csproj", "{14F39556-D1D0-4D65-8600-F178B83AE88D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

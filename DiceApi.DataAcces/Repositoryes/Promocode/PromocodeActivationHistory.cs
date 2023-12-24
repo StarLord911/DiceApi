@@ -27,12 +27,15 @@ namespace DiceApi.DataAcces.Repositoryes
                 var promoCode = new
                 {
                     Promocode = activation.Promocode,
-                    UserId = activation.UserId
+                    UserId = activation.UserId,
+                    ActivationDateTime = activation.ActivationDateTime,
+                    Wager = activation.Wager,
+                    AddedBallance = activation.AddedBallance
                 };
 
                 // Выполнение запроса на вставку
-                var query = $@"INSERT INTO PromoCodeActivationHistory (userId, promocode)
-                            VALUES (@UserId, @Promocode)";
+                var query = $@"INSERT INTO PromoCodeActivationHistory (userId, promocode, activationDateTime, Wager, addedBallance)
+                            VALUES (@UserId, @Promocode, @ActivationDateTime, @Wager, @AddedBallance)";
 
                 await connection.ExecuteAsync(query, promoCode);
             }

@@ -14,5 +14,12 @@ namespace DiceApi.Data
         public long UserId { get; set; }
 
         public string Promocode { get; set; }
+
+        public DateTime ActivationDateTime { get; set; }
+
+        public decimal Wager { get; set; }
+
+        public decimal AddedBallance { get; set; }
+
     }
 }

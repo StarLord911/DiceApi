@@ -30,12 +30,12 @@ namespace DiceApi.DataAcces.Repositoryes
                     sum = minesGame.Sum,
                     win = minesGame.Win,
                     canWin = minesGame.CanWin,
-                    gameTime = DateTime.UtcNow
+                    gameTime = DateTime.UtcNow,
                 };
 
                 // SQL-запрос на вставку данных
                 string sql = @"INSERT INTO MinesGame (userId, sum, win, canWin, gameTime)
-                   VALUES (@userId, @sum, @win, @winSum, @gameTime)";
+                   VALUES (@userId, @sum, @win, @canWin, @gameTime)";
 
                 // Выполнение запроса с diceParams Dapper
                 await IDbConnection.ExecuteScalarAsync(sql, minesParams);

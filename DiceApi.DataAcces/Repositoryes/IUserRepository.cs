@@ -37,5 +37,10 @@ namespace DiceApi.DataAcces.Repositoryes
         Task<PaginatedList<UserRefferalInfo>> GetUserUserRefferalInfoByPagination(PaginationRequest request);
         Task<int> GetUsersCount();
         Task<PaginatedList<UserMultyAccaunt>> GetMultyAccauntsByUserId(GetMultyAccauntsByUserIdRequest request);
+
+        Task UpdateAuthDateByUserId(long userId);
+        Task UpdateAuthIpByUserId(long userId, string ip);
+
+
     }
 }

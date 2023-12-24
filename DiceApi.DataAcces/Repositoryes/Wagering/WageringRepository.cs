@@ -20,7 +20,7 @@ namespace DiceApi.DataAcces.Repositoryes
             _connectionString = DataAccesHelper.GetConnectionString();
         }
 
-        public async Task AddWearing(Wagering wagering)
+        public async Task AddWearing(Wager wagering)
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
@@ -28,7 +28,7 @@ namespace DiceApi.DataAcces.Repositoryes
                 var promoCode = new
                 {
                     UserId = wagering.UserId,
-                    Wageringed = wagering.Wageringed,
+                    Wageringed = wagering.Wagering,
                     Played = wagering.Played,
                     IsActive = wagering.IsActive
                 };
@@ -62,13 +62,13 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task<Wagering> GetActiveWageringByUserId(long userId)
+        public async Task<Wager> GetActiveWageringByUserId(long userId)
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
                 var query = "select * from Wagering where userId = @Id";
 
-                return (await connection.QueryAsync<Wagering>(query, new { Id = userId })).FirstOrDefault();
+                return (await connection.QueryAsync<Wager>(query, new { Id = userId })).FirstOrDefault();
             }
         }
 
@@ -88,7 +88,7 @@ namespace DiceApi.DataAcces.Repositoryes
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
-                var wager = (await GetActiveWageringByUserId(userId)).Wageringed;
+                var wager = (await GetActiveWageringByUserId(userId)).Wagering;
 
                 var query = "update Wagering set wagering  = @Wager where id = @Id";
 

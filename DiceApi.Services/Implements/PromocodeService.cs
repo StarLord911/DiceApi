@@ -74,7 +74,10 @@ namespace DiceApi.Services.Implements
             var promocodeActivation = new PrimocodeActivation()
             {
                 UserId = request.UserId,
-                Promocode = request.Promocode
+                Promocode = request.Promocode,
+                ActivationDateTime = DateTime.Now,
+                Wager = promocode.Wagering,
+                AddedBallance = promocode.BallanceAdd
             };
 
             var wager = await _wageringRepository.GetActiveWageringByUserId(request.UserId);
@@ -90,10 +93,10 @@ namespace DiceApi.Services.Implements
             }
             else
             {
-                var wearing = new Wagering
+                var wearing = new Wager
                 {
                     UserId = request.UserId,
-                    Wageringed = promocode.BallanceAdd * promocode.Wagering,
+                    Wagering = promocode.BallanceAdd * promocode.Wagering,
                     Played = 0,
                     IsActive = true
                 };
@@ -158,7 +161,7 @@ namespace DiceApi.Services.Implements
 
             var totalPages = (int)Math.Ceiling((double)totalItemCount / request.Pagination.PageSize);
 
-            return new PaginatedList<PromocodeApiModel>(result, totalPages, request.Pagination.PageNumber);
+            return new PaginatedList<PromocodeApiModel>(result.OrderBy(p => p.AllActivationCount - p.ActivatedCount).ToList(), totalPages, request.Pagination.PageNumber);
         }
 
         public async Task<PaginatedList<PromocodeApiModel>> GetPromocodesByPagination(GetPromocodesByPaginationRequest request)
@@ -193,7 +196,7 @@ namespace DiceApi.Services.Implements
 
             var totalPages = (int)Math.Ceiling((double)totalItemCount / request.Pagination.PageSize);
 
-            return new PaginatedList<PromocodeApiModel>(result, totalPages, request.Pagination.PageNumber);
+            return new PaginatedList<PromocodeApiModel>(result.OrderBy(p => p.AllActivationCount - p.ActivatedCount).ToList(), totalPages, request.Pagination.PageNumber);
         }
     }
 }

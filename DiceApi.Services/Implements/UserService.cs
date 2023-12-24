@@ -34,6 +34,7 @@ namespace DiceApi.Services
                 .GetAll()
                 .FirstOrDefault(x => x.Name == model.Name && (x.Password == HashHelper.GetSHA256Hash(model.Password) || x.Password == model.Password));
 
+
             if (user == null || (user != null && user.IsActive == false))
             {
                 // todo: need to add logger
@@ -42,6 +43,8 @@ namespace DiceApi.Services
             }
 
             var token = AuthHelper.GenerateJwtToken(user);
+            await _userRepository.UpdateAuthDateByUserId(user.Id);
+            await _userRepository.UpdateAuthIpByUserId(user.Id, model.AuthIpAddres);
 
             return new AuthenticateResponse(user, token) {Info = "Authenticate succes" };
         }

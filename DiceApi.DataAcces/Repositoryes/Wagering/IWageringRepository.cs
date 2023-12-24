@@ -9,9 +9,9 @@ namespace DiceApi.DataAcces.Repositoryes
 {
     public interface IWageringRepository
     {
-        Task AddWearing(Wagering wagering);
+        Task AddWearing(Wager wagering);
 
-        Task<Wagering> GetActiveWageringByUserId(long userId);
+        Task<Wager> GetActiveWageringByUserId(long userId);
 
         Task UpdateWagering(long userId, decimal addWagerSub);
 

@@ -35,6 +35,8 @@ namespace DiceApi.Controllers
         [HttpPost("authenticate")]
         public async Task<IActionResult> Authenticate(AuthenticateRequest model)
         {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            model.AuthIpAddres = ipAddress;
             //TODO: добвить запись айпи входа
             var response = await _userService.Authenticate(model);
 

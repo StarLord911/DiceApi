@@ -123,8 +123,14 @@ namespace DiceApi.DataAcces.Repositoryes
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
+                var orderBy = "ORDER BY Id";
 
-                string query = "SELECT * FROM Users ORDER BY Id OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                if (request.OrderByBallance.HasValue && request.OrderByBallance == true)
+                {
+                    orderBy = "ORDER BY ballance";
+                }
+
+                string query = $"SELECT * FROM Users {orderBy} OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
                 int offset = (request.PageNumber - 1) * request.PageSize;
 
                 var countQuery = await db.ExecuteScalarAsync<int>($@"SELECT count(*) FROM Users");
@@ -370,6 +376,24 @@ namespace DiceApi.DataAcces.Repositoryes
                 return new PaginatedList<UserMultyAccaunt>(queryResult.ToList(), pageCont, request.Pagination.PageNumber);
             }
 
+        }
+
+        public async Task UpdateAuthDateByUserId(long userId)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                var query = $"UPDATE Users SET lastAuthDate = @date where id = {userId}";
+                await connection.ExecuteAsync(query, new { date = DateTime.UtcNow });
+            }
+        }
+
+        public async Task UpdateAuthIpByUserId(long userId, string ip)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                var query = $"UPDATE Users SET lastAuthIp = @ip where id = {userId}";
+                await connection.ExecuteAsync(query, new { ip });
+            }
         }
     }
 }

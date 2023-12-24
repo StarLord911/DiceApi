@@ -26,5 +26,7 @@ namespace DiceApi.Data.Api.Model
 
         [JsonProperty("isActive")]
         public bool IsActive { get; set; }
+
+        public string BlockReason { get; set; }
     }
 }

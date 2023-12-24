@@ -22,8 +22,9 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.Ballance, opt => opt.MapFrom(src => src.Ballance))
                 .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId))
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
-                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive));
-            
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => dest.BlockReason, opt => opt.MapFrom(src => src.BlockReason));
+
             CreateMap<User, AdminUserInfo>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
@@ -35,10 +36,13 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.Ballance, opt => opt.MapFrom(src => src.Ballance))
                 .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role))
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password))
-                .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
+                .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate.AddHours(3).ToString("G")))
+                .ForMember(dest => dest.LastActiveDate, opt => opt.MapFrom(src => src.LastAuthDate.AddHours(3).ToString("G")))
                 .ForMember(dest => dest.Blocked, opt => opt.MapFrom(src => !src.IsActive))
                 .ForMember(dest => dest.BlockReason, opt => opt.MapFrom(src => src.BlockReason))
                 .ForMember(dest => dest.PaymentForWithdrawal, opt => opt.MapFrom(src => src.PaymentForWithdrawal))
+                .ForMember(dest => dest.LastAuthIp, opt => opt.MapFrom(src => src.LastAuthIp.Replace(":fffff:", string.Empty)))
+                .ForMember(dest => dest.RegistrationIpAddres, opt => opt.MapFrom(src => src.RegistrationIp.Replace(":fffff:", string.Empty)))
                 .ForMember(dest => dest.RefferalPercent, opt => opt.MapFrom(src => src.ReferalPercent));
 
             CreateMap<User, UserReferral>()

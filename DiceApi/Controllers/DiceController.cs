@@ -36,7 +36,7 @@ namespace DiceApi.Controllers
             
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("start")]
         public async Task<DiceResponce> Start(DiceRequest request)
         {

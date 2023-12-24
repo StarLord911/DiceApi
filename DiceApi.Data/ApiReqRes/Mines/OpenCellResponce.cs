@@ -14,6 +14,7 @@ namespace DiceApi.Data.ApiReqRes
         public OpenCellResult Result { get; set; }
 
         public bool Succes { get; set; }
+
         public string Message { get; set; }
 
     }

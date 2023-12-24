@@ -51,6 +51,21 @@ namespace DiceApi.Services
                 return new CreateMinesGameResponce() { Succes = false, Info = "User blocked" };
             }
 
+            var contains = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.UserId);
+
+            if (contains != null)
+            {
+                var r = SerializationHelper.Deserialize<ActiveMinesGame>(contains);
+                if (!r.IsActiveGame())
+                {
+                    await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
+                }
+                else
+                {
+                    return new CreateMinesGameResponce() { Succes = false, Info = "Game already created" };
+                }
+            }
+
             var game = new ActiveMinesGame(request.MinesCount);
             game.BetSum = request.Sum;
             game.UserId = request.UserId;
@@ -68,8 +83,18 @@ namespace DiceApi.Services
         public async Task<MinesGameApiModel> GetActiveMinesGameByUserId(GetByUserIdRequest request)
         {
             var serializedGame = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.Id);
+
+            if (serializedGame == null)
+            {
+                return null;
+            }
+            if (!SerializationHelper.Deserialize<ActiveMinesGame>(serializedGame).IsActiveGame())
+            {
+                return null;
+            }
+
             var game = SerializationHelper.Deserialize<ActiveMinesGame>(serializedGame);
-            return new MinesGameApiModel() { Cells = MapCells(game.GetCells()), CanWin = game.CanWin, OpenedCount = game.OpenedCellsCount };
+            return new MinesGameApiModel() { Cells = MapCells(game.GetCells()), MinesCount = game.MinesCount, OpenedCount = game.OpenedCellsCount, BetSum = game.BetSum };
 
         }
 
@@ -91,39 +116,96 @@ namespace DiceApi.Services
                 return (new FinishMinesGameResponce { Succes = false, Message = "Game already finished" }, null);
             }
 
-            await _userService.UpdateUserBallance(request.Id, game.CanWin);
+            var user = _userService.GetById(request.Id);
+            await _userService.UpdateUserBallance(request.Id, user.Ballance + game.CanWin);
             game.FinishGame = true;
+
+            var settingsCache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
+            var cache = SerializationHelper.Deserialize<Settings>(settingsCache);
+
+            cache.MinesAntiminus -= game.CanWin;
+            var newCache = SerializationHelper.Serialize(cache);
+            await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
+            await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
 
             var mappedGame = _mapper.Map<MinesGame>(game);
             await _minesRepository.AddMinesGame(mappedGame);
-            var user = _userService.GetById(request.Id);
 
-            return (new FinishMinesGameResponce { UserBallance = user.Ballance }, game);
+            return (new FinishMinesGameResponce { Cells = SerializationHelper.Serialize(game.GetCells()), UserBallance = user.Ballance + game.CanWin }, game);
         }
 
         public async Task<(OpenCellResponce, ActiveMinesGame)> OpenCell(OpenCellRequest request)
         {
-            var serializedGame = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.UserId);
-            var game = SerializationHelper.Deserialize<ActiveMinesGame>(serializedGame);
+            var settingsCache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
+            var cache = SerializationHelper.Deserialize<Settings>(settingsCache);
 
+            var serializedGame = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.UserId);
+            if (serializedGame == null)
+            {
+                return (new OpenCellResponce { Succes = false, Message = "Game not found" }, null);
+            }
+
+            var game = SerializationHelper.Deserialize<ActiveMinesGame>(serializedGame);
+            
             if (!game.IsActiveGame())
             {
                 game.FinishGame = false;
-                return (new OpenCellResponce { Succes = false, Message = "Game over" }, game);
+                await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
+
+                return (new OpenCellResponce { Succes = false, Message = "Game was over" }, game);
             }
 
             var openResult = game.OpenCell(request.X, request.Y);
 
-            if (!game.IsActiveGame())
+            if (openResult.FindMine)
             {
+                cache.MinesAntiminus += game.BetSum;
+                var newCache = SerializationHelper.Serialize(cache);
+                await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
+                await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
+
+
                 game.FinishGame = false;
                 var mappedGame = _mapper.Map<MinesGame>(game);
                 await _minesRepository.AddMinesGame(mappedGame);
+                await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
+                return (new OpenCellResponce { Result = new OpenCellResult { Cells = SerializationHelper.Serialize(game.GetCells()), FindMine = true, GameOver = true }, Succes = false, Message = "Game over" }, game);
+            }
+
+            if (game.CanWin > cache.MinesAntiminus)
+            {
+                cache.MinesAntiminus += game.BetSum;
+
+                var cells = game.GetCells();
+                bool found = false;
+                for (int i = 0; i < 5; i++)
+                {
+                    for (int j = 0; j < 5; j++)
+                    {
+                        if (cells[i, j].IsMined && !found)
+                        {
+                            cells[i, j].IsMined = false;
+                            found = true;
+                        }
+                    }
+                }
+
+                cells[request.X, request.Y].IsMined = true;
+
+                var newCache = SerializationHelper.Serialize(cache);
+                await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
+                await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
+
+
+                var mappedGame = _mapper.Map<MinesGame>(game);
+                await _minesRepository.AddMinesGame(mappedGame);
+                await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
+                return (new OpenCellResponce { Result = new OpenCellResult { Cells = SerializationHelper.Serialize(cells), FindMine = true, GameOver = true }, Succes = false, Message = "Game over" }, game);
             }
 
             await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
 
-            var newGame = SerializationHelper.Serialize<ActiveMinesGame>(game);
+            var newGame = SerializationHelper.Serialize(game);
 
             await _cacheService.WriteCache(CacheConstraints.MINES_KEY + request.UserId, newGame);
             return (new OpenCellResponce { Succes = true, Message = "Game continuate", Result = openResult }, game);
@@ -133,7 +215,6 @@ namespace DiceApi.Services
         {
             return await _minesRepository.GetMinesGamesByUserId(userId);
         }
-
 
         #region
         public CellApiModel[,] MapCells(Cell[,] cells)
