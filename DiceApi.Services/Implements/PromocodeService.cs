@@ -89,7 +89,7 @@ namespace DiceApi.Services.Implements
                     await _wageringRepository.ActivateWagering(wager.Id);
                 }
 
-                await _wageringRepository.UpdateWagering(request.UserId ,promocode.BallanceAdd * promocode.Wagering);
+                await _wageringRepository.UpdateWagering(request.UserId, wager.Wagering + (promocode.BallanceAdd * promocode.Wagering));
             }
             else
             {

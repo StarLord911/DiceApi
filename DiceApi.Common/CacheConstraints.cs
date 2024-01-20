@@ -12,5 +12,7 @@ namespace DiceApi.Common
 
         public const string SETTINGS_KEY = "SETTINGS_KEY_";
 
+        public const string EVERY_DAY_BONUS = "EVERY_DAY_BONUS_";
+
     }
 }

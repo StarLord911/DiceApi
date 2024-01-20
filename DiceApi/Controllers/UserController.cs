@@ -1,19 +1,23 @@
 ﻿using AutoMapper;
 using DiceApi.Attributes;
+using DiceApi.Common;
 using DiceApi.Data;
-using DiceApi.Data.Api;
 using DiceApi.Data.Api.Model;
-using DiceApi.Data.Data.Payment;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Requests;
+using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services;
-using DiceApi.Services.Contracts;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using Telegram.Bot;
+using Telegram.Bot.Extensions.LoginWidget;
+using Telegram.Bot.Types;
 
 namespace DiceApi.Controllers
 {
@@ -24,11 +28,22 @@ namespace DiceApi.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly ITelegramBotClient _telegramBotClient;
+        private readonly ICacheService _cacheService;
+        private readonly IWageringRepository _wageringRepository;
+
 
         public UserController(IUserService userService,
+            ITelegramBotClient telegramBotClient,
+            ICacheService cacheService,
+            IWageringRepository wageringRepository,
             IMapper mapper)
         {
             _userService = userService;
+            _telegramBotClient = telegramBotClient;
+            _cacheService = cacheService;
+            _wageringRepository = wageringRepository;
+
             _mapper = mapper;
         }
 
@@ -96,7 +111,69 @@ namespace DiceApi.Controllers
             return _mapper.Map<UserApi>(user);
         }
 
-        
-    }
-}
+        [Authorize]
+        [HttpPost("getDailyBonusByUserId")]
+        public async Task<string> GetDailyBonusByUserId(GetByUserIdRequest request)
+        {
+            var cache = await _cacheService.ReadCache(CacheConstraints.EVERY_DAY_BONUS + request.Id);
 
+            if (!string.IsNullOrEmpty(cache))
+            {
+                return "Alredy use bonus";
+            }
+            var user = _userService.GetById(request.Id);
+
+            if (false) //TODO: привязка тг
+            {
+                return "Telegram use bonus";
+            }
+
+            var bonus = new Random().Next(10);
+
+            var newBallance = user.Ballance + bonus;
+
+            await _cacheService.WriteCache(CacheConstraints.EVERY_DAY_BONUS + request.Id, "true", TimeSpan.FromHours(24));
+
+            var wager = await _wageringRepository.GetActiveWageringByUserId(request.Id);
+            await _wageringRepository.UpdateWagering(request.Id, wager.Wagering + (bonus * 20));
+            await _userService.UpdateUserBallance(request.Id, newBallance);
+
+            return "Succes";
+        }
+
+        [Authorize]
+        [HttpPost("changeUserData")]
+        public async Task ChangeUserInformation(ChangeUserInformationRequest request)
+        {
+            var user = _userService.GetById(request.UserId);
+
+            await _userService.UpdateUserInformation(new UpdateUserRequest {UserId = request.UserId, Name = request.NewName, Password = request.NewPassword });
+        }
+
+
+            #region
+
+            //[HttpGet]
+            //public IActionResult Login()
+            //{
+            //    // Перенаправление пользователя на страницу авторизации Telegram
+            //    string redirectUrl = $"https://telegram.me/{_telegramBotClient.GetMeAsync().Result.Username}?start=auth";
+            //    return Redirect(redirectUrl);
+            //}
+
+            //[HttpPost]
+            //public IActionResult Auth([FromBody] Update update)
+            //{
+            //    // Parsed from the query string / from the callback object
+            //    Dictionary<string, string> fields = QueryStringFields;
+
+            //    LoginWidget loginWidget = new LoginWidget("your API access Token");
+            //    if (loginWidget.CheckAuthorization(fields) == Authorization.Valid)
+            //    {
+            //        // ...
+            //    }
+            //}
+
+            #endregion
+        }
+}

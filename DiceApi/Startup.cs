@@ -14,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Telegram.Bot;
 
 namespace DiceApi
 {
@@ -99,6 +100,8 @@ namespace DiceApi
             services.AddTransient<IWithdrawalsService, WithdrawalsService>();
             services.AddSingleton<ICacheService, CacheService>();
             services.AddTransient<IMinesService, MinesService>();
+
+            services.AddSingleton<ITelegramBotClient>(new TelegramBotClient("6829158443:AAFx85c81t7tTZFRtZtU-R0-xpWd-2hlMkg"));
 
             ConfigHelper.LoadConfig(Configuration);
         }

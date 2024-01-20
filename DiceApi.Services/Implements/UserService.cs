@@ -156,5 +156,10 @@ namespace DiceApi.Services
         {
             return await _userRepository.GetMultyAccauntsByUserId(request);
         }
+
+        public async Task DeleteUserById(long id)
+        {
+            await _userRepository.DeleteUserById(id);
+        }
     }
 }

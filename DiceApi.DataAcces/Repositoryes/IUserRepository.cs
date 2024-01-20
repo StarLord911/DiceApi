@@ -40,7 +40,6 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task UpdateAuthDateByUserId(long userId);
         Task UpdateAuthIpByUserId(long userId, string ip);
-
-
+        Task DeleteUserById(long id);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using DiceApi.Attributes;
 using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.Admin;
@@ -136,8 +137,8 @@ namespace DiceApi.Controllers
             var diceGames = (await _diceService.GetAllDiceGamesByUserId(user.Id));
             var minesGames = (await _minesService.GetMinesGamesByUserId(user.Id));
 
-            mappedUser.EarnedMoney = (minesGames.Where(d => !d.Win).Sum(s => s.Sum) + diceGames.Where(d => !d.Win).Sum(s => s.Sum)) - (diceGames.Where(d => d.Win).Sum(s => s.CanWin)
-                + minesGames.Where(d => !d.Win).Sum(s => s.CanWin));
+            mappedUser.EarnedMoney = (minesGames.Where(d => !d.Win).Sum(s => s.Sum) + diceGames.Where(d => !d.Win).Sum(s => s.Sum)) - (diceGames.Where(d => d.Win).Sum(s => s.CanWin - s.Sum)
+                + minesGames.Where(d => !d.Win).Sum(s => s.CanWin - s.Sum));
 
             mappedUser.ReffsAddedBallance = await GetReffsAddBallance(user.Id);
             mappedUser.ReffsExitBallance = await GetReffsExitBallance(user.Id);
@@ -236,6 +237,14 @@ namespace DiceApi.Controllers
             }
 
             return new PaginatedList<GameApiModel>(mappedGames, totalPages, request.PageNumber);
+        }
+
+        //[Authorize(true)]
+        [HttpPost("deleteUserById")]
+        public async Task DeleteUserById(GetByUserIdRequest request)
+        {
+           await _userService.DeleteUserById(request.Id);
+
         }
 
         //[Authorize(true)]

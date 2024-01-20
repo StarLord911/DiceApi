@@ -9,6 +9,7 @@ namespace DiceApi.Services
     public interface ICacheService
     {
         Task WriteCache(string key, string value, TimeSpan timeSpan = default);
+
         Task<string> ReadCache(string key);
 
         Task DeleteCache(string key);

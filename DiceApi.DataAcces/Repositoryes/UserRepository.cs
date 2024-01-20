@@ -395,5 +395,14 @@ namespace DiceApi.DataAcces.Repositoryes
                 await connection.ExecuteAsync(query, new { ip });
             }
         }
+
+        public async Task DeleteUserById(long id)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                var query = $"delete from Users where id = {id}";
+                await connection.ExecuteAsync(query, new { date = DateTime.UtcNow });
+            }
+        }
     }
 }
