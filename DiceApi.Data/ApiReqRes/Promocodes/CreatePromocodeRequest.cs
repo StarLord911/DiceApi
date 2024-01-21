@@ -20,5 +20,11 @@ namespace DiceApi.Data.ApiReqRes
 
         [JsonProperty("wagering")]
         public int Wagering { get; set; }
+
+        [JsonProperty("isRefferalPromocode")]
+        public bool IsRefferalPromocode { get; set; }
+
+        [JsonProperty("refferalPromocodeOwnerId")]
+        public long? RefferalPromocodeOwnerId { get; set; }
     }
 }

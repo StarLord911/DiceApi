@@ -18,5 +18,8 @@ namespace DiceApi.Data.ApiModels
 
         public int ActivatedCount { get; set; }
 
+        public bool IsRefferalPromocode { get; set; }
+
+        public long? RefferalPromocodeOwnerId { get; set; }
     }
 }

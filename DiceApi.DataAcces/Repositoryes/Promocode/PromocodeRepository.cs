@@ -32,12 +32,14 @@ namespace DiceApi.DataAcces.Repositoryes
                     ActivationCount = promocode.ActivationCount,
                     IsActive = promocode.IsActive,
                     BallanceAdd = promocode.BallanceAdd,
-                    Wagering = promocode.Wagering
+                    Wagering = promocode.Wagering,
+                    IsRefferalPromocode = promocode.IsRefferalPromocode,
+                    RefferalPromocodeOwnerId = promocode.RefferalPromocodeOwnerId
                 };
 
                 // Выполнение запроса на вставку
-                var query = "INSERT INTO PromoCodes (promocode, activationCount, isActive, ballanceAdd, wagering) " +
-                            "VALUES (@Promocode, @ActivationCount, @IsActive, @BallanceAdd, @Wagering)";
+                var query = "INSERT INTO PromoCodes (promocode, activationCount, isActive, ballanceAdd, wagering, isRefferalPromocode, refferalPromocodeOwnerId) " +
+                            "VALUES (@Promocode, @ActivationCount, @IsActive, @BallanceAdd, @Wagering, @IsRefferalPromocode, @RefferalPromocodeOwnerId)";
 
                  await connection.ExecuteAsync(query, promoCode);
             }

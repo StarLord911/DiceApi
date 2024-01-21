@@ -404,5 +404,15 @@ namespace DiceApi.DataAcces.Repositoryes
                 await connection.ExecuteAsync(query, new { date = DateTime.UtcNow });
             }
         }
+
+        public async Task UpdateRefferalOwnerId(long userId, long value)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                var query = $@"update Users set ownerId = @newOwner where Id = @id";
+
+                await db.ExecuteAsync(query, new { id = userId, newOwner = value });
+            }
+        }
     }
 }

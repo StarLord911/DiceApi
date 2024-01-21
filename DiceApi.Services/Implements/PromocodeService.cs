@@ -34,6 +34,7 @@ namespace DiceApi.Services.Implements
         {
             var promocode = await _promocodeRepository.GetPromocode(request.Promocode);
             var responce = new ActivatePromocodeResponce();
+            var user = _userService.GetById(request.UserId);
 
             if (promocode == null)
             {
@@ -66,7 +67,11 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
-            var user = _userService.GetById(request.UserId);
+            if (promocode.IsRefferalPromocode && !user.OwnerId.HasValue)
+            {
+                await _userService.UpdateRefferalOwnerId(request.UserId, promocode.RefferalPromocodeOwnerId.Value);
+            }
+
 
             var updatedBallance = user.Ballance += promocode.BallanceAdd;
             await _userService.UpdateUserBallance(request.UserId, updatedBallance);
@@ -119,7 +124,9 @@ namespace DiceApi.Services.Implements
                 BallanceAdd = request.BallanceAdd,
                 PromoCode = request.Promocode,
                 IsActive = true,
-                Wagering = request.Wagering
+                Wagering = request.Wagering,
+                IsRefferalPromocode = request.IsRefferalPromocode,
+                RefferalPromocodeOwnerId = request.RefferalPromocodeOwnerId
             };
 
             var promocodeContains = await _promocodeRepository.IsPromocodeContains(promocode.PromoCode);
@@ -153,7 +160,9 @@ namespace DiceApi.Services.Implements
                     ActivatedCount = activationCount,
                     AllActivationCount = code.ActivationCount,
                     BallanceAdd = code.BallanceAdd,
-                    Wagering = code.Wagering
+                    Wagering = code.Wagering,
+                    IsRefferalPromocode = code.IsRefferalPromocode,
+                    RefferalPromocodeOwnerId = code.RefferalPromocodeOwnerId
                 });
             }
 
@@ -188,7 +197,9 @@ namespace DiceApi.Services.Implements
                     ActivatedCount = activationCount,
                     AllActivationCount = code.ActivationCount,
                     BallanceAdd = code.BallanceAdd,
-                    Wagering = code.Wagering
+                    Wagering = code.Wagering,
+                    IsRefferalPromocode = code.IsRefferalPromocode,
+                    RefferalPromocodeOwnerId = code.RefferalPromocodeOwnerId
                 });
             }
 

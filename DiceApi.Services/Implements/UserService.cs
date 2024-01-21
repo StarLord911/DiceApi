@@ -35,11 +35,18 @@ namespace DiceApi.Services
                 .FirstOrDefault(x => x.Name == model.Name && (x.Password == HashHelper.GetSHA256Hash(model.Password) || x.Password == model.Password));
 
 
-            if (user == null || (user != null && user.IsActive == false))
+            if (user == null)
             {
                 // todo: need to add logger
                 await _logRepository.LogError($"Cannot find user by name: {model.Name}");
-                return new AuthenticateResponse() { Info = "Cannot find user or user is blocked" };
+                return new AuthenticateResponse() { Info = "Cannot find user" };
+            }
+
+            if (user != null && user.IsActive == false)
+            {
+                // todo: need to add logger
+                await _logRepository.LogError($"User is blocked {model.Name}");
+                return new AuthenticateResponse() { Info = "User is blocked" };
             }
 
             var token = AuthHelper.GenerateJwtToken(user);
@@ -160,6 +167,11 @@ namespace DiceApi.Services
         public async Task DeleteUserById(long id)
         {
             await _userRepository.DeleteUserById(id);
+        }
+
+        public async Task UpdateRefferalOwnerId(long userId, long value)
+        {
+            await _userRepository.UpdateRefferalOwnerId(userId, value);
         }
     }
 }

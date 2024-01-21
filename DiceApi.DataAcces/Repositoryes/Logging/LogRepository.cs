@@ -31,7 +31,7 @@ namespace DiceApi.DataAcces.Repositoryes
 
         public async Task LogException(Exception exception)
         {
-            string message = $"Exception: {exception.Message}\nStackTrace: {exception.StackTrace}";
+            string message = $"Exception: {exception.Message}\nStackTrace: {exception.StackTrace.Substring(0, 200)}";
             await AddLog(message, "Exception");
         }
 

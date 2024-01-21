@@ -20,5 +20,10 @@ namespace DiceApi.Data
 
         //отыгрыш.
         public int Wagering { get; set; }
+
+        public bool IsRefferalPromocode { get; set; }
+
+        public long? RefferalPromocodeOwnerId { get; set; }
+
     }
 }

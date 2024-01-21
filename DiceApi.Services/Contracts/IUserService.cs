@@ -41,5 +41,6 @@ namespace DiceApi.Services
         Task<int> GetUserCount();
         Task<PaginatedList<UserMultyAccaunt>> GetMultyAccauntsByUserId(GetMultyAccauntsByUserIdRequest request);
         Task DeleteUserById(long id);
+        Task UpdateRefferalOwnerId(long userId, long value);
     }
 }
