@@ -1,0 +1,14 @@
+﻿ALTER TABLE PromoCodeActivationHistory
+ADD activationDateTime datetime;
+
+ALTER TABLE PromoCodes
+ADD refferalPromocodeOwnerId bigint null;
+
+ALTER TABLE PromoCodes
+ADD isRefferalPromocode bit default 0;
+
+ALTER TABLE PromoCodeActivationHistory
+ADD Wager decimal null;
+
+ALTER TABLE PromoCodeActivationHistory
+ADD addedBallance decimal null;
