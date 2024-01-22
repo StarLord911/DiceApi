@@ -135,7 +135,24 @@ namespace DiceApi.Controllers
             await _cacheService.WriteCache(CacheConstraints.EVERY_DAY_BONUS + request.Id, "true", TimeSpan.FromHours(24));
 
             var wager = await _wageringRepository.GetActiveWageringByUserId(request.Id);
-            await _wageringRepository.UpdateWagering(request.Id, wager.Wagering + (bonus * 20));
+
+            if (wager != null)
+            {
+                await _wageringRepository.UpdateWagering(request.Id, wager.Wagering + (bonus * 20));
+            }
+            else
+            {
+                var newWager = new Wager
+                {
+                    Wagering = bonus * 20,
+                    IsActive = true,
+                    Played = 0,
+                    UserId = request.Id
+                };
+
+                await _wageringRepository.AddWearing(newWager);
+            }
+
             await _userService.UpdateUserBallance(request.Id, newBallance);
 
             return "Succes";
