@@ -39,6 +39,12 @@ namespace DiceApi.Controllers.CallBacks
             {
                 var payment = await _paymentService.GetPaymentsById(paymentSuccessEvent.PaymentId);
 
+                if (payment == null)
+                {
+                    await _logRepository.LogError("Cannot find payment by id " + paymentSuccessEvent.PaymentId);
+                    return false;
+                }
+
                 await _logRepository.LogInfo($"CallBack payment start {paymentSuccessEvent.PaymentId}");
                 if (payment.Status == PaymentStatus.Payed)
                 {
