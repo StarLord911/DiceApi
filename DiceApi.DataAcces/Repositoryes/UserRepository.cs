@@ -60,7 +60,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     Password = user.Password, //хешировать
                     Ballance = 0,
                     OwnerId = user.OwnerId,
-                    RegistrationDate = DateTime.Now,
+                    RegistrationDate = DateTime.UtcNow,
                     IsActive = true,
                     ReferalPercent = 10,
                     RegistrationIp = user.IpAddres
@@ -77,7 +77,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     {
                         ReferralID = userId,
                         SenderID = user.OwnerId.Value,
-                        RegistrationDate = DateTime.Now
+                        RegistrationDate = DateTime.UtcNow
                     };
 
                     await db.ExecuteScalarAsync<long>(invationsAddQuery, invationsAddQueryParameters);
@@ -407,7 +407,7 @@ namespace DiceApi.DataAcces.Repositoryes
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
                 var query = $"delete from Users where id = {id}";
-                await connection.ExecuteAsync(query, new { date = DateTime.UtcNow });
+                await connection.ExecuteAsync(query);
             }
         }
 
