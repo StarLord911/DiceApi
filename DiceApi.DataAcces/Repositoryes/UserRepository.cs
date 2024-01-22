@@ -209,7 +209,7 @@ namespace DiceApi.DataAcces.Repositoryes
             if (request.BlockUser != null)
             {
                 query.Append("isActive = @BlockUser, ");
-                parameters.Add("@BlockUser", request.BlockUser.Value);
+                parameters.Add("@BlockUser", !request.BlockUser.Value);
             }
 
             if (!string.IsNullOrEmpty(request.BlockReason))
