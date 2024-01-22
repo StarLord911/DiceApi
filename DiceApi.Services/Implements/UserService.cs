@@ -46,7 +46,7 @@ namespace DiceApi.Services
             {
                 // todo: need to add logger
                 await _logRepository.LogError($"User is blocked {model.Name}");
-                return new AuthenticateResponse() { Info = "User is blocked" };
+                return new AuthenticateResponse() {Id = user.Id, Name = user.Name, Info = "User is blocked" };
             }
 
             var token = AuthHelper.GenerateJwtToken(user);

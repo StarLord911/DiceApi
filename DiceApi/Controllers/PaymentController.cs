@@ -61,7 +61,7 @@ namespace DiceApi.Controllers
             return await _withdrawalsService.CreateWithdrawalRequest(createWithdrawalRequest);
         }
 
-        [Authorize]
+        [Authorize(true)]
         [HttpPost("confirmWithdrawal")]
         public async Task ConfirmWithdrawal(ConfirmWithdrawalRequest request)
         {

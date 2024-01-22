@@ -224,6 +224,12 @@ namespace DiceApi.DataAcces.Repositoryes
                 parameters.Add("@PaymentForWithdrawal", request.PaymentForWithdrawal);
             }
 
+            if (request.EnableWithdrawal != null)
+            {
+                query.Append("enableWithdrawal = @EnableWithdrawal, ");
+                parameters.Add("@EnableWithdrawal", request.EnableWithdrawal);
+            }
+
             query.Length -= 2;
 
             query.Append(" WHERE Id = @UserId;");

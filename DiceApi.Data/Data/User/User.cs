@@ -55,5 +55,7 @@ namespace DiceApi.Data
 
         public string LastAuthIp { get; set; }
 
+        public bool EnableWithdrawal { get; set; }
+
     }
 }

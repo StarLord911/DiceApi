@@ -43,7 +43,8 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.PaymentForWithdrawal, opt => opt.MapFrom(src => src.PaymentForWithdrawal))
                 .ForMember(dest => dest.LastAuthIp, opt => opt.MapFrom(src => src.LastAuthIp.Replace(":fffff:", string.Empty)))
                 .ForMember(dest => dest.RegistrationIpAddres, opt => opt.MapFrom(src => src.RegistrationIp.Replace(":fffff:", string.Empty)))
-                .ForMember(dest => dest.RefferalPercent, opt => opt.MapFrom(src => src.ReferalPercent));
+                .ForMember(dest => dest.RefferalPercent, opt => opt.MapFrom(src => src.ReferalPercent))
+                .ForMember(dest => dest.EnabledWithrowal, opt => opt.MapFrom(src => src.EnableWithdrawal));
 
             CreateMap<User, UserReferral>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))

@@ -69,5 +69,6 @@ namespace DiceApi.Data.Admin
 
         public decimal BallanceInGame { get; set; }
 
+        public bool EnabledWithrowal { get; set; }
     }
 }

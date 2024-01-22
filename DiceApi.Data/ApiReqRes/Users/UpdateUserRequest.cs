@@ -26,5 +26,7 @@ namespace DiceApi.Data.ApiReqRes
         public string? BlockReason { get; set; }
 
         public decimal? PaymentForWithdrawal { get; set; }
+
+        public bool? EnableWithdrawal { get; set; }
     }
 }

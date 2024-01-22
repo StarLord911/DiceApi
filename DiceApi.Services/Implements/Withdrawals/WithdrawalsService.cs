@@ -74,6 +74,14 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
+            if (!user.EnableWithdrawal)
+            {
+                responce.Succses = false;
+                responce.Message = $"У данного пользователя отключены выводы";
+
+                return responce;
+            }
+
             var withdrowal = new Withdrawal
             {
                 UserId = request.UserId,
