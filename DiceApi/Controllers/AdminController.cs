@@ -144,7 +144,6 @@ namespace DiceApi.Controllers
             mappedUser.ReffsExitBallance = await GetReffsExitBallance(user.Id);
             mappedUser.RefferalCount = (await _userService.GetRefferalsByUserId(user.Id)).Count;
             mappedUser.Wager = wager != null ? wager.Wagering - wager.Played : 0;
-            mappedUser.DepositForWithdrawal = 0;
             mappedUser.BallanceInGame = 0;
 
             var cache = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.Id);

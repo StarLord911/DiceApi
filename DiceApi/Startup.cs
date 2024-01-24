@@ -73,7 +73,7 @@ namespace DiceApi
 
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = "tough-jay-48712.upstash.io:48712,password=ecd330dc63eb418ebb56b6c4b052c2fc,ssl=False"; // ”кажите адрес и порт вашего Redis-сервера
+                options.Configuration = "localhost:6379,ssl=False"; // ”кажите адрес и порт вашего Redis-сервера
                 options.InstanceName = "gameCache"; // ќпционально. ”кажите им€ вашего экземпл€ра Redis
             });
 

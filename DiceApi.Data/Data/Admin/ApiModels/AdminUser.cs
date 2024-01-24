@@ -54,8 +54,6 @@ namespace DiceApi.Data.Admin
 
         public decimal Wager { get; set; }
 
-        public decimal DepositForWithdrawal { get; set; }
-
         public bool Blocked { get; set; }
         /// <summary>
         /// Причина блокировки.
