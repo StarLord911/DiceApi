@@ -30,7 +30,7 @@ namespace DiceApi.Services
         {
             if (timeSpan == default)
             {
-                timeSpan = TimeSpan.MaxValue;
+                timeSpan = TimeSpan.FromDays(365);
             }
 
             await _distributedCache.SetStringAsync(key, value, new DistributedCacheEntryOptions() {AbsoluteExpirationRelativeToNow = timeSpan });
