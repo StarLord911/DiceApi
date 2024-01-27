@@ -1,4 +1,5 @@
-﻿using DiceApi.Data;
+﻿using DiceApi.Common;
+using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Payment;
 using DiceApi.DataAcces.Repositoryes;
@@ -19,18 +20,22 @@ namespace DiceApi.Services.Implements
         private readonly IWithdrawalsRepository _withdrawalsRepository;
         private readonly IPaymentAdapterService _paymentAdapterService;
         private readonly IPaymentService _paymentService;
+        private readonly ICacheService _cacheService;
 
         public WithdrawalsService(IWageringRepository wageringRepository,
             IUserService userService,
             IWithdrawalsRepository withdrawalsRepository,
             IPaymentAdapterService paymentAdapterService,
-            IPaymentService paymentService)
+            IPaymentService paymentService,
+            ICacheService cacheService)
+
         {
             _wageringRepository = wageringRepository;
             _userService = userService;
             _withdrawalsRepository = withdrawalsRepository;
             _paymentAdapterService = paymentAdapterService;
             _paymentService = paymentService;
+            _cacheService = cacheService;
         }
 
         public async Task<CreateWithdrawalResponce> CreateWithdrawalRequest(CreateWithdrawalRequest request)
@@ -39,6 +44,17 @@ namespace DiceApi.Services.Implements
             var user = _userService.GetById(request.UserId);
             var responce = new CreateWithdrawalResponce();
 
+            var settingsCache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
+
+            var cache = SerializationHelper.Deserialize<Settings>(settingsCache);
+
+            if (!cache.WithdrawalActive)
+            {
+                responce.Succses = false;
+                responce.Message = $"Выводы отключены";
+
+                return responce;
+            }
 
             if (wagering != null && wagering.IsActive)
             {
