@@ -4,6 +4,7 @@ using DiceApi.Data.Data.Payment;
 using DiceApi.Data.Requests;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
+using FreeKassa.NET;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,8 @@ namespace DiceApi.Controllers
             _paymentService = paymentService;
             _paymentAdapterService = paymentAdapterService;
             _withdrawalsService = withdrawalsService;
+
+           
         }
 
         [Authorize]
@@ -47,8 +50,8 @@ namespace DiceApi.Controllers
             var paymentId = await _paymentService.AddPayment(payment);
             var ipAddress = HttpContext.Connection.RemoteIpAddress.ToString();
 
-            var request = FreeKassHelper.CreateOrderRequest(11, createPaymentRequest.Amount, 1, "61.4.112.166");
-
+            var request = FreeKassHelper.CreateOrderRequest(paymentId, createPaymentRequest.Amount, 6, "61.4.112.166");
+            //FreeKassHelper.GetPayLink(payment.OrderId, createPaymentRequest.Amount);
             var paymentForm = await _paymentAdapterService.CreatePaymentForm(request);
 
             return paymentForm;

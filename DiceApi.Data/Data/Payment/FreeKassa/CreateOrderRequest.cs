@@ -13,7 +13,7 @@ namespace DiceApi.Data
         public int ShopId { get; set; }
 
         [JsonProperty("nonce")]
-        public int Nonce { get; set; }
+        public long Nonce { get; set; }
 
         [JsonProperty("signature")]
         public string Signature { get; set; }

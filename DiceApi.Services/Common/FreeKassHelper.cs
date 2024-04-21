@@ -2,16 +2,14 @@
 using DiceApi.Data;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DiceApi.Services
 {
     public static class FreeKassHelper
     {
-        public static CreateOrderRequest CreateOrderRequest(int paymentId, decimal amount, int paySystemId, string clientIp)
+        public static CreateOrderRequest CreateOrderRequest(long paymentId, decimal amount, int paySystemId, string clientIp)
         {
             var req = new CreateOrderRequest
             {
@@ -20,7 +18,7 @@ namespace DiceApi.Services
                 Email = "example@gmail.com",
                 I = paySystemId,
                 Ip = clientIp,
-                Nonce = (int)DateTime.Now.Ticks,
+                Nonce = DateTime.Now.Ticks,
                 PaymentId = paymentId.ToString(),
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
             };
@@ -37,30 +35,46 @@ namespace DiceApi.Services
             // Convert OrderRequestModel to key-value pairs
             Dictionary<string, string> parameters = new Dictionary<string, string>()
             {
-                { "paymentId", request.PaymentId.ToString() },
+                { "order_id", request.PaymentId.ToString() },
                 { "currency", request.Currency.ToString() },
-                { "Email", request.Email.ToString() },
+                { "email", request.Email.ToString() },
                 { "i", request.I.ToString() },
                 { "ip", request.Ip.ToString() },
                 { "nonce", request.Nonce.ToString() },
                 { "shopId", request.ShopId.ToString() },
-
             };
-            //cb67a126d4bc65972b2ed97d42c9a045
 
-            var sortedData = new SortedDictionary<string, string>(parameters);
+            return GenerateSignature(parameters, "376483a1585e848d0c0cf699c2df81d2");
+        }
 
-            var signString = string.Join("|", sortedData.Values);
-            var apiKey = ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaSecretOne);
 
-            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes("cb67a126d4bc65972b2ed97d42c9a045")))
+        public static string GenerateSignature(Dictionary<string, string> parameters, string apiKey)
+        {
+            // Сортировка параметров по ключам в алфавитном порядке
+            var sortedParameters = new SortedDictionary<string, string>(parameters);
+
+            // Конкатенация значений параметров с разделителем |
+            string concatenatedParameters = string.Join("|", sortedParameters.Values);
+
+            // Преобразование API ключа в массив байтов
+            byte[] apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
+
+            // Хеширование строки параметров в SHA256
+            using (var sha256 = SHA256.Create())
             {
-                var signatureBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(signString));
-                signature = BitConverter.ToString(signatureBytes).Replace("-", "").ToLower();
+                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(concatenatedParameters));
 
-                sortedData.Add("signature", signature);
+                // Конкатенация хэша с API ключом
+                byte[] concatenatedBytes = new byte[hashBytes.Length + apiKeyBytes.Length];
+                Array.Copy(hashBytes, concatenatedBytes, hashBytes.Length);
+                Array.Copy(apiKeyBytes, 0, concatenatedBytes, hashBytes.Length, apiKeyBytes.Length);
+
+                // Хеширование второго уровня с использованием SHA256
+                byte[] finalHash = sha256.ComputeHash(concatenatedBytes);
+
+                // Преобразование хэша в строку в шестнадцатеричном формате
+                return BitConverter.ToString(finalHash).Replace("-", "").ToLower();
             }
-            return signature;
         }
     }
 }
