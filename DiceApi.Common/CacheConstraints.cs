@@ -14,5 +14,7 @@ namespace DiceApi.Common
 
         public const string EVERY_DAY_BONUS = "EVERY_DAY_BONUS_";
 
+        public const string CHAT_MESSAGES = "CHAT_MESSAGES";
+
     }
 }

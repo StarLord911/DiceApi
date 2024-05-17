@@ -56,7 +56,13 @@ namespace DiceApi.Hubs
 
             await base.OnDisconnectedAsync(exception);
         }
+    }
 
-       
+    public class ChatMessagesHub : Hub
+    {
+        public async Task Send(string message)
+        {
+            await this.Clients.All.SendAsync("Receive", message);
+        }
     }
 }

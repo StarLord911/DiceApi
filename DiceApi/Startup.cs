@@ -100,6 +100,8 @@ namespace DiceApi
             services.AddTransient<IWithdrawalsService, WithdrawalsService>();
             services.AddSingleton<ICacheService, CacheService>();
             services.AddTransient<IMinesService, MinesService>();
+            services.AddTransient<IChatService, ChatService>();
+
 
             services.AddSingleton<ITelegramBotClient>(new TelegramBotClient("6829158443:AAFx85c81t7tTZFRtZtU-R0-xpWd-2hlMkg"));
 
@@ -109,7 +111,6 @@ namespace DiceApi
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiceApi v1"));
@@ -125,6 +126,7 @@ namespace DiceApi
             {
                 endpoints.MapHub<NewGameHub>(ConfigHelper.GetConfigValue(ConfigerationNames.SignalRHubAddres));
                 endpoints.MapHub<OnlineUsersHub>("/onlineusershub");
+                endpoints.MapHub<ChatMessagesHub>("/userChatHub");
 
                 endpoints.MapControllers();
             });

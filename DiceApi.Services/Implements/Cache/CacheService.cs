@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Caching.Distributed;
+﻿using DiceApi.Common;
+using Microsoft.Extensions.Caching.Distributed;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,19 @@ namespace DiceApi.Services
             return await _distributedCache.GetStringAsync(key);
         }
 
+        public async Task<T> ReadCache<T>(string key)
+        {
+            var message = await _distributedCache.GetStringAsync(key);
+
+            if (string.IsNullOrEmpty(message))
+            {
+                return default(T);
+            }
+
+            return SerializationHelper.Deserialize<T>(message);
+
+        }
+
         public async Task WriteCache(string key, string value, TimeSpan timeSpan)
         {
             if (timeSpan == default)
@@ -34,6 +48,18 @@ namespace DiceApi.Services
             }
 
             await _distributedCache.SetStringAsync(key, value, new DistributedCacheEntryOptions() {AbsoluteExpirationRelativeToNow = timeSpan });
+        }
+
+        public async Task WriteCache<T>(string key, T value, TimeSpan timeSpan = default)
+        {
+            if (timeSpan == default)
+            {
+                timeSpan = TimeSpan.FromDays(365);
+            }
+
+            var cache = SerializationHelper.Serialize(value);
+
+            await _distributedCache.SetStringAsync(key, cache, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = timeSpan });
         }
     }
 }
