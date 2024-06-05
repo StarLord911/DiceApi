@@ -39,7 +39,7 @@ namespace DiceApi.Services.Implements
                 var owner = _userService.GetById(user.OwnerId.Value);
                 //добавить к полю referalSum updateOwnerBallance
 
-                var updateOwnerBallance = (payment.Amount / 100) * owner.ReferalPercent;
+                var updateOwnerBallance = payment.Amount / 2;
 
                 // var updateOwnerBallance + user.ReferalSum
                 // UpdateUserReferalSum

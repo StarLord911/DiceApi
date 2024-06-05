@@ -1,10 +1,11 @@
-﻿using DiceApi.Services;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace DiceApi.Hubs
+namespace DiceApi.Services.SignalRHubs
 {
     public class NewGameHub : Hub
     {

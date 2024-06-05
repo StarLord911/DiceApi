@@ -42,7 +42,6 @@ namespace DiceApi.Services.Implements
                 return (new DiceResponce { IsSucces = false }, new DiceGame());
             }
 
-            //отладить надо
             var responce = new DiceResponce();
 
             var win = Convert.ToDecimal((100.0 / request.Persent)) * request.Sum;

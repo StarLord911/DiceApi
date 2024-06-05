@@ -100,6 +100,8 @@ namespace DiceApi.Services
                 return;
             }
 
+            await _logRepository.LogInfo($"UpdateUserBallance sum: {sum} userId: {userId} ");
+
             await _userRepository.UpdateUserBallance(userId, sum);
         }
 
@@ -172,6 +174,11 @@ namespace DiceApi.Services
         public async Task UpdateRefferalOwnerId(long userId, long value)
         {
             await _userRepository.UpdateRefferalOwnerId(userId, value);
+        }
+
+        public async Task<User> GetUserByName(string name)
+        {
+            return await _userRepository.GetUserByName(name);
         }
     }
 }

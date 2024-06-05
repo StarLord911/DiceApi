@@ -15,7 +15,9 @@ namespace DiceApi.DataAcces.Repositoryes
         Task<long> Add(UserRegistrationModel user);
 
         User GetById(long id);
-        
+
+        Task<User> GetUserByName(string name);
+
         List<User> GetAll();
 
         Task UpdateUserBallance(long userId, decimal newBallance);

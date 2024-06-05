@@ -1,6 +1,7 @@
-﻿using DiceApi.Data.Data.Chat;
-using DiceApi.Hubs;
+﻿using DiceApi.Attributes;
+using DiceApi.Data.Data.Chat;
 using DiceApi.Services.Contracts;
+using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -25,15 +26,23 @@ namespace DiceApi.Controllers
             _chatService = chatService;
             _hubContext = hubContext;
         }
-        
+
+        [Authorize]
         [HttpPost("addNewMessage")]
         public async Task AddNewMessage(ChatMessage chatMessage)
         {
-            var chatJson = JsonConvert.SerializeObject(chatMessage);
+            try
+            {
+                await _chatService.AddChatMessage(chatMessage);
 
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", chatJson);
+                var chatJson = JsonConvert.SerializeObject(chatMessage);
 
-            await _chatService.AddChatMessage(chatMessage);
+                await _hubContext.Clients.All.SendAsync("ReceiveMessage", chatJson);
+            }
+            catch
+            {
+
+            }
         }
 
         [HttpPost("getMessages")]

@@ -9,6 +9,7 @@ namespace DiceApi.Data
     public enum GameType
     {
         DiceGame = 0,
-        Mines = 1
+        Mines = 1,
+        Roulette = 2
     }
 }

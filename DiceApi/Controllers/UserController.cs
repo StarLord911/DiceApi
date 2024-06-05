@@ -22,7 +22,6 @@ using Telegram.Bot.Types;
 namespace DiceApi.Controllers
 {
     [Route("api/useController")]
-    [EnableCors("AllowAll")]
     [ApiController]
     public class UserController : ControllerBase
     {

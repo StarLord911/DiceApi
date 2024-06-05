@@ -16,5 +16,22 @@ namespace DiceApi.Common
 
         public const string CHAT_MESSAGES = "CHAT_MESSAGES";
 
+
+
+        public const string ROULETTE_USER_BET = "ROULETTE_USER_BET";
+
+        public const string LAST_ROULETTE_GAMES = "LAST_ROULETTE_GAMES";
+
+        public const string BETTED_ROULETTE_USERS = "BETTED_ROULETTE_USERS";
+
+
+
+        public const string HORSE_RACE_USER_BET = "HORSE_RACE_USER_BET";
+
+        public const string BETTED_HORSE_RACE_USERS = "BETTED_HORSE_RACE_USERS";
+
+        public const string LAST_HORSE_GAMES = "LAST_HORSE_GAMES";
+
+
     }
 }

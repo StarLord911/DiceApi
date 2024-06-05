@@ -2,8 +2,8 @@
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Requests;
-using DiceApi.Hubs;
 using DiceApi.Services;
+using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -17,7 +17,6 @@ using System.Threading.Tasks;
 namespace DiceApi.Controllers
 {
     [Route("api/mines")]
-    [EnableCors("AllowAll")]
     [ApiController]
     public class MinesController : ControllerBase
     {

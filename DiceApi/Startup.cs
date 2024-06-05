@@ -1,20 +1,26 @@
 using DiceApi.Common;
+using DiceApi.Data;
 using DiceApi.DataAcces.Repositoryes;
-using DiceApi.Hubs;
 using DiceApi.Mappings;
 using DiceApi.MiddleWares;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.Implements;
+using DiceApi.Services.Jobs;
+using DiceApi.Services.SignalRHubs;
+using FluentScheduler;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using static DiceApi.Services.Jobs.RouletteJob;
 
 namespace DiceApi
 {
@@ -71,9 +77,10 @@ namespace DiceApi
                 });
             });
 
+
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = "localhost:6379,ssl=False"; // ”кажите адрес и порт вашего Redis-сервера
+                options.Configuration = "loyal-dragon-52724.upstash.io:6379,password=Ac30AAIncDE2Yjk4NTRmY2FlODg0YjE1OGFiZWMwYTYyZjM1MjBmMHAxNTI3MjQ,ssl=true"; // ”кажите адрес и порт вашего Redis-сервера
                 options.InstanceName = "gameCache"; // ќпционально. ”кажите им€ вашего экземпл€ра Redis
             });
 
@@ -101,6 +108,9 @@ namespace DiceApi
             services.AddSingleton<ICacheService, CacheService>();
             services.AddTransient<IMinesService, MinesService>();
             services.AddTransient<IChatService, ChatService>();
+            services.AddTransient<IRouletteService, RouletteService>();
+            services.AddTransient<IHorseRaceService, HorseRaceService>();
+
 
 
             services.AddSingleton<ITelegramBotClient>(new TelegramBotClient("6829158443:AAFx85c81t7tTZFRtZtU-R0-xpWd-2hlMkg"));
@@ -127,9 +137,38 @@ namespace DiceApi
                 endpoints.MapHub<NewGameHub>(ConfigHelper.GetConfigValue(ConfigerationNames.SignalRHubAddres));
                 endpoints.MapHub<OnlineUsersHub>("/onlineusershub");
                 endpoints.MapHub<ChatMessagesHub>("/userChatHub");
+                endpoints.MapHub<RouletteEndGameHub>("/rouletteGameEndHub");
+                endpoints.MapHub<RouletteBetsHub>("/rouletteBetsHub");
+                endpoints.MapHub<HorseGameEndGameHub>("/horseGameEndHub");
 
                 endpoints.MapControllers();
             });
+
+            var cache = app.ApplicationServices.GetRequiredService<ICacheService>();
+            var userService = app.ApplicationServices.GetRequiredService<IUserService>();
+            var hub = app.ApplicationServices.GetRequiredService<IHubContext<RouletteEndGameHub>>();
+            var newGameHub = app.ApplicationServices.GetRequiredService<IHubContext<NewGameHub>>();
+            var horseGame = app.ApplicationServices.GetRequiredService<IHubContext<HorseGameEndGameHub>>();
+
+            var log = app.ApplicationServices.GetRequiredService<ILogRepository>();
+
+            
+            var settingsCache = cache.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY).Result;
+
+            if (settingsCache == null)
+            {
+                cache.WriteCache(CacheConstraints.SETTINGS_KEY, new Settings
+                {
+                    DiceAntiminus = 10000,
+                    MinesAntiminus = 10000,
+                    PaymentActive = true,
+                    TechnicalWorks = false,
+                    WithdrawalActive = true
+                }).RunSynchronously();
+            }
+
+            JobManager.Initialize(new RouletteJob(cache, userService, hub, newGameHub));
+            JobManager.Initialize(new HorseRaceJob(cache, userService, horseGame, newGameHub));
         }
     }
 }

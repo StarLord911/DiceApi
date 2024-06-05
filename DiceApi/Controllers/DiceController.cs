@@ -1,9 +1,9 @@
 ﻿using DiceApi.Attributes;
 using DiceApi.Data;
 using DiceApi.Data.Data.Dice;
-using DiceApi.Hubs;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
+using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -16,7 +16,6 @@ using System.Threading.Tasks;
 namespace DiceApi.Controllers
 {
     [Route("api/dice")]
-    [EnableCors("AllowAll")]
     [ApiController]
     public class DiceController : ControllerBase
     {
@@ -42,6 +41,12 @@ namespace DiceApi.Controllers
         {
             //HttpContext.Items[]
             var res = await _diceService.StartDice(request);
+
+            if (!res.Item1.IsSucces)
+            {
+                return res.Item1;
+            }
+
             var user = _userService.GetById(res.Item2.UserId);
 
             var apiModel = new GameApiModel

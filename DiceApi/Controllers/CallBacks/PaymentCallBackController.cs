@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 namespace DiceApi.Controllers.CallBacks
 {
     [Route("api/paymentCallBack")]
-    [EnableCors("AllowAll")]
     [ApiController]
     public class PaymentCallBackController : ControllerBase
     {

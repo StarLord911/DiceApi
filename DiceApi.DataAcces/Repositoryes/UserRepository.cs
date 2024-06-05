@@ -420,5 +420,13 @@ namespace DiceApi.DataAcces.Repositoryes
                 await db.ExecuteAsync(query, new { id = userId, newOwner = value });
             }
         }
+
+        public async Task<User> GetUserByName(string name)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                return await db.QueryFirstAsync<User>("SELECT * FROM Users WHERE name = @name", new { name });
+            }
+        }
     }
 }

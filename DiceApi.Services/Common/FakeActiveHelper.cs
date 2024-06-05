@@ -118,8 +118,10 @@ namespace DiceApi.Services
             return dic;
         }
 
+        //TODO написать феик активность для рулетки и перекинуть внутрь джобы
         public static GameApiModel GetGameApiModel()
         {
+            
             var random = new Random();
             var nameInex = random.Next(0, _names.Count);
             double sum = random.NextDouble() * 99 + 1; // От 1 до 100
@@ -128,7 +130,6 @@ namespace DiceApi.Services
             {
                 sum = Math.Round(sum, 0);
             }
-
 
             var name = _names[nameInex];
             var multiplier = random.NextDouble() * 6 + 1;

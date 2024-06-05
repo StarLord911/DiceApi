@@ -12,14 +12,24 @@ namespace DiceApi.Services.Implements
     public class ChatService : IChatService
     {
         private readonly ICacheService _cacheService;
+        private readonly IUserService _userService;
 
-        public ChatService(ICacheService cacheService)
+        public ChatService(ICacheService cacheService, IUserService userService)
         {
             _cacheService = cacheService;
+            _userService = userService;
+
         }
 
         public async Task AddChatMessage(ChatMessage chatMessage)
         {
+            var user = await _userService.GetUserByName(chatMessage.UserName);
+
+            if (user == null)
+            {
+                throw new Exception("User cannot find");
+            }
+            
             var messages = await _cacheService.ReadCache<List<ChatMessage>>(CacheConstraints.CHAT_MESSAGES);
             await _cacheService.DeleteCache(CacheConstraints.CHAT_MESSAGES);
 

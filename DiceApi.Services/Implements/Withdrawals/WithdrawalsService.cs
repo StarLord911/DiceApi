@@ -110,6 +110,14 @@ namespace DiceApi.Services.Implements
             await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.Amount);
 
             await _withdrawalsRepository.AddWithdrawal(withdrowal);
+ 
+            //revshare отнимаем у овнера, так как реферал сделал вывод 
+            if (user.OwnerId != null && user.OwnerId.Value != 0)
+            {
+                var owner = _userService.GetById(user.OwnerId.Value);
+
+                await _userService.UpdateUserBallance(request.UserId, owner.Ballance - request.Amount);
+            }
 
             responce.Succses = true;
             responce.Message = $"Заявка на вывод принята";
