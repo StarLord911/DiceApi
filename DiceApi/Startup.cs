@@ -137,18 +137,25 @@ namespace DiceApi
                 endpoints.MapHub<NewGameHub>(ConfigHelper.GetConfigValue(ConfigerationNames.SignalRHubAddres));
                 endpoints.MapHub<OnlineUsersHub>("/onlineusershub");
                 endpoints.MapHub<ChatMessagesHub>("/userChatHub");
+
                 endpoints.MapHub<RouletteEndGameHub>("/rouletteGameEndHub");
                 endpoints.MapHub<RouletteBetsHub>("/rouletteBetsHub");
+
                 endpoints.MapHub<HorseGameEndGameHub>("/horseGameEndHub");
+                endpoints.MapHub<HorseGameBetsHub>("/horseGameBetsHub");
+
+                endpoints.MapHub<GameStartTaimerHub>("/gamesStartTaimetHub");
 
                 endpoints.MapControllers();
             });
 
             var cache = app.ApplicationServices.GetRequiredService<ICacheService>();
             var userService = app.ApplicationServices.GetRequiredService<IUserService>();
-            var hub = app.ApplicationServices.GetRequiredService<IHubContext<RouletteEndGameHub>>();
+            var rouletteEndGame = app.ApplicationServices.GetRequiredService<IHubContext<RouletteEndGameHub>>();
             var newGameHub = app.ApplicationServices.GetRequiredService<IHubContext<NewGameHub>>();
-            var horseGame = app.ApplicationServices.GetRequiredService<IHubContext<HorseGameEndGameHub>>();
+            var horseGameEnd = app.ApplicationServices.GetRequiredService<IHubContext<HorseGameEndGameHub>>();
+            var taimerHub = app.ApplicationServices.GetRequiredService<IHubContext<GameStartTaimerHub>>();
+
 
             var log = app.ApplicationServices.GetRequiredService<ILogRepository>();
 
@@ -167,8 +174,8 @@ namespace DiceApi
                 }).RunSynchronously();
             }
 
-            JobManager.Initialize(new RouletteJob(cache, userService, hub, newGameHub));
-            JobManager.Initialize(new HorseRaceJob(cache, userService, horseGame, newGameHub));
+            JobManager.Initialize(new RouletteJob(cache, userService, rouletteEndGame, newGameHub, log, taimerHub));
+            JobManager.Initialize(new HorseRaceJob(cache, userService, horseGameEnd, newGameHub, log, taimerHub));
         }
     }
 }

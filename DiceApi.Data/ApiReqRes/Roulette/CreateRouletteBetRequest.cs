@@ -15,17 +15,14 @@ namespace DiceApi.Data.ApiReqRes
 
     public class RouletteBet
     {
-        public int BetNumber { get; set; }
+        public int? BetNumber { get; set; }
 
         public decimal BetSum { get; set; }
 
-        public BetColor? BetColor { get; set; }
+        public string? BetColor { get; set; }
+
+        public string? BetRange { get; set; }
     }
 
-    public enum BetColor
-    {
-        Green = 1,
-        Red = 2,
-        Black = 3
-    }
+   
 }

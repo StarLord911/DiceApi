@@ -66,4 +66,19 @@ namespace DiceApi.Services.SignalRHubs
             await this.Clients.All.SendAsync("Receive", message);
         }
     }
+
+    public class GameStartTaimerHub : Hub
+    {
+        public async Task Send(string message)
+        {
+            await this.Clients.All.SendAsync("Receive", message);
+        }
+    }
+
+    public class GameTypeTaimer
+    {
+        public int Taimer { get; set; }
+
+        public string GameName { get; set; }
+    }
 }

@@ -35,4 +35,12 @@ namespace DiceApi.Services.SignalRHubs
             await this.Clients.All.SendAsync("Receive", message);
         }
     }
+
+    public class HorseGameBetsHub : Hub
+    {
+        public async Task Send(string message)
+        {
+            await this.Clients.All.SendAsync("Receive", message);
+        }
+    }
 }

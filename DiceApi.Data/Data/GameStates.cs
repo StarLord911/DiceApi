@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data
 {
-    public enum GameType
+    public static class GameStates
     {
-        DiceGame = 0,
-        Mines = 1,
-        Roulette = 2,
-        Horses = 3
+        public static bool IsRouletteGameRun { get; set; }
+        public static bool IsHorseGameRun { get; set; }
+
     }
 }

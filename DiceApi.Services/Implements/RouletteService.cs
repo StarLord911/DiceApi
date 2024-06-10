@@ -6,7 +6,9 @@ using DiceApi.Services.Contracts;
 using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
+using Org.BouncyCastle.Ocsp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -40,7 +42,6 @@ namespace DiceApi.Services
                 return "Low ballance";
             }
 
-
             var updatedBallance = user.Ballance - betSum;
 
             await _userService.UpdateUserBallance(user.Id, updatedBallance);
@@ -63,16 +64,21 @@ namespace DiceApi.Services
 
             await _cacheService.WriteCache(CacheConstraints.ROULETTE_USER_BET + user.Id, request);
 
-            var gameJson = JsonConvert.SerializeObject(new RouletteActiveBet() { UserName = user.Name, BetSum = betSum });
-
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+            await NotifyNewBets(request, user.Name);
 
             return "Succesfull";
         }
 
         public async Task<List<RouletteGameResult>> GetLastRouletteGameResults()
         {
-            return await _cacheService.ReadCache<List<RouletteGameResult>>(CacheConstraints.LAST_ROULETTE_GAMES);
+            var res = await _cacheService.ReadCache<List<RouletteGameResult>>(CacheConstraints.LAST_ROULETTE_GAMES);
+
+            if (res == null)
+            {
+                return new List<RouletteGameResult>();
+            }
+
+            return res;
         }
 
         public async Task<RouletteActiveBets> GetRouletteActiveBets()
@@ -91,15 +97,53 @@ namespace DiceApi.Services
                 var userBets = await _cacheService.ReadCache<CreateRouletteBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
                 var user = _userService.GetById(id);
 
-                if (userBets != null)
+                foreach (var bet in userBets.Bets)
                 {
-                    var betsSum = userBets.Bets.Sum(b => b.BetSum);
+                    var multiplier = 0;
 
-                    result.Bets.Add(new RouletteActiveBet() { UserName = user.Name, BetSum = betsSum});
+                    if (bet.BetNumber.HasValue)
+                    {
+                        multiplier = 18;
+                    }
+                    else if (bet.BetColor.IsNotNullOrEmpty() && (bet.BetColor == RoutletteConsts.RED || bet.BetColor == RoutletteConsts.BLACK))
+                    {
+                        multiplier = 2;
+                    }
+                    else if (bet.BetRange.IsNotNullOrEmpty() && (bet.BetRange == RoutletteConsts.FirstRange || bet.BetRange == RoutletteConsts.SecondRange))
+                    {
+                        multiplier = 2;
+                    }
+
+                    result.Bets.Add(new RouletteActiveBet() { UserName = user.Name, BetSum = bet.BetSum, Multiplayer = multiplier });
                 }
             }
 
             return result;
+        }
+
+        private async Task NotifyNewBets(CreateRouletteBetRequest request, string username)
+        {
+            foreach (var bet in request.Bets)
+            {
+                var multiplier = 0;
+
+                if (bet.BetNumber.HasValue)
+                {
+                    multiplier = 18;
+                }
+                else if (bet.BetColor.IsNotNullOrEmpty() && (bet.BetColor == RoutletteConsts.RED || bet.BetColor == RoutletteConsts.BLACK))
+                {
+                    multiplier = 2;
+                }
+                else if (bet.BetRange.IsNotNullOrEmpty() && (bet.BetRange == RoutletteConsts.FirstRange || bet.BetRange == RoutletteConsts.SecondRange))
+                {
+                    multiplier = 2;
+                }
+
+                var gameJson = JsonConvert.SerializeObject(new RouletteActiveBet() { UserName = username, BetSum = bet.BetSum, Multiplayer = multiplier });
+
+                await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+            }
         }
     }
 }

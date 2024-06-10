@@ -22,12 +22,11 @@ namespace DiceApi.Services.Jobs
         private readonly IUserService _userService;
         private readonly IHubContext<RouletteEndGameHub> _hubContext;
         private readonly IHubContext<NewGameHub> _newGameHub;
+        private readonly IHubContext<GameStartTaimerHub> _gameStartTaimerHub;
         private readonly ILogRepository _logRepository;
 
-        private readonly string GREEN = "Green";
         private readonly string RED = "Red";
         private readonly string BLACK = "Black";
-
 
         private readonly List<string> canBets = new List<string> 
         {
@@ -40,7 +39,7 @@ namespace DiceApi.Services.Jobs
         };
 
         public RouletteJob(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext, IHubContext<NewGameHub> newGameHub,
-            ILogRepository logRepository)
+            ILogRepository logRepository, IHubContext<GameStartTaimerHub> gameStartTaimerHub)
         {
             _cacheService = cacheService;
             _userService = userService;
@@ -48,50 +47,31 @@ namespace DiceApi.Services.Jobs
             _newGameHub = newGameHub;
             _logRepository = logRepository;
 
-            Schedule(async () => { await RouleteRun(); }).ToRunNow().AndEvery(30).Minutes();
+            Schedule(() => RouleteRun().GetAwaiter().GetResult()).NonReentrant().ToRunEvery(0).Seconds();
+            _gameStartTaimerHub = gameStartTaimerHub;
         }
 
         //TODO добавить антиминус
         public async Task RouleteRun()
         {
-            Thread.Sleep(18000);
-
+            GameStates.IsRouletteGameRun = true;
             var randomValue = new Random().Next(0, 18);
 
             await _logRepository.LogInfo($"Roulette random value {randomValue}");
 
-
             var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_ROULETTE_USERS);
+
+            await _hubContext.Clients.All.SendAsync("ReceiveMessage", randomValue);
 
             if (bettedUserIds == null)
             {
+                await Taimer();
                 return;
             }
-
-            //var totalBets = await GetTotalBets(bettedUserIds);
-
-            //if (totalBets.TryGetValue(randomValue.ToString(), out var amount))
-            //{
-            //    var maxBetKey = totalBets.Aggregate((x, y) => x.Value > y.Value ? x : y);
-
-            //    if (canBets.Contains(randomValue.ToString()))
-            //    {
-            //        var totalBetsCount = totalBets.Count();
-
-            //        if (totalBetsCount > 2)
-            //        {
-            //            randomValue = new Random().Next(0, totalBetsCount);
-            //        }
-            //    }
-
-            //}
-
 
             foreach (var id in bettedUserIds)
             {
                 var userBets = await _cacheService.ReadCache<CreateRouletteBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
-
-
                 var user = _userService.GetById(id);
 
                 if (userBets != null)
@@ -107,17 +87,22 @@ namespace DiceApi.Services.Jobs
                             winSum += bet.BetSum * 18;
                             multiplier = 18;
                         }
-                        else if (bet.BetColor.HasValue && bet.BetColor == BetColor.Green && randomValue == 0)
-                        {
-                            winSum += bet.BetSum * 18;
-                            multiplier = 18;
-                        }
-                        else if (bet.BetColor.HasValue && bet.BetColor == BetColor.Red && GetDroppedColor(randomValue) == RED)
+                        else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.RED && GetDroppedColor(randomValue) == RoutletteConsts.RED)
                         {
                             winSum += bet.BetSum * 2;
                             multiplier = 2;
                         }
-                        else if (bet.BetColor.HasValue && bet.BetColor == BetColor.Black && GetDroppedColor(randomValue) == BLACK)
+                        else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.BLACK && GetDroppedColor(randomValue) == RoutletteConsts.BLACK)
+                        {
+                            winSum += bet.BetSum * 2;
+                            multiplier = 2;
+                        }
+                        else if(bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.FirstRange && (randomValue >= 1 && randomValue <= 9))
+                        {
+                            winSum += bet.BetSum * 2;
+                            multiplier = 2;
+                        }
+                        else if (bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.SecondRange && (randomValue >= 10 && randomValue <= 18))
                         {
                             winSum += bet.BetSum * 2;
                             multiplier = 2;
@@ -135,10 +120,18 @@ namespace DiceApi.Services.Jobs
             }
 
             await UpdateLastGames(randomValue);
-
             await _cacheService.DeleteCache(CacheConstraints.BETTED_ROULETTE_USERS);
+            GameStates.IsRouletteGameRun = false;
+            await Taimer();
+        }
 
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", randomValue);
+        private async Task Taimer()
+        {
+            for (int i = 0; i < 40; i--)
+            {
+                Thread.Sleep(1000);
+                await _gameStartTaimerHub.Clients.All.SendAsync("ReceiveMessage", new GameTypeTaimer { GameName = "Roulette", Taimer = i});
+            }
         }
 
         public async Task UpdateLastGames(int droppedNumner)
@@ -225,9 +218,9 @@ namespace DiceApi.Services.Jobs
         {
             if (number == 0)
             {
-                return GREEN;
+                return "Green";
             }
-            
+
             if (number % 2 == 0)
             {
                 return RED;
@@ -235,8 +228,6 @@ namespace DiceApi.Services.Jobs
 
             return BLACK;
         }
-
-
 
         private string ReplaceAt(string input, int index, char newChar)
         {

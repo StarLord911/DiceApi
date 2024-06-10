@@ -29,5 +29,8 @@ namespace DiceApi.Data.Data.Roulette
         public string UserName { get; set; }
 
         public decimal BetSum { get; set; }
+
+        public float Multiplayer { get; set; }
+
     }
 }

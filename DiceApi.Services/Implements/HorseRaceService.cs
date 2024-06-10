@@ -19,11 +19,11 @@ namespace DiceApi.Services.Implements
     {
         private readonly IUserService _userService;
         private readonly ICacheService _cacheService;
-        private readonly IHubContext<RouletteBetsHub> _hubContext;
+        private readonly IHubContext<HorseGameBetsHub> _hubContext;
 
         public HorseRaceService(IUserService userService,
             ICacheService cacheService,
-            IHubContext<RouletteBetsHub> hubContext)
+            IHubContext<HorseGameBetsHub> hubContext)
         {
             _userService = userService;
             _cacheService = cacheService;
@@ -63,9 +63,13 @@ namespace DiceApi.Services.Implements
 
             await _cacheService.WriteCache(CacheConstraints.HORSE_RACE_USER_BET + user.Id, request);
 
-            var gameJson = JsonConvert.SerializeObject(new HorseRaceActiveBet() { UserName = user.Name, BetSum = betSum });
+            foreach (var bet in request.HorseBets)
+            {
+                var gameJson = JsonConvert.SerializeObject(new HorseRaceActiveBet() { UserName = user.Name, BetSum = bet.BetSum, Multiplayer = 8});
 
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+                await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+            }
+
 
             return "Succesfull";
         }
@@ -83,14 +87,15 @@ namespace DiceApi.Services.Implements
 
             foreach (var id in bettedUserIds)
             {
-                var userBets = await _cacheService.ReadCache<CreateRouletteBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
+                var userBets = await _cacheService.ReadCache<CreateHorseBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
                 var user = _userService.GetById(id);
 
                 if (userBets != null)
                 {
-                    var betsSum = userBets.Bets.Sum(b => b.BetSum);
-
-                    result.Bets.Add(new HorseRaceActiveBet() { UserName = user.Name, BetSum = betsSum });
+                    foreach (var bet in userBets.HorseBets)
+                    {
+                        result.Bets.Add(new HorseRaceActiveBet() { UserName = user.Name, BetSum = bet.BetSum, Multiplayer = 8 });
+                    }
                 }
             }
 
@@ -99,7 +104,14 @@ namespace DiceApi.Services.Implements
 
         public async Task<List<HorseGameResult>> GetLastHorseGameResults()
         {
-            return await _cacheService.ReadCache<List<HorseGameResult>>(CacheConstraints.LAST_HORSE_GAMES);
+            var res = await _cacheService.ReadCache<List<HorseGameResult>>(CacheConstraints.LAST_HORSE_GAMES);
+
+            if (res == null)
+            {
+                res = new List<HorseGameResult>();
+            }
+
+            return res;
         }
     }
 }

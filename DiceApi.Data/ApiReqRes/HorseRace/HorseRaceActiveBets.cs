@@ -26,5 +26,7 @@ namespace DiceApi.Data.ApiReqRes.HorseRace
         public string UserName { get; set; }
 
         public decimal BetSum { get; set; }
+
+        public float Multiplayer { get; set; }
     }
 }

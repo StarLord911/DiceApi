@@ -1,4 +1,5 @@
-﻿using DiceApi.Data.ApiReqRes;
+﻿using DiceApi.Data;
+using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Roulette;
 using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,11 @@ namespace DiceApi.Controllers
         [HttpPost("bet")]
         public async Task<string> Bet(CreateRouletteBetRequest request)
         {
+            if (GameStates.IsRouletteGameRun)
+            {
+                return "GameRunned";
+            }
+
             return await _rouletteService.BetRouletteGame(request);
         }
 

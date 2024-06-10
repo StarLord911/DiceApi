@@ -1,6 +1,9 @@
 ﻿using DiceApi.Common;
 using DiceApi.Data.Data.Chat;
 using DiceApi.Services.Contracts;
+using DiceApi.Services.SignalRHubs;
+using Microsoft.AspNetCore.SignalR;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,12 +16,14 @@ namespace DiceApi.Services.Implements
     {
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
+        private readonly IHubContext<ChatMessagesHub> _chatMessagesHub;
 
-        public ChatService(ICacheService cacheService, IUserService userService)
+        public ChatService(ICacheService cacheService, IUserService userService,
+            IHubContext<ChatMessagesHub> chatMessagesHub)
         {
             _cacheService = cacheService;
             _userService = userService;
-
+            _chatMessagesHub = chatMessagesHub;
         }
 
         public async Task AddChatMessage(ChatMessage chatMessage)
@@ -48,6 +53,9 @@ namespace DiceApi.Services.Implements
             {
                 messages.RemoveAt(0);
             }
+
+
+            await _chatMessagesHub.Clients.All.SendAsync("ReceiveMessage", JsonConvert.SerializeObject(chatMessage));
 
             await _cacheService.WriteCache(CacheConstraints.CHAT_MESSAGES, messages);
         }
