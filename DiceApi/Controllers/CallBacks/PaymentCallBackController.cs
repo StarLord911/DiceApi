@@ -20,15 +20,17 @@ namespace DiceApi.Controllers.CallBacks
         private IPaymentService _paymentService;
         private IUserService _userService;
         private ILogRepository _logRepository;
-
+        private readonly IPaymentAdapterService _paymentAdapterService;
 
         public PaymentCallBackController(IPaymentService paymentService,
             IUserService userService,
-            ILogRepository logRepository)
+            ILogRepository logRepository,
+            IPaymentAdapterService paymentAdapterService)
         {
             _paymentService = paymentService;
             _userService = userService;
             _logRepository = logRepository;
+            _paymentAdapterService = paymentAdapterService;
         }
         
         [HttpPost("handle")]
@@ -36,6 +38,8 @@ namespace DiceApi.Controllers.CallBacks
         {
             try
             {
+                var paymentStatus = await  _paymentAdapterService.GetOrderByFreeKassaId(paymentSuccessEvent.FreKassaOrderId);
+
                 var payment = await _paymentService.GetPaymentsById(paymentSuccessEvent.PaymentId);
 
                 if (payment == null)

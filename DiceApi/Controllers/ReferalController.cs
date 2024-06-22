@@ -1,6 +1,7 @@
 ﻿using DiceApi.Attributes;
 using DiceApi.Data;
 using DiceApi.Data.Api;
+using DiceApi.Data.Data.User.Api.Requests;
 using DiceApi.Data.Requests;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
@@ -22,25 +23,22 @@ namespace DiceApi.Controllers
         private readonly IUserService _userService;
         private readonly IPaymentService _paymentService;
 
+        private readonly IRefferalService _refferalService;
+
         public ReferalController(IUserService userService,
-            IPaymentService paymentService)
+            IPaymentService paymentService,
+            IRefferalService refferalService)
         {
             _userService = userService;
             _paymentService = paymentService;
+            _refferalService = refferalService;
         }
 
         [Authorize]
-        [HttpPost("getReferalStats")]
-        public async Task<GetReferalStatsResponce> GetRegeralStats(GetByUserIdRequest request)
+        [HttpPost("getRefferalStats")]
+        public async Task<GetReferalStatsResponce> GetRefferalStats(GetRefferalStatsByUserIdRequest request)
         {
-            var referals = await _userService.GetRefferalsByUserId(request.Id);
-            var responce = new GetReferalStatsResponce();
-            responce.ToDayReferals = referals.Count(r => r.RegistrationDate.Date == DateTime.Today);
-            responce.ToMonthReferals = referals.Count(r => IsThisMonth(r.RegistrationDate.Date));
-
-            responce.ToAllTimeReferals = referals.Count();
-
-            return responce;
+            return await _refferalService.GetReferalStats(request);
 
         }
 

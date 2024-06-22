@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DiceApi.Data.Data.Payment.FreeKassa;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,5 +23,7 @@ namespace DiceApi.Data
         public DateTime CreateDate { get; set; }
 
         public WithdrawalStatus Status { get; set; }
+
+        public int BankSpbId { get; set; } = 1;
     }
 }

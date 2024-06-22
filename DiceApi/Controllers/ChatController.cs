@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 namespace DiceApi.Controllers
 {
     [Route("api/chat")]
-    [EnableCors("AllowAll")]
     [ApiController]
     public class ChatController : ControllerBase
     {

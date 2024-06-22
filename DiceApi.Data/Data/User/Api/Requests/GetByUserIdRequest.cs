@@ -11,8 +11,5 @@ namespace DiceApi.Data.Requests
     {
         [JsonProperty("userId")]
         public long Id { get; set; }
-
-       
     }
-
 }

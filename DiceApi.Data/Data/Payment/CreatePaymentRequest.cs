@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DiceApi.Data.Data.Payment.FreeKassa;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,5 +15,7 @@ namespace DiceApi.Data.Data.Payment
         public decimal Amount { get; set; }
 
         public long UserId { get; set; }
+
+        public PaymentType PaymentType { get; set; }
     }
 }

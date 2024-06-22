@@ -30,6 +30,11 @@ namespace DiceApi.Services.Implements
         {
             var user = await _userService.GetUserByName(chatMessage.UserName);
 
+            if (string.IsNullOrEmpty(chatMessage.Message))
+            {
+                throw new Exception("Chat message is null");
+            }
+
             if (user == null)
             {
                 throw new Exception("User cannot find");
@@ -53,9 +58,6 @@ namespace DiceApi.Services.Implements
             {
                 messages.RemoveAt(0);
             }
-
-
-            await _chatMessagesHub.Clients.All.SendAsync("ReceiveMessage", JsonConvert.SerializeObject(chatMessage));
 
             await _cacheService.WriteCache(CacheConstraints.CHAT_MESSAGES, messages);
         }

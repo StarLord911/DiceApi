@@ -48,11 +48,9 @@ namespace DiceApi.Controllers
             };
 
             var paymentId = await _paymentService.AddPayment(payment);
-            var ipAddress = HttpContext.Connection.RemoteIpAddress.ToString();
 
-            var request = FreeKassHelper.CreateOrderRequest(paymentId, createPaymentRequest.Amount, 6, "61.4.112.166");
             //FreeKassHelper.GetPayLink(payment.OrderId, createPaymentRequest.Amount);
-            var paymentForm = await _paymentAdapterService.CreatePaymentForm(request);
+            var paymentForm = await _paymentAdapterService.CreatePaymentForm(createPaymentRequest);
 
             return paymentForm;
         }

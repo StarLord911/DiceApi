@@ -2,6 +2,7 @@
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Payment;
 using DiceApi.DataAcces.Repositoryes;
+using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,21 @@ namespace DiceApi.Services.Implements
 
         public async Task<long> AddPayment(Payment payment)
         {
+            var user = _userService.GetById(payment.UserId);
+
+            if (user.OwnerId != null && user.OwnerId.Value != 0)
+            {
+                var owner = _userService.GetById(user.OwnerId.Value);
+                //добавить к полю referalSum updateOwnerBallance
+
+                var updateOwnerBallance = RevShareHelper.GetRevShareIncome(payment.Amount, owner.ReferalPercent);
+
+                // var updateOwnerBallance + user.ReferalSum
+                // UpdateUserReferalSum
+
+                await _userService.UpdateUserBallance(user.OwnerId.Value, owner.Ballance + updateOwnerBallance);
+            }
+
             return await _paymentRepository.CreatePayment(payment);
         }
 
@@ -39,14 +55,12 @@ namespace DiceApi.Services.Implements
                 var owner = _userService.GetById(user.OwnerId.Value);
                 //добавить к полю referalSum updateOwnerBallance
 
-                var updateOwnerBallance = payment.Amount / 2;
+                var updateOwnerBallance = RevShareHelper.GetRevShareIncome(payment.Amount, owner.ReferalPercent);
 
                 // var updateOwnerBallance + user.ReferalSum
                 // UpdateUserReferalSum
 
-                await _userService.UpdateReferalSum(user.Id, updateOwnerBallance + user.ReferalSum);
-
-                await _userService.UpdateUserBallance(user.OwnerId.Value, owner.Ballance + updateOwnerBallance);
+                await _userService.UpdateUserBallance(user.OwnerId.Value, owner.Ballance - updateOwnerBallance);
             }
         }
 

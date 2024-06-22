@@ -62,7 +62,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     OwnerId = user.OwnerId,
                     RegistrationDate = DateTime.UtcNow,
                     IsActive = true,
-                    ReferalPercent = 10,
+                    ReferalPercent = 50,
                     RegistrationIp = user.IpAddres
                 };
 

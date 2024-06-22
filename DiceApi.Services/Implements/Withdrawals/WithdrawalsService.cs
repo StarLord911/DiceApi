@@ -104,7 +104,7 @@ namespace DiceApi.Services.Implements
                 Amount = request.Amount,
                 CardNumber = request.CartNumber,
                 CreateDate = DateTime.Now,
-                Status = WithdrawalStatus.New
+                Status = WithdrawalStatus.New,
             };
 
             await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.Amount);
@@ -178,7 +178,14 @@ namespace DiceApi.Services.Implements
         public async Task СonfirmWithdrawal(long id)
         {
             var withdrawal = await _withdrawalsRepository.GetById(id);
-            await _paymentAdapterService.CreateWithdrawal(withdrawal.Amount, withdrawal.CardNumber);
+
+            var res = await _paymentAdapterService.CreateWithdrawal(withdrawal);
+
+            if (res == false)
+            {
+                throw new Exception("Error when confirm witrowal");
+            }
+
             await _withdrawalsRepository.DeactivateWithdrawal(id);
         }
 

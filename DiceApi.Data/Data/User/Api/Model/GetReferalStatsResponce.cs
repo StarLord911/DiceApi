@@ -6,13 +6,56 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Data
 {
+    /// <summary>
+    /// Ответ для модели с реферальной системой.
+    /// </summary>
     public class GetReferalStatsResponce
     {
-        public int ToDayReferals { get; set; }
+        public GetReferalStatsResponce()
+        {
+            RefferalStatasInfo = new RefferalStatasInfo();
+            DashBoardInformation = new List<DashBoardInformation>();
+        }
 
-        public int ToMonthReferals { get; set; }
+        public int RevSharePercent { get; set; }
 
-        public int ToAllTimeReferals { get; set; }
+        public decimal Ballance { get; set; }
+
+        public decimal Income { get; set; }
+
+        public RefferalStatasInfo RefferalStatasInfo { get; set; }
+
+        public List<DashBoardInformation> DashBoardInformation { get; set; }
+
+    }
+
+    /// <summary>
+    /// Класс содержит базовую инфу которая может колебаться по дням.
+    /// </summary>
+    public class RefferalStatasInfo
+    {
+        public int RegistrationCount { get; set; }
+
+        public decimal AverageIncomePerPlayer { get; set; }
+
+        public int FirstDeposits { get; set; }
+
+        public int PaymentCount { get; set; }
+
+        public decimal PaymentsSum { get; set; }
+    }
+
+    public class DashBoardInformation
+    {
+        public DateTime Date { get; set; }
+
+        public decimal Income { get; set; }
+
+        public int RegistrationCount { get; set; }
+
+        public decimal DepositsSum { get; set; }
+
+        public int DepositsCount { get; set; }
 
     }
 

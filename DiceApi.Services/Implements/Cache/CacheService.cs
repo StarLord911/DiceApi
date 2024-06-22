@@ -40,6 +40,13 @@ namespace DiceApi.Services
 
         }
 
+        public async Task UpdateCache<T>(string key, T value, TimeSpan timeSpan = default)
+        {
+            await DeleteCache(key);
+
+            await WriteCache<T>(key, value, timeSpan);
+        }
+
         public async Task WriteCache(string key, string value, TimeSpan timeSpan)
         {
             if (timeSpan == default)

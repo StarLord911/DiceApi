@@ -44,6 +44,7 @@ namespace DiceApi.Services.SignalRHubs
             {
                 _users.Remove(userId);
             }
+
             FakeActiveHelper.UserCount = _users.Count;
 
             await Clients.All.SendAsync("UserDisconnected", _users.Count + FakeActiveHelper.FakeUserCount);
@@ -51,9 +52,12 @@ namespace DiceApi.Services.SignalRHubs
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            _users.RemoveAt(1);
-            await Clients.All.SendAsync("UserDisconnected", _users.Count + FakeActiveHelper.FakeUserCount);
-            FakeActiveHelper.UserCount = _users.Count;
+            if (_users.Count > 0)
+            {
+                _users.RemoveAt(1);
+                await Clients.All.SendAsync("UserDisconnected", _users.Count + FakeActiveHelper.FakeUserCount);
+                FakeActiveHelper.UserCount = _users.Count;
+            }
 
             await base.OnDisconnectedAsync(exception);
         }
@@ -67,7 +71,15 @@ namespace DiceApi.Services.SignalRHubs
         }
     }
 
-    public class GameStartTaimerHub : Hub
+    public class RouletteGameStartTaimerHub : Hub
+    {
+        public async Task Send(string message)
+        {
+            await this.Clients.All.SendAsync("Receive", message);
+        }
+    }
+
+    public class HorsesGameStartTaimerHub : Hub
     {
         public async Task Send(string message)
         {

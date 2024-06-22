@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DiceApi.Data.Data.Payment.FreeKassa;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,6 +26,9 @@ namespace DiceApi.Data
         /// Номер карты
         /// </summary>
         public string CartNumber { get; set; }
+
+
+        public PaymentType PaymentType { get; set; }
     }
 
     /// <summary>

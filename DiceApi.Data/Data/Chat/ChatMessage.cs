@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,10 +12,13 @@ namespace DiceApi.Data.Data.Chat
     /// </summary>
     public class ChatMessage
     {
+        [JsonProperty("userName")]
         public string UserName { get; set; }
-
+        
+        [JsonProperty("sendDate")]
         public string SendDate { get; set; }
 
+        [JsonProperty("message")]
         public string Message { get; set; }
     }
 }

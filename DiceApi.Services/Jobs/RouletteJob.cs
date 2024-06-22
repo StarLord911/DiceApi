@@ -22,7 +22,7 @@ namespace DiceApi.Services.Jobs
         private readonly IUserService _userService;
         private readonly IHubContext<RouletteEndGameHub> _hubContext;
         private readonly IHubContext<NewGameHub> _newGameHub;
-        private readonly IHubContext<GameStartTaimerHub> _gameStartTaimerHub;
+        private readonly IHubContext<RouletteGameStartTaimerHub> _gameStartTaimerHub;
         private readonly ILogRepository _logRepository;
 
         private readonly string RED = "Red";
@@ -39,7 +39,7 @@ namespace DiceApi.Services.Jobs
         };
 
         public RouletteJob(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext, IHubContext<NewGameHub> newGameHub,
-            ILogRepository logRepository, IHubContext<GameStartTaimerHub> gameStartTaimerHub)
+            ILogRepository logRepository, IHubContext<RouletteGameStartTaimerHub> gameStartTaimerHub)
         {
             _cacheService = cacheService;
             _userService = userService;
@@ -54,83 +54,98 @@ namespace DiceApi.Services.Jobs
         //TODO добавить антиминус
         public async Task RouleteRun()
         {
-            GameStates.IsRouletteGameRun = true;
-            var randomValue = new Random().Next(0, 18);
-
-            await _logRepository.LogInfo($"Roulette random value {randomValue}");
-
-            var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_ROULETTE_USERS);
-
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", randomValue);
-
-            if (bettedUserIds == null)
+            try
             {
-                await Taimer();
-                return;
-            }
+                GameStates.IsRouletteGameRun = true;
+                var randomValue = new Random().Next(0, 18);
 
-            foreach (var id in bettedUserIds)
-            {
-                var userBets = await _cacheService.ReadCache<CreateRouletteBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
-                var user = _userService.GetById(id);
+                await _logRepository.LogInfo($"Roulette random value {randomValue}");
 
-                if (userBets != null)
+                var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_ROULETTE_USERS);
+
+                await _hubContext.Clients.All.SendAsync("ReceiveMessage", randomValue);
+
+                if (bettedUserIds == null)
                 {
-                    decimal winSum = 0;
-
-                    foreach (var bet in userBets.Bets)
-                    {
-                        var multiplier = 0;
-
-                        if (bet.BetNumber == randomValue)
-                        {
-                            winSum += bet.BetSum * 18;
-                            multiplier = 18;
-                        }
-                        else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.RED && GetDroppedColor(randomValue) == RoutletteConsts.RED)
-                        {
-                            winSum += bet.BetSum * 2;
-                            multiplier = 2;
-                        }
-                        else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.BLACK && GetDroppedColor(randomValue) == RoutletteConsts.BLACK)
-                        {
-                            winSum += bet.BetSum * 2;
-                            multiplier = 2;
-                        }
-                        else if(bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.FirstRange && (randomValue >= 1 && randomValue <= 9))
-                        {
-                            winSum += bet.BetSum * 2;
-                            multiplier = 2;
-                        }
-                        else if (bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.SecondRange && (randomValue >= 10 && randomValue <= 18))
-                        {
-                            winSum += bet.BetSum * 2;
-                            multiplier = 2;
-                        }
-
-                        var jsonGame = JsonConvert.SerializeObject(GetNewGameApiModel(bet.BetSum, user.Name, multiplier));
-
-                        await _newGameHub.Clients.All.SendAsync(jsonGame);
-                    }
-
-                    await _userService.UpdateUserBallance(user.Id, winSum + user.Ballance);
+                    await Taimer();
+                    return;
                 }
 
-                await _cacheService.DeleteCache(CacheConstraints.ROULETTE_USER_BET + id);
-            }
+                foreach (var id in bettedUserIds)
+                {
+                    var userBets = await _cacheService.ReadCache<CreateRouletteBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
+                    var user = _userService.GetById(id);
 
-            await UpdateLastGames(randomValue);
-            await _cacheService.DeleteCache(CacheConstraints.BETTED_ROULETTE_USERS);
-            GameStates.IsRouletteGameRun = false;
-            await Taimer();
+                    if (userBets != null)
+                    {
+                        decimal winSum = 0;
+
+                        foreach (var bet in userBets.Bets)
+                        {
+                            var multiplier = 0;
+
+                            if (bet.BetNumber == randomValue)
+                            {
+                                winSum += bet.BetSum * 18;
+                                multiplier = 18;
+                            }
+                            else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.RED && GetDroppedColor(randomValue) == RoutletteConsts.RED)
+                            {
+                                winSum += bet.BetSum * 2;
+                                multiplier = 2;
+                            }
+                            else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.BLACK && GetDroppedColor(randomValue) == RoutletteConsts.BLACK)
+                            {
+                                winSum += bet.BetSum * 2;
+                                multiplier = 2;
+                            }
+                            else if(bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.FirstRange && (randomValue >= 1 && randomValue <= 9))
+                            {
+                                winSum += bet.BetSum * 2;
+                                multiplier = 2;
+                            }
+                            else if (bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.SecondRange && (randomValue >= 10 && randomValue <= 18))
+                            {
+                                winSum += bet.BetSum * 2;
+                                multiplier = 2;
+                            }
+
+                            var jsonGame = JsonConvert.SerializeObject(GetNewGameApiModel(bet.BetSum, user.Name, multiplier));
+
+                            await _newGameHub.Clients.All.SendAsync(jsonGame);
+                        }
+
+                        await _userService.UpdateUserBallance(user.Id, winSum + user.Ballance);
+                    }
+
+                    await _cacheService.DeleteCache(CacheConstraints.ROULETTE_USER_BET + id);
+                }
+
+                await UpdateLastGames(randomValue);
+                await _cacheService.DeleteCache(CacheConstraints.BETTED_ROULETTE_USERS);
+                GameStates.IsRouletteGameRun = false;
+                await Taimer();
+            }
+            catch (Exception ex)
+            {
+                await _logRepository.LogError("Exception in roulette" + ex.Message + ex.StackTrace);
+                await _logRepository.LogException(ex);
+            }
         }
 
         private async Task Taimer()
         {
-            for (int i = 0; i < 40; i--)
+            for (int i = 40; i != 0; i--)
             {
                 Thread.Sleep(1000);
-                await _gameStartTaimerHub.Clients.All.SendAsync("ReceiveMessage", new GameTypeTaimer { GameName = "Roulette", Taimer = i});
+
+                if (i == 30)
+                {
+                    GameStates.IsHorseGameRun = false;
+                }
+                await _logRepository.LogInfo("Taimer in roulette" + i);
+
+                await _gameStartTaimerHub.Clients.All.SendAsync("ReceiveMessage", SerializationHelper.Serialize(new GameTypeTaimer { GameName = "Roulette", Taimer = i}));
             }
         }
 
@@ -176,43 +191,7 @@ namespace DiceApi.Services.Jobs
             return apiModel;
         }
 
-        private async Task<Dictionary<string, decimal>> GetTotalBets(List<long> bettedUserIds)
-        {
-            var totalBetsDict = new Dictionary<string, decimal>();
-
-            foreach (var id in bettedUserIds)
-            {
-                var userBets = await _cacheService.ReadCache<CreateRouletteBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
-
-                foreach (var bet in userBets.Bets)
-                {
-                    if (bet.BetColor.HasValue)
-                    {
-                        string colorKey = Enum.GetName(typeof(BetColor), bet.BetColor.Value);
-                        if (totalBetsDict.ContainsKey(colorKey))
-                        {
-                            totalBetsDict[colorKey] += bet.BetSum;
-                        }
-                        else
-                        {
-                            totalBetsDict[colorKey] = bet.BetSum;
-                        }
-                    }
-
-                    string numberKey = bet.BetNumber.ToString();
-                    if (totalBetsDict.ContainsKey(numberKey))
-                    {
-                        totalBetsDict[numberKey] += bet.BetSum;
-                    }
-                    else
-                    {
-                        totalBetsDict[numberKey] = bet.BetSum;
-                    }
-                }
-            }
-
-            return totalBetsDict;
-        }
+       
 
         private string GetDroppedColor(int number)
         {

@@ -16,4 +16,15 @@ namespace DiceApi.Data
         [JsonProperty("location")]
         public string Location { get; set; }
     }
+
+
+    public class GetOrderByIdResponce
+    {
+        
+    }
+
+    public class CreateFreKassaWithdrawalResponce
+    {
+
+    }
 }

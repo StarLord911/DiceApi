@@ -82,34 +82,32 @@ namespace DiceApi.Services
 
         public async Task<MinesGameApiModel> GetActiveMinesGameByUserId(GetByUserIdRequest request)
         {
-            var serializedGame = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.Id);
+            var serializedGame = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.Id);
 
             if (serializedGame == null)
             {
                 return null;
             }
-            if (!SerializationHelper.Deserialize<ActiveMinesGame>(serializedGame).IsActiveGame())
+            if (!serializedGame.IsActiveGame())
             {
                 return null;
             }
 
-            var game = SerializationHelper.Deserialize<ActiveMinesGame>(serializedGame);
-            return new MinesGameApiModel() { Cells = MapCells(game.GetCells()), MinesCount = game.MinesCount, OpenedCount = game.OpenedCellsCount, BetSum = game.BetSum };
+            return new MinesGameApiModel() { Cells = MapCells(serializedGame.GetCells()), MinesCount = serializedGame.MinesCount,
+                OpenedCount = serializedGame.OpenedCellsCount, BetSum = serializedGame.BetSum };
 
         }
 
         public async Task<(FinishMinesGameResponce, ActiveMinesGame)> FinishGame(GetByUserIdRequest request)
         {
-            var serializedGame = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.Id);
+            var game = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.Id);
 
-            if (serializedGame == null)
+            if (game == null)
             {
                 return (new FinishMinesGameResponce { Succes = false, Message = "Game not found" }, null);
             }
 
             await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.Id);
-
-            var game = SerializationHelper.Deserialize<ActiveMinesGame>(serializedGame);
 
             if (!game.IsActiveGame())
             {
@@ -120,13 +118,11 @@ namespace DiceApi.Services
             await _userService.UpdateUserBallance(request.Id, user.Ballance + game.CanWin);
             game.FinishGame = true;
 
-            var settingsCache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
-            var cache = SerializationHelper.Deserialize<Settings>(settingsCache);
+            var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
 
-            cache.MinesAntiminus -= game.CanWin;
-            var newCache = SerializationHelper.Serialize(cache);
-            await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
-            await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
+            settingsCache.MinesAntiminus -= game.CanWin;
+
+            await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settingsCache);
 
             var mappedGame = _mapper.Map<MinesGame>(game);
             await _minesRepository.AddMinesGame(mappedGame);
@@ -136,8 +132,7 @@ namespace DiceApi.Services
 
         public async Task<(OpenCellResponce, ActiveMinesGame)> OpenCell(OpenCellRequest request)
         {
-            var settingsCache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
-            var cache = SerializationHelper.Deserialize<Settings>(settingsCache);
+            var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
 
             var serializedGame = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.UserId);
             if (serializedGame == null)
@@ -159,10 +154,8 @@ namespace DiceApi.Services
 
             if (openResult.FindMine)
             {
-                cache.MinesAntiminus += game.BetSum;
-                var newCache = SerializationHelper.Serialize(cache);
-                await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
-                await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
+                settingsCache.MinesAntiminus += game.BetSum;
+                await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settingsCache);
 
 
                 game.FinishGame = false;
@@ -172,9 +165,9 @@ namespace DiceApi.Services
                 return (new OpenCellResponce { Result = new OpenCellResult { Cells = SerializationHelper.Serialize(game.GetCells()), FindMine = true, GameOver = true }, Succes = false, Message = "Game over" }, game);
             }
 
-            if (game.CanWin > cache.MinesAntiminus)
+            if (game.CanWin > settingsCache.MinesAntiminus)
             {
-                cache.MinesAntiminus += game.BetSum;
+                settingsCache.MinesAntiminus += game.BetSum;
 
                 var cells = game.GetCells();
                 bool found = false;
@@ -192,10 +185,7 @@ namespace DiceApi.Services
 
                 cells[request.X, request.Y].IsMined = true;
 
-                var newCache = SerializationHelper.Serialize(cache);
-                await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
-                await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
-
+                await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settingsCache);
 
                 var mappedGame = _mapper.Map<MinesGame>(game);
                 await _minesRepository.AddMinesGame(mappedGame);

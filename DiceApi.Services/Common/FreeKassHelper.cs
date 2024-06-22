@@ -1,7 +1,11 @@
 ﻿using DiceApi.Common;
 using DiceApi.Data;
+using DiceApi.Data.Data.Payment;
+using Newtonsoft.Json;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -9,9 +13,9 @@ namespace DiceApi.Services
 {
     public static class FreeKassHelper
     {
-        public static CreateOrderRequest CreateOrderRequest(long paymentId, decimal amount, int paySystemId, string clientIp)
+        public static string CreateOrderRequest(decimal amount, int paySystemId, string clientIp)
         {
-            var req = new CreateOrderRequest
+            var request = new CreateOrderRequest
             {
                 Amount = amount,
                 Currency = "RUB",
@@ -19,61 +23,116 @@ namespace DiceApi.Services
                 I = paySystemId,
                 Ip = clientIp,
                 Nonce = DateTime.Now.Ticks,
-                PaymentId = paymentId.ToString(),
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
             };
 
-            req.Signature = GetSignature(req);
-
-            return req;
-        }
-
-        private static string GetSignature(CreateOrderRequest request)
-        {
-            string signature = string.Empty;
-
-            // Convert OrderRequestModel to key-value pairs
-            Dictionary<string, string> parameters = new Dictionary<string, string>()
+            var parameters = new Dictionary<string, string>()
             {
-                { "order_id", request.PaymentId.ToString() },
                 { "currency", request.Currency.ToString() },
                 { "email", request.Email.ToString() },
                 { "i", request.I.ToString() },
                 { "ip", request.Ip.ToString() },
                 { "nonce", request.Nonce.ToString() },
                 { "shopId", request.ShopId.ToString() },
+                { "amount", request.Amount.ToString() },
             };
 
-            return GenerateSignature(parameters, "376483a1585e848d0c0cf699c2df81d2");
+            request.Signature = GetSignature(parameters);
+
+            return JsonConvert.SerializeObject(request);
+            
+        }
+
+
+        public static string GetOrderByIdRequest(long orderId)
+        {
+            var request = new GetOrderByFreeKassaIdRequest()
+            {
+                Nonce = DateTime.Now.Ticks,
+                ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
+                OrderId = orderId
+            };
+
+            var parameters = new Dictionary<string, string>()
+            {
+                { "shopId", request.ShopId.ToString() },
+                { "nonce", request.Nonce.ToString() },
+                { "orderId", orderId.ToString() },
+            };
+
+            request.Signature = GetSignature(parameters);
+
+            return JsonConvert.SerializeObject(request);
+
+        }
+
+        public static WithdrawalRequestFkWallet GetWithdrawalRequest(Withdrawal withdrawal)
+        {
+
+            var request = new WithdrawalRequestFkWallet()
+            {
+                Amount = withdrawal.Amount,
+                Currency_id = 1,
+                Account = withdrawal.CardNumber,
+                PaymentSystemId = 5,
+                Description = "Description",
+                FeeFromBalance = 1,
+                IdempotenceKey = Guid.NewGuid().ToString(),
+                OrderId = withdrawal.Id,
+            };
+
+            request.Fields.Add(GetBankSbpId(withdrawal.BankSpbId));
+
+            return request;
+        }
+
+        public static string GetWithdrawalAvailableCurrencyes()
+        {
+            var request = new GetWithdrawalAvailableCurrencyesRequest()
+            {
+                Nonce = DateTime.Now.Ticks,
+                ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
+            };
+
+            var parameters = new Dictionary<string, string>()
+            {
+                { "shopId", request.ShopId.ToString() },
+                { "nonce", request.Nonce.ToString() },
+            };
+
+            request.Signature = GetSignature(parameters);
+
+            return JsonConvert.SerializeObject(request);
+        }
+
+        private static string GetBankSbpId(int id)
+        {
+            if (id == 1)
+            {
+                return "1enc00000004";
+            }
+
+            return "1enc00000111";
+        }
+
+        private static string GetSignature(Dictionary<string, string> pairs)
+        {
+            return GenerateSignature(pairs, "683eb747358f586f5ff0f71b9640aa75");
         }
 
 
         public static string GenerateSignature(Dictionary<string, string> parameters, string apiKey)
         {
             // Сортировка параметров по ключам в алфавитном порядке
-            var sortedParameters = new SortedDictionary<string, string>(parameters);
 
-            // Конкатенация значений параметров с разделителем |
-            string concatenatedParameters = string.Join("|", sortedParameters.Values);
+            var sortedData = string.Join('|', parameters.OrderBy(x => x.Key).Select(x => x.Value));
 
-            // Преобразование API ключа в массив байтов
-            byte[] apiKeyBytes = Encoding.UTF8.GetBytes(apiKey);
-
-            // Хеширование строки параметров в SHA256
-            using (var sha256 = SHA256.Create())
+            using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(apiKey)))
             {
-                byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(concatenatedParameters));
+                byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(sortedData));
+                string sign = BitConverter.ToString(hash).Replace("-", "").ToLower();
 
-                // Конкатенация хэша с API ключом
-                byte[] concatenatedBytes = new byte[hashBytes.Length + apiKeyBytes.Length];
-                Array.Copy(hashBytes, concatenatedBytes, hashBytes.Length);
-                Array.Copy(apiKeyBytes, 0, concatenatedBytes, hashBytes.Length, apiKeyBytes.Length);
-
-                // Хеширование второго уровня с использованием SHA256
-                byte[] finalHash = sha256.ComputeHash(concatenatedBytes);
-
-                // Преобразование хэша в строку в шестнадцатеричном формате
-                return BitConverter.ToString(finalHash).Replace("-", "").ToLower();
+               return sign;
             }
         }
     }

@@ -45,7 +45,8 @@ namespace DiceApi
                 options.AddPolicy("AllowAll",
                     builder =>
                     {
-                        builder.AllowAnyOrigin()
+                        builder.WithOrigins("https://gamecheck.life")
+                            .AllowAnyOrigin()
                             .AllowAnyMethod()
                             .AllowAnyHeader();
                     });
@@ -80,7 +81,7 @@ namespace DiceApi
 
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = "loyal-dragon-52724.upstash.io:6379,password=Ac30AAIncDE2Yjk4NTRmY2FlODg0YjE1OGFiZWMwYTYyZjM1MjBmMHAxNTI3MjQ,ssl=true"; // ”кажите адрес и порт вашего Redis-сервера
+                options.Configuration = "apparent-cow-35432.upstash.io:6379,password=AYpoAAIncDFlYTM0MWFkODM4YzE0ZWNmYTE0ZGUxOThkMTdjNjI2ZHAxMzU0MzI,ssl=true"; // ”кажите адрес и порт вашего Redis-сервера
                 options.InstanceName = "gameCache"; // ќпционально. ”кажите им€ вашего экземпл€ра Redis
             });
 
@@ -110,7 +111,7 @@ namespace DiceApi
             services.AddTransient<IChatService, ChatService>();
             services.AddTransient<IRouletteService, RouletteService>();
             services.AddTransient<IHorseRaceService, HorseRaceService>();
-
+            services.AddTransient<IRefferalService, RefferalService>();
 
 
             services.AddSingleton<ITelegramBotClient>(new TelegramBotClient("6829158443:AAFx85c81t7tTZFRtZtU-R0-xpWd-2hlMkg"));
@@ -144,8 +145,10 @@ namespace DiceApi
                 endpoints.MapHub<HorseGameEndGameHub>("/horseGameEndHub");
                 endpoints.MapHub<HorseGameBetsHub>("/horseGameBetsHub");
 
-                endpoints.MapHub<GameStartTaimerHub>("/gamesStartTaimetHub");
+                endpoints.MapHub<RouletteGameStartTaimerHub>("/rouletteGamesStartTaimerHub");
+                endpoints.MapHub<HorsesGameStartTaimerHub>("/horsesGamesStartTaimerHub");
 
+                
                 endpoints.MapControllers();
             });
 
@@ -154,7 +157,8 @@ namespace DiceApi
             var rouletteEndGame = app.ApplicationServices.GetRequiredService<IHubContext<RouletteEndGameHub>>();
             var newGameHub = app.ApplicationServices.GetRequiredService<IHubContext<NewGameHub>>();
             var horseGameEnd = app.ApplicationServices.GetRequiredService<IHubContext<HorseGameEndGameHub>>();
-            var taimerHub = app.ApplicationServices.GetRequiredService<IHubContext<GameStartTaimerHub>>();
+            var taimerHub = app.ApplicationServices.GetRequiredService<IHubContext<RouletteGameStartTaimerHub>>();
+            var horseTaimerHub = app.ApplicationServices.GetRequiredService<IHubContext<HorsesGameStartTaimerHub>>();
 
 
             var log = app.ApplicationServices.GetRequiredService<ILogRepository>();
@@ -171,11 +175,11 @@ namespace DiceApi
                     PaymentActive = true,
                     TechnicalWorks = false,
                     WithdrawalActive = true
-                }).RunSynchronously();
+                }).GetAwaiter().GetResult();
             }
 
             JobManager.Initialize(new RouletteJob(cache, userService, rouletteEndGame, newGameHub, log, taimerHub));
-            JobManager.Initialize(new HorseRaceJob(cache, userService, horseGameEnd, newGameHub, log, taimerHub));
+            JobManager.Initialize(new HorseRaceJob(cache, userService, horseGameEnd, newGameHub, log, horseTaimerHub));
         }
     }
 }
