@@ -33,5 +33,9 @@ namespace DiceApi.Common
         public const string LAST_HORSE_GAMES = "LAST_HORSE_GAMES";
 
 
+        public const string WINNINGS_TO_DAY = "WINNINGS_TO_DAY";
+
+
+
     }
 }

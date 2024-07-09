@@ -8,6 +8,7 @@ using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
@@ -20,7 +21,6 @@ namespace DiceApi.Services.Implements
     public class PaymentAdapterService : IPaymentAdapterService
     {
         private decimal _currentBallance = -1;
-        private readonly string _apiUrl = "https://api.freekassa.ru/v1/";
         private string _walletPrivateKey = "wdtXREmm0ru0j5k55UqPUJfKleyZKy1nXfpAbNcsyQhckDyHf4";
 
 
@@ -39,10 +39,9 @@ namespace DiceApi.Services.Implements
         /// </summary>
         /// <param name="createPaymentRequest"></param>
         /// <returns></returns>
-        public async Task<string> CreatePaymentForm(CreatePaymentRequest request)
+        public async Task<string> CreatePaymentForm(CreatePaymentRequest request, long paymentId)
         {
-            var paymentType = (int)request.PaymentType;
-            var createPaymentRequest = FreeKassHelper.CreateOrderRequest(request.Amount, paymentType, "61.4.112.166");
+            var createPaymentRequest = FreeKassHelper.CreateOrderRequest(request, paymentId);
 
             return (await RequestToFreeKassa<CreatePaymentResponce>("orders/create", createPaymentRequest)).Location;
         }
@@ -66,59 +65,81 @@ namespace DiceApi.Services.Implements
             _currentBallance += sum;
         }
 
-      
+        public async Task<List<FkWaletSpbWithdrawalBank>> GetSpbWithdrawalBanks()
+        {
+            return await GetSpbWithdrawalBanksRequestFkWalet();
+
+        }
 
         public async Task<bool> CreateWithdrawal(Withdrawal withdrawal)
         {
-            //await GetSpbWithdrawalBanksRequestFkWalet();
-            await CreateWithdrawalRequestFkWalet(withdrawal);
-
+            try
+            {
+                await CreateWithdrawalRequestFkWalet(withdrawal);
+            }
+            catch (Exception ex)
+            {
+                await _logRepository.LogError($"CreateWithdrawal error {withdrawal.Id} {ex.Message} {ex.StackTrace}");
+                return false;
+            }
             return true;
         }
 
-        public async Task<string> GetOrderByFreeKassaId(long orderId)
+        public async Task<GetFreeKassaOrderByIdResponce> GetOrderByFreeKassaId(long orderId)
         {
             var request = FreeKassHelper.GetOrderByIdRequest(orderId);
 
-            var res = (await RequestToFreeKassa<GetOrderByIdResponce>("orders", request));
+            int maxRetries = 3;
+            Exception lastException = null;
 
-            return string.Empty;
+            for (int retryCount = 0; retryCount < maxRetries; retryCount++)
+            {
+                try
+                {
+                    return (await RequestToFreeKassa<OrderResponse>("orders", request)).Orders.FirstOrDefault();
+                }
+                catch (Exception ex)
+                {
+                    lastException = ex;
+                    await Task.Delay(3000);
+                }
+            }
 
+            // Если все попытки завершились неудачно, выбрасываем последнее исключение
+            throw lastException;
         }
 
         private async Task<T> RequestToFreeKassa<T>(string url, string json)
         {
-            string apiUrl = "https://api.freekassa.ru/v1/" + url;
+            string apiUrl = "https://api.freekassa.com/v1/" + url;
 
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, httpContent);
 
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            var decodedJson = DecodeUnicode(jsonResponse);
+
             if (response.IsSuccessStatusCode)
             {
-                string jsonResponse = await response.Content.ReadAsStringAsync();
-
-                await _logRepository.LogInfo("CreatePaymentForm" + jsonResponse);
-                using (JsonTextReader reader = new JsonTextReader(new StringReader(jsonResponse)))
-                {
-                    // Создание экземпляра JsonSerializer
-                    JsonSerializer serializer = new JsonSerializer();
-
-                    // Десериализация JSON и приведение результата к типу Person
-                    return serializer.Deserialize<T>(reader);
-                }
+                await _logRepository.LogInfo("CreatePaymentForm" + DecodeUnicode(jsonResponse));
+                return SerializationHelper.Deserialize<T>(jsonResponse);
             }
             else
             {
-                throw new ApplicationException($"Failed to create order. Status code: {response.StatusCode}");
+                await _logRepository.LogError($"Error when create payment form {decodedJson}");
+                throw new ApplicationException($"Failed to create order. Status code: {response.StatusCode} Reason: {decodedJson}");
             }
         }
 
-        private async Task GetSpbWithdrawalBanksRequestFkWalet()
+        private async Task<List<FkWaletSpbWithdrawalBank>> GetSpbWithdrawalBanksRequestFkWalet()
         {
             var signWithBody = CalculateSHA256Hash(_walletPrivateKey);
 
-            await SendRequest("https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/sbp_list", null , signWithBody, HttpMethod.Get);
+            var responce = await SendRequest("https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/sbp_list", null , signWithBody, HttpMethod.Get);
+            var result = SerializationHelper.Deserialize<FkWaletSpbWithdrawalBankResponce>(responce);
+
+            return result.GetSpbWithdrawalBanks;
         }
 
 
@@ -128,11 +149,10 @@ namespace DiceApi.Services.Implements
             var jsonDataWithBody = JsonConvert.SerializeObject(dataWithBody);
             var signWithBody = CalculateSHA256Hash(jsonDataWithBody + _walletPrivateKey);
 
-
             await SendRequest("https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/withdrawal", jsonDataWithBody, signWithBody, HttpMethod.Post);
         }
 
-        private async Task SendRequest(string url, string jsonData, string sign, HttpMethod method)
+        private async Task<string> SendRequest(string url, string jsonData, string sign, HttpMethod method)
         {
             using (var client = new HttpClient())
             {
@@ -147,11 +167,7 @@ namespace DiceApi.Services.Implements
 
                 var response = await client.SendAsync(request);
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = DecodeUnicode(await response.Content.ReadAsStringAsync());
-                }
-               
+                return DecodeUnicode(await response.Content.ReadAsStringAsync());
             }
         }
 

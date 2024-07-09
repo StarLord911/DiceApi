@@ -1,5 +1,6 @@
 using DiceApi.Common;
 using DiceApi.Data;
+using DiceApi.Data.Data.Winning;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Mappings;
 using DiceApi.MiddleWares;
@@ -20,7 +21,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot;
-using static DiceApi.Services.Jobs.RouletteJob;
 
 namespace DiceApi
 {
@@ -112,7 +112,7 @@ namespace DiceApi
             services.AddTransient<IRouletteService, RouletteService>();
             services.AddTransient<IHorseRaceService, HorseRaceService>();
             services.AddTransient<IRefferalService, RefferalService>();
-
+            services.AddTransient<IAntiMinusService, AntiMinusService>();
 
             services.AddSingleton<ITelegramBotClient>(new TelegramBotClient("6829158443:AAFx85c81t7tTZFRtZtU-R0-xpWd-2hlMkg"));
 
@@ -170,16 +170,38 @@ namespace DiceApi
             {
                 cache.WriteCache(CacheConstraints.SETTINGS_KEY, new Settings
                 {
-                    DiceAntiminus = 10000,
-                    MinesAntiminus = 10000,
+                    DiceGameWinningSettings = new DiceGameWinningSettings
+                    {
+                        DiceMinusPercent = 2,
+                        DiceAntiminusBallance = 100000
+                    },
+                    MinesGameWinningSettings = new MinesGameWinningSettings
+                    {
+                        MinesAntiminusBallance = 100000,
+                        MinesMaxMultyplayer = 5,
+                        MinesMaxSuccesMineOpens = 15,
+                        MinesMaxWinSum = 5000
+                    },
                     PaymentActive = true,
                     TechnicalWorks = false,
                     WithdrawalActive = true
                 }).GetAwaiter().GetResult();
             }
 
-            JobManager.Initialize(new RouletteJob(cache, userService, rouletteEndGame, newGameHub, log, taimerHub));
-            JobManager.Initialize(new HorseRaceJob(cache, userService, horseGameEnd, newGameHub, log, horseTaimerHub));
+            var stats = cache.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY).Result;
+            
+            if (stats == null)
+            {
+                stats = new WinningStats();
+
+                cache.WriteCache(CacheConstraints.WINNINGS_TO_DAY, stats).GetAwaiter().GetResult();
+            }
+
+            JobManager.Initialize(new DropWinningsJob(cache));
+
+            Task.Run(async() => await new RouletteJob(cache, userService, rouletteEndGame, newGameHub, log, taimerHub).RouleteRun());
+            Task.Run(async () => await new HorseRaceJob(cache, userService, horseGameEnd, newGameHub, log, horseTaimerHub).RaceRun());
         }
+
     }
 }

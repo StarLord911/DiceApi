@@ -24,6 +24,7 @@ namespace DiceApi.Data
 
         public WithdrawalStatus Status { get; set; }
 
-        public int BankSpbId { get; set; } = 1;
+        public string? BankId { get; set; }
+
     }
 }

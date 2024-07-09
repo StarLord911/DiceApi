@@ -2,6 +2,8 @@
 using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Payment;
+using DiceApi.Data.Data.Payment.FreeKassa;
+using DiceApi.Data.Data.Winning;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
 using System;
@@ -98,6 +100,22 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
+            if (request.Amount < 1029 && request.WithdrawalType == WithdrawalType.Sbp)
+            {
+                responce.Succses = false;
+                responce.Message = $"Минимальная сумма вывода по СБП 1030";
+
+                return responce;
+            }
+
+            if (request.Amount < 1999 && request.WithdrawalType == WithdrawalType.CardNumber)
+            {
+                responce.Succses = false;
+                responce.Message = $"Минимальная сумма вывода по номеру карты 2000";
+
+                return responce;
+            }
+
             var withdrowal = new Withdrawal
             {
                 UserId = request.UserId,
@@ -186,7 +204,18 @@ namespace DiceApi.Services.Implements
                 throw new Exception("Error when confirm witrowal");
             }
 
+            await UpdateWithdrawalToDay(withdrawal.Amount);
+
             await _withdrawalsRepository.DeactivateWithdrawal(id);
+        }
+
+        private async Task UpdateWithdrawalToDay(decimal amount)
+        {
+            var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
+
+            stats.WithdrawalToDay += amount;
+
+            await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
 
         private bool IsThisMonth(DateTime dateTime)

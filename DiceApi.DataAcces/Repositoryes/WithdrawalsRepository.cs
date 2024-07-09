@@ -23,12 +23,13 @@ namespace DiceApi.DataAcces.Repositoryes
 
         public async Task AddWithdrawal(Withdrawal withdrawal)
         {
+            //TODO не все поля заполняем
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
 
-                string insertQuery = $@"INSERT INTO Withdrawal (UserId, Amount, CardNumber, CreateDate, Status) 
-                                            VALUES (@UserId, @Amount, @CardNumber, @CreateDate, @Status)";
+                string insertQuery = $@"INSERT INTO Withdrawal (UserId, Amount, CardNumber, CreateDate, Status, BankId) 
+                                            VALUES (@UserId, @Amount, @CardNumber, @CreateDate, @Status, @BankId)";
 
                 await connection.ExecuteAsync(insertQuery, withdrawal);
 

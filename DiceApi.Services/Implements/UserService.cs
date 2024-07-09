@@ -75,7 +75,7 @@ namespace DiceApi.Services
             }
             catch (Exception ex)
             {
-                await _logRepository.LogException(ex);
+                await _logRepository.LogException("Error when Register", ex);
             }
 
             return new AuthenticateResponse() { Info = "Is user contains" };

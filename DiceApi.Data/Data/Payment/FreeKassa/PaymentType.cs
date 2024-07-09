@@ -11,10 +11,17 @@ namespace DiceApi.Data.Data.Payment.FreeKassa
     /// </summary>
     public enum PaymentType
     {
-        CardRub = 36,
-        Sbp = 42,
-        SbpApi = 44,
         UMoney = 6,
-        Mir = 12
+        VisaRub = 4,
+        OnlineBank = 13,
+        Sbp = 42,
+        MasterCardRub = 8,
+        CardRub = 36
+    }
+
+    public enum WithdrawalType
+    {
+        Sbp = 42,
+        CardNumber = 0
     }
 }

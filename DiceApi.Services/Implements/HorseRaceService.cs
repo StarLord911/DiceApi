@@ -32,6 +32,13 @@ namespace DiceApi.Services.Implements
 
         public async Task<string> BetHorceRace(CreateHorseBetRequest request)
         {
+            var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
+
+            if (bettedUserIds.Contains(request.UserId))
+            {
+                return "Bet already exist";
+            }
+
             var user = _userService.GetById(request.UserId);
 
             var betSum = request.HorseBets.Sum(b => b.BetSum);
@@ -45,7 +52,6 @@ namespace DiceApi.Services.Implements
 
             await _userService.UpdateUserBallance(user.Id, updatedBallance);
 
-            var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
 
             if (bettedUserIds == null)
             {

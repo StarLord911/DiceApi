@@ -3,6 +3,7 @@ using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.HorseGame;
 using DiceApi.Data.Data.Roulette;
+using DiceApi.Data.Data.Winning;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.SignalRHubs;
 using FluentScheduler;
@@ -17,7 +18,7 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Services.Jobs
 {
-    public class HorseRaceJob : Registry
+    public class HorseRaceJob
     {
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
@@ -36,60 +37,74 @@ namespace DiceApi.Services.Jobs
             _newGameHub = newGameHub;
             _logRepository = logRepository;
             _gameStartTaimerHub = gameStartTaimerHub;
-
-            Schedule(() => RaceRun().GetAwaiter().GetResult()).NonReentrant().ToRunEvery(0).Seconds();
         }
 
         public async Task RaceRun()
         {
-            try 
-            { 
-                GameStates.IsHorseGameRun = true;
-                var color = GetWinnedHorseColor();
-
-                var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
-
-                await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
-
-                if (bettedUserIds == null)
+            while (true)
+            {
+                try
                 {
-                    await Taimer();
-                    return;
-                }
+                    GameStates.IsHorseGameRun = true;
+                    var color = GetWinnedHorseColor();
+                    await _logRepository.LogInfo($"Horse game win {color}");
 
-                await UpdateLastHorseGames(color);
-                await _logRepository.LogInfo($"Horse game win {color.ToString()}");
+                    var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
 
-                foreach (var id in bettedUserIds)
-                {
-                    var userBets = await _cacheService.ReadCache<CreateHorseBetRequest>(CacheConstraints.HORSE_RACE_USER_BET + id);
+                    await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
 
-                    if (userBets != null)
+                    if (bettedUserIds == null)
                     {
-                        var user = _userService.GetById(id);
-
-                        var winBet = userBets.HorseBets.FirstOrDefault(b => b.HorseColor == color);
-
-                        if (winBet != null)
-                        {
-                            var winSum = winBet.BetSum * 8;
-
-                            await _userService.UpdateUserBallance(user.Id, user.Ballance + winSum);
-                        }
+                        await Taimer();
+                        continue;
                     }
 
-                    await _cacheService.DeleteCache(CacheConstraints.HORSE_RACE_USER_BET + id);
+                    await UpdateLastHorseGames(color);
+                    decimal allWinSums = 0;
+
+                    foreach (var id in bettedUserIds)
+                    {
+                        var userBets = await _cacheService.ReadCache<CreateHorseBetRequest>(CacheConstraints.HORSE_RACE_USER_BET + id);
+
+                        if (userBets != null)
+                        {
+                            var user = _userService.GetById(id);
+
+                            var winBet = userBets.HorseBets.FirstOrDefault(b => b.HorseColor == color);
+
+                            if (winBet != null)
+                            {
+                                var winSum = winBet.BetSum * 8;
+                                allWinSums += winSum;
+
+                                await _userService.UpdateUserBallance(user.Id, user.Ballance + winSum);
+                            }
+                        }
+
+                        await _cacheService.DeleteCache(CacheConstraints.HORSE_RACE_USER_BET + id);
+                    }
+
+                    await UpdateWinningToDay(allWinSums);
+
+                    await _cacheService.DeleteCache(CacheConstraints.BETTED_HORSE_RACE_USERS);
+                    await _logRepository.LogInfo("Finish horse job");
+
+                    await Taimer();
                 }
-
-                await _cacheService.DeleteCache(CacheConstraints.BETTED_HORSE_RACE_USERS);
-
-                await Taimer();
+                catch (Exception ex)
+                {
+                    await _logRepository.LogException("Exception in horse", ex);
+                }
             }
-            catch (Exception ex)
-            {
-                await _logRepository.LogException(ex);
-                await _logRepository.LogError("Exception in horse" + ex.Message + ex.StackTrace);
-            }
+        }
+
+        private async Task UpdateWinningToDay(decimal amount)
+        {
+            var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
+
+            stats.WinningToDay += amount;
+
+            await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
 
         private async Task Taimer()
@@ -102,7 +117,6 @@ namespace DiceApi.Services.Jobs
                 {
                     GameStates.IsHorseGameRun = false;
                 }
-                await _logRepository.LogInfo("Taimer in horse" + i);
 
                 await _gameStartTaimerHub.Clients.All.SendAsync("ReceiveMessage", SerializationHelper.Serialize(new GameTypeTaimer { GameName = "Horses", Taimer = i }));
             }

@@ -9,7 +9,7 @@ namespace DiceApi.Data
     public static class GameStates
     {
         public static bool IsRouletteGameRun { get; set; }
-        public static bool IsHorseGameRun { get; set; }
 
+        public static bool IsHorseGameRun { get; set; }
     }
 }

@@ -78,10 +78,18 @@ namespace DiceApi.Controllers
         public async Task<IActionResult> Register(UserRegisterResponce userModel)
         {
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+            
             if (userModel.Name.Length < 5)
             {
                 return BadRequest(new { message = "Short name. Name leght should be > 5" });
             }
+
+            if (userModel.Password.Length < 5 || userModel.Password.Length > 15)
+            {
+                return BadRequest(new { message = "Short password. Password leght should be > 5 and < 15" });
+
+            }
+
             //TODO: добвить запись айпи входа
             var userRegister = _mapper.Map<UserRegistrationModel>(userModel);
             userRegister.IpAddres = ipAddress;

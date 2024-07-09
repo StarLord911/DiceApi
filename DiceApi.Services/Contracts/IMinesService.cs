@@ -14,11 +14,11 @@ namespace DiceApi.Services
     {
         Task<CreateMinesGameResponce> CreateMinesGame(CreateMinesGameRequest request);
 
-        Task<(OpenCellResponce, ActiveMinesGame)> OpenCell(OpenCellRequest request);
+        Task<OpenCellResponce> OpenCell(OpenCellRequest request);
 
         Task<MinesGameApiModel> GetActiveMinesGameByUserId(GetByUserIdRequest request);
 
-        Task<(FinishMinesGameResponce, ActiveMinesGame)> FinishGame(GetByUserIdRequest request);
+        Task<FinishMinesGameResponce> FinishGame(GetByUserIdRequest request);
 
         Task<List<MinesGame>> GetMinesGamesByUserId(long userId);
     }

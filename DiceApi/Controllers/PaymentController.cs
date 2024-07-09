@@ -3,6 +3,7 @@ using DiceApi.Data;
 using DiceApi.Data.Data.Payment;
 using DiceApi.Data.Requests;
 using DiceApi.Services;
+using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
 using FreeKassa.NET;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,21 @@ namespace DiceApi.Controllers
         [HttpPost("createPayment")]
         public async Task<string> CreatePayment(CreatePaymentRequest createPaymentRequest)
         {
+            var paymentMethods = FreeKassaActivePaymentMethodsHelper.GetPaymentMethodsInfo();
+
+            var selectedMethod = paymentMethods.FirstOrDefault(m => m.MethodId == (int)createPaymentRequest.PaymentType);
+
+            if (selectedMethod == null)
+            {
+                return $"Не найдет тип оплаты {(int)createPaymentRequest.PaymentType}";
+            }
+
+            if (createPaymentRequest.Amount < selectedMethod.MinDeposited 
+                || createPaymentRequest.Amount > selectedMethod.MaxDeposit)
+            {
+                return $"Минимальная сумма пополнения {selectedMethod.MinDeposited} рублей, максимальная {selectedMethod.MaxDeposit}";
+            }
+
             var payment = new Payment
             {
                 Amount = createPaymentRequest.Amount,
@@ -49,10 +65,16 @@ namespace DiceApi.Controllers
 
             var paymentId = await _paymentService.AddPayment(payment);
 
-            //FreeKassHelper.GetPayLink(payment.OrderId, createPaymentRequest.Amount);
-            var paymentForm = await _paymentAdapterService.CreatePaymentForm(createPaymentRequest);
+            var paymentForm = await _paymentAdapterService.CreatePaymentForm(createPaymentRequest, paymentId);
 
             return paymentForm;
+        }
+
+        [Authorize]
+        [HttpPost("getActivePaymentMethods")]
+        public List<PaymentFreeKassaMethodInformation> GetActivePaymentMethods()
+        {
+            return FreeKassaActivePaymentMethodsHelper.GetPaymentMethodsInfo();
         }
 
         [Authorize]
@@ -74,6 +96,19 @@ namespace DiceApi.Controllers
         public async Task<List<Payment>> GetPaymentsByUserId(GetByUserIdRequest request)
         {
             return await _paymentService.GetPaymentsByUserId(request.Id);
+        }
+
+        [Authorize]
+        [HttpPost("getWithdrawasByUserId")]
+        public async Task<List<Withdrawal>> GetWithdrawasByUserId(GetByUserIdRequest request)
+        {
+            return await _withdrawalsService.GetAllByUserId(request.Id);
+        }
+
+        [HttpPost("getSpbWithdrawalBanks")]
+        public async Task<List<FkWaletSpbWithdrawalBank>> GetSpbWithdrawalBanks()
+        {
+            return await _paymentAdapterService.GetSpbWithdrawalBanks();
         }
     }
 }

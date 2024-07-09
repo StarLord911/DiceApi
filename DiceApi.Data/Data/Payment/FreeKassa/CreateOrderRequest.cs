@@ -33,6 +33,9 @@ namespace DiceApi.Data
 
         [JsonProperty("currency")]
         public string Currency { get; set; }
+        
+        [JsonProperty("paymentId")]
+        public string PaymentId { get; set; }
     }
 
     public class GetOrderByFreeKassaIdRequest
@@ -92,5 +95,23 @@ namespace DiceApi.Data
 
         [JsonProperty("signature")]
         public string Signature { get; set; }
+    }
+
+    public class FkWaletSpbWithdrawalBank
+    {
+        [JsonProperty("id")]
+        public string BankId { get; set; }
+
+        [JsonProperty("name")]
+        public string BankName { get; set; }
+    }
+
+    public class FkWaletSpbWithdrawalBankResponce
+    {
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("data")]
+        public List<FkWaletSpbWithdrawalBank> GetSpbWithdrawalBanks { get; set; }
     }
 }

@@ -13,17 +13,18 @@ namespace DiceApi.Services
 {
     public static class FreeKassHelper
     {
-        public static string CreateOrderRequest(decimal amount, int paySystemId, string clientIp)
+        public static string CreateOrderRequest(CreatePaymentRequest createPayment, long paymentId)
         {
             var request = new CreateOrderRequest
             {
-                Amount = amount,
+                Amount = createPayment.Amount,
                 Currency = "RUB",
                 Email = "example@gmail.com",
-                I = paySystemId,
-                Ip = clientIp,
+                I = (int)createPayment.PaymentType,
+                Ip = "61.4.112.166",
                 Nonce = DateTime.Now.Ticks,
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
+                PaymentId = paymentId.ToString()
             };
 
             var parameters = new Dictionary<string, string>()
@@ -35,6 +36,7 @@ namespace DiceApi.Services
                 { "nonce", request.Nonce.ToString() },
                 { "shopId", request.ShopId.ToString() },
                 { "amount", request.Amount.ToString() },
+                { "paymentId", request.PaymentId.ToString() }
             };
 
             request.Signature = GetSignature(parameters);
@@ -68,20 +70,23 @@ namespace DiceApi.Services
 
         public static WithdrawalRequestFkWallet GetWithdrawalRequest(Withdrawal withdrawal)
         {
-
             var request = new WithdrawalRequestFkWallet()
             {
                 Amount = withdrawal.Amount,
                 Currency_id = 1,
                 Account = withdrawal.CardNumber,
-                PaymentSystemId = 5,
+                PaymentSystemId = 6,
                 Description = "Description",
                 FeeFromBalance = 1,
                 IdempotenceKey = Guid.NewGuid().ToString(),
                 OrderId = withdrawal.Id,
             };
 
-            request.Fields.Add(GetBankSbpId(withdrawal.BankSpbId));
+            if (!string.IsNullOrEmpty(withdrawal.BankId))
+            {
+                request.Fields.Add(withdrawal.BankId);
+                request.PaymentSystemId = 5;
+            }
 
             return request;
         }
@@ -119,7 +124,6 @@ namespace DiceApi.Services
         {
             return GenerateSignature(pairs, "683eb747358f586f5ff0f71b9640aa75");
         }
-
 
         public static string GenerateSignature(Dictionary<string, string> parameters, string apiKey)
         {

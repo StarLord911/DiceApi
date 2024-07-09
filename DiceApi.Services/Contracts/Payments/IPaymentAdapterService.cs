@@ -18,10 +18,10 @@ namespace DiceApi.Services.Contracts
         /// </summary>
         /// <param name="createPaymentRequest"></param>
         /// <returns></returns>
-        Task<string> CreatePaymentForm(CreatePaymentRequest createPaymentRequest);
+        Task<string> CreatePaymentForm(CreatePaymentRequest createPaymentRequest, long paymentId);
 
 
-        Task<string> GetOrderByFreeKassaId(long orderId);
+        Task<GetFreeKassaOrderByIdResponce> GetOrderByFreeKassaId(long orderId);
         /// <summary>
         /// Получение баланса для антиминуса.
         /// </summary>
@@ -40,6 +40,8 @@ namespace DiceApi.Services.Contracts
         /// </summary>
         /// <returns></returns>
         Task<bool> CreateWithdrawal(Withdrawal withdrawal);
+
+        Task<List<FkWaletSpbWithdrawalBank>> GetSpbWithdrawalBanks();
 
     }
 }

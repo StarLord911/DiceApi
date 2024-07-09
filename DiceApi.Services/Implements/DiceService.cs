@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using DiceApi.Common;
 using DiceApi.Data;
+using DiceApi.Data.Data.Winning;
 
 namespace DiceApi.Services.Implements
 {
@@ -15,7 +16,6 @@ namespace DiceApi.Services.Implements
         private readonly IUserService _userService;
         private readonly IDiceGamesRepository _diceGamesRepository;
         private readonly IWageringRepository _wageringRepository;
-        private readonly IPaymentAdapterService _paymentAdapterService;
         private readonly ICacheService _cacheService;
 
         private readonly ILogRepository _logRepository;
@@ -24,94 +24,137 @@ namespace DiceApi.Services.Implements
             IDiceGamesRepository diceGamesRepository,
             ILogRepository logRepository,
             IWageringRepository wageringRepository,
-            IPaymentAdapterService paymentAdapterService,
             ICacheService cacheService)
         {
             _userService = userService;
             _diceGamesRepository = diceGamesRepository;
             _logRepository = logRepository;
             _wageringRepository = wageringRepository;
-            _paymentAdapterService = paymentAdapterService;
             _cacheService = cacheService;
         }
 
         public async Task<(DiceResponce, DiceGame)> StartDice(DiceRequest request)
         {
+            // Проверка валидности запроса
             if (!ValidateDiceRequest(request))
             {
                 return (new DiceResponce { IsSucces = false }, new DiceGame());
             }
 
-            var responce = new DiceResponce();
+            var response = new DiceResponce();
 
+            // Вычисление возможного выигрыша
             var win = Convert.ToDecimal((100.0 / request.Persent)) * request.Sum;
             var winSum = Math.Round(win, 2);
             var user = _userService.GetById(request.UserId);
 
+            // Генерация случайного числа для определения выигрыша
             var random = new Random().Next(1, 100);
-            var currentBallance = await _paymentAdapterService.GetCurrentBallance();
-            var settingsCache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
-            var cache = SerializationHelper.Deserialize<Settings>(settingsCache);
 
-            //антиминус логика, если наш баланс больше чем ставка то игра играется, иначе игра проигрывается.
-            if (cache.DiceAntiminus > request.Sum)
+            // Чтение и десериализация настроек из кеша
+            var cache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
+
+            // Проверка возможности выигрыша на основе анти-минус логики
+            if (cache.DiceGameWinningSettings.DiceAntiminusBallance > request.Sum)
             {
-                if (request.Persent > random)
+                if (request.Persent > (random + cache.DiceGameWinningSettings.DiceMinusPercent))
                 {
-                    responce.IsSucces = true;
-                    responce.NewBallance = (user.Ballance += (winSum - request.Sum));
-                    await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
-                    cache.DiceAntiminus -= winSum;
-
+                    // Обработка выигрыша
+                    await HandleWinAsync(request, winSum, user, cache);
+                    response.IsSucces = true;
+                    response.NewBallance = user.Ballance;
                 }
                 else
                 {
-                    responce.IsSucces = false;
-                    responce.NewBallance = user.Ballance -= request.Sum;
-                    await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
-                    cache.DiceAntiminus += request.Sum;
+                    // Обработка проигрыша
+                    await HandleLossAsync(request, user, cache);
+                    response.IsSucces = false;
+                    response.NewBallance = user.Ballance;
                 }
             }
             else
             {
-                responce.IsSucces = false;
-                responce.NewBallance = user.Ballance -= request.Sum;
-                await _userService.UpdateUserBallance(request.UserId, responce.NewBallance);
-
-                cache.DiceAntiminus += request.Sum;
+                // Обработка проигрыша из-за нехватки анти-минус баланса
+                await HandleLossAsync(request, user, cache);
+                response.IsSucces = false;
+                response.NewBallance = user.Ballance;
             }
-           
+
+            // Обновление кеша
+            await UpdateGameCacheAsync(cache);
+
+            // Создание записи новой игры в базе данных
+            var diceGame = await CreateDiceGameEntryAsync(request, response.IsSucces, winSum);
+
+            // Обновление информации по вейджерам пользователя
+            await UpdateWageringAsync(request.UserId, request.Sum);
+
+            // Логирование новой игры
+            await _logRepository.LogInfo($"Add new dice game for user {user.Id} win sum {winSum}");
+
+            // Обновление ежедневных выигрышей (если выигрыш)
+            if (response.IsSucces)
+            {
+                await UpdateWinningToDay(winSum);
+            }
+
+            return (response, diceGame);
+        }
+
+        // Метод для обработки выигрыша
+        private async Task HandleWinAsync(DiceRequest request, decimal winSum, User user, Settings cache)
+        {
+            user.Ballance += (winSum - request.Sum);
+            await _userService.UpdateUserBallance(request.UserId, user.Ballance);
+            cache.DiceGameWinningSettings.DiceAntiminusBallance -= winSum;
+        }
+
+        // Метод для обработки проигрыша
+        private async Task HandleLossAsync(DiceRequest request, User user, Settings cache)
+        {
+            user.Ballance -= request.Sum;
+            await _userService.UpdateUserBallance(request.UserId, user.Ballance);
+            cache.DiceGameWinningSettings.DiceAntiminusBallance += request.Sum;
+        }
+
+        // Метод для обновления кеша с настройками игры
+        private async Task UpdateGameCacheAsync(Settings cache)
+        {
             var newCache = SerializationHelper.Serialize(cache);
             await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
             await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
+        }
 
-            var diceGame = new DiceGame()
+        // Метод для создания записи новой игры в базе данных
+        private async Task<DiceGame> CreateDiceGameEntryAsync(DiceRequest request, bool isWin, decimal winSum)
+        {
+            var diceGame = new DiceGame
             {
                 UserId = request.UserId,
                 Persent = request.Persent,
                 Sum = request.Sum,
                 CanWin = winSum,
-                Win = responce.IsSucces,
+                Win = isWin,
                 GameTime = DateTime.Now
             };
-
             await _diceGamesRepository.Add(diceGame);
+            return diceGame;
+        }
 
-            var wagering = await _wageringRepository.GetActiveWageringByUserId(request.UserId);
+        // Метод для обновления информации по вейджерам пользователя
+        private async Task UpdateWageringAsync(long userId, decimal sum)
+        {
+            var wagering = await _wageringRepository.GetActiveWageringByUserId(userId);
 
             if (wagering != null)
             {
-                await _wageringRepository.UpdatePlayed(request.UserId, request.Sum);
-                
-                if (wagering.Wagering < wagering.Played + request.Sum)
+                await _wageringRepository.UpdatePlayed(userId, sum);
+
+                if (wagering.Wagering < wagering.Played + sum)
                 {
                     await _wageringRepository.DeactivateWagering(wagering.Id);
                 }
             }
-
-            await _logRepository.LogInfo("Add new dice game");
-
-            return (responce, diceGame);
         }
 
         public async Task<List<DiceGame>> GetLastGames()
@@ -122,6 +165,15 @@ namespace DiceApi.Services.Implements
         public async Task<List<DiceGame>> GetAllDiceGamesByUserId(long userId)
         {
             return await _diceGamesRepository.GetByUserId(userId);
+        }
+
+        private async Task UpdateWinningToDay(decimal amount)
+        {
+            var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
+
+            stats.WinningToDay += amount;
+
+            await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
 
         private bool ValidateDiceRequest(DiceRequest request)

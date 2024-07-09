@@ -33,7 +33,7 @@ namespace DiceApi.Services
 
             if (string.IsNullOrEmpty(message))
             {
-                return default(T);
+                return default;
             }
 
             return SerializationHelper.Deserialize<T>(message);

@@ -28,7 +28,10 @@ namespace DiceApi.Data
         public string CartNumber { get; set; }
 
 
-        public PaymentType PaymentType { get; set; }
+        public WithdrawalType WithdrawalType { get; set; }
+
+
+        public string? BankId { get; set; }
     }
 
     /// <summary>

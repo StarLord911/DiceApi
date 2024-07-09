@@ -103,7 +103,7 @@ namespace DiceApi.Data
             OpenedCellsCount++;
             cell.IsOpen = true;
 
-            return new OpenCellResult { CanWin = CanWin, GameOver = false, IsCellOpened = true, FindMine = false };
+            return new OpenCellResult { CanWin = CanWin, GameOver = false, IsCellOpened = false, FindMine = false };
         }
 
         public Cell[,] GetCells()

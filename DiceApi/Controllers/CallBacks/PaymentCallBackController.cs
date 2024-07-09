@@ -38,7 +38,12 @@ namespace DiceApi.Controllers.CallBacks
         {
             try
             {
-                var paymentStatus = await  _paymentAdapterService.GetOrderByFreeKassaId(paymentSuccessEvent.FreKassaOrderId);
+                var fkPayment = await  _paymentAdapterService.GetOrderByFreeKassaId(paymentSuccessEvent.FreKassaOrderId);
+
+                if (fkPayment.Status != 1)
+                {
+                    await _logRepository.LogInfo($"Error on handle request from free kassa {paymentSuccessEvent.FreKassaOrderId}, amount{paymentSuccessEvent.Amount}");
+                }
 
                 var payment = await _paymentService.GetPaymentsById(paymentSuccessEvent.PaymentId);
 
@@ -58,7 +63,7 @@ namespace DiceApi.Controllers.CallBacks
 
                 await _paymentService.UpdatePaymentStatus(payment.Id, PaymentStatus.Payed);
 
-                await _userService.UpdateUserBallance(payment.UserId, payment.Amount);
+                await _userService.UpdateUserBallance(payment.UserId, fkPayment.Amount);
 
                 await _logRepository.LogInfo($"Successful balance update for the user {payment.UserId} amount {payment.Amount}");
 
@@ -67,8 +72,7 @@ namespace DiceApi.Controllers.CallBacks
             }
             catch (Exception ex)
             {
-                await _logRepository.LogError("HandlePaymentEvent error");
-                await _logRepository.LogException(ex);
+                await _logRepository.LogException("HandlePaymentEvent error", ex);
                 return await Task.FromResult<bool>(false);
 
             }

@@ -12,6 +12,6 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task LogError(string message);
 
-        Task LogException(Exception exception);
+        Task LogException(string message, Exception exception);
     }
 }
