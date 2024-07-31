@@ -51,40 +51,22 @@ namespace DiceApi.Services.Jobs
 
                     var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
 
-                    await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
-
                     if (bettedUserIds == null)
                     {
                         await Taimer();
                         continue;
                     }
 
+                    var allBets = await GetAllBetsFromCacheAsync(bettedUserIds);
+
+                    var calculatedBets = CalculateBetSums(allBets.SelectMany(b => b.HorseBets).ToList()).OrderByDescending(kv => kv.Value).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+                    color = ChechAntiMinus(color, calculatedBets);
+
                     await UpdateLastHorseGames(color);
-                    decimal allWinSums = 0;
-
-                    foreach (var id in bettedUserIds)
-                    {
-                        var userBets = await _cacheService.ReadCache<CreateHorseBetRequest>(CacheConstraints.HORSE_RACE_USER_BET + id);
-
-                        if (userBets != null)
-                        {
-                            var user = _userService.GetById(id);
-
-                            var winBet = userBets.HorseBets.FirstOrDefault(b => b.HorseColor == color);
-
-                            if (winBet != null)
-                            {
-                                var winSum = winBet.BetSum * 8;
-                                allWinSums += winSum;
-
-                                await _userService.UpdateUserBallance(user.Id, user.Ballance + winSum);
-                            }
-                        }
-
-                        await _cacheService.DeleteCache(CacheConstraints.HORSE_RACE_USER_BET + id);
-                    }
-
-                    await UpdateWinningToDay(allWinSums);
+                    await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
+                    
+                    await ProccessBets(color, allBets);
 
                     await _cacheService.DeleteCache(CacheConstraints.BETTED_HORSE_RACE_USERS);
                     await _logRepository.LogInfo("Finish horse job");
@@ -97,6 +79,89 @@ namespace DiceApi.Services.Jobs
                 }
             }
         }
+
+        private async Task ProccessBets(HorseColor color, List<CreateHorseBetRequest> allBets)
+        {
+            decimal allWinSums = 0;
+
+            foreach (var userBets in allBets)
+            {
+                if (userBets != null)
+                {
+                    var user = _userService.GetById(userBets.UserId);
+
+                    var winBet = userBets.HorseBets.FirstOrDefault(b => b.HorseColor == color);
+
+                    if (winBet != null)
+                    {
+                        var winSum = winBet.BetSum * 8;
+                        allWinSums += winSum;
+
+                        await _userService.UpdateUserBallance(user.Id, user.Ballance + winSum);
+                    }
+                }
+            }
+
+            await UpdateWinningToDay(allWinSums);
+        }
+
+        private HorseColor ChechAntiMinus(HorseColor horseColor, Dictionary<HorseColor, decimal> pairs)
+        {
+            if (pairs.ContainsKey(horseColor))
+            {
+                var isFavorit = pairs.Keys.FirstOrDefault() == horseColor;
+                var horseColorBetsCount = pairs.Count;
+
+                if (new Random().Next(0, 1) == 1)
+                {
+                    if (isFavorit && horseColorBetsCount > 1)
+                    {
+                        return pairs.ElementAt(horseColorBetsCount - 1).Key;
+                    }
+
+                    return GetWinnedHorseColor();
+                }
+            }
+
+            return horseColor;
+        }
+
+        private async Task<List<CreateHorseBetRequest>> GetAllBetsFromCacheAsync(List<long> userIds)
+        {
+            var allBets = new List<CreateHorseBetRequest>();
+
+            foreach (var userId in userIds)
+            {
+                var cacheKey = CacheConstraints.HORSE_RACE_USER_BET + userId;
+                var userBets = await _cacheService.ReadCache<CreateHorseBetRequest>(cacheKey);
+
+                if (userBets != null)
+                {
+                    allBets.Add(userBets);
+                    await _cacheService.DeleteCache(cacheKey);
+                }
+            }
+
+            return allBets;
+        }
+
+        private Dictionary<HorseColor, decimal> CalculateBetSums(List<HorseBet> allBets)
+        {
+            var betSums = new Dictionary<HorseColor, decimal>();
+
+            foreach (var bet in allBets)
+            {
+                if (!betSums.ContainsKey(bet.HorseColor))
+                {
+                    betSums[bet.HorseColor] = 0;
+                }
+
+                betSums[bet.HorseColor] += bet.BetSum;
+            }
+
+            return betSums;
+        }
+
 
         private async Task UpdateWinningToDay(decimal amount)
         {
@@ -131,9 +196,9 @@ namespace DiceApi.Services.Jobs
                 lastGames = new List<HorseGameResult>();
             }
 
-            if (lastGames.Count > 49)
+            if (lastGames.Count > 21)
             {
-                lastGames.RemoveAt(lastGames.Count);
+                lastGames.RemoveAt(lastGames.Count - 1);
 
             }
 
@@ -143,9 +208,7 @@ namespace DiceApi.Services.Jobs
                     WinnedHorseColor = horseColor
                 });
 
-            await _cacheService.DeleteCache(CacheConstraints.LAST_HORSE_GAMES);
-
-            await _cacheService.WriteCache(CacheConstraints.LAST_HORSE_GAMES, lastGames);
+            await _cacheService.UpdateCache(CacheConstraints.LAST_HORSE_GAMES, lastGames);
         }
 
 

@@ -3,6 +3,7 @@ using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.ApiReqRes.HorseRace;
 using DiceApi.Data.Data.HorseGame;
 using DiceApi.Data.Data.Roulette;
+using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.SignalR;
@@ -19,14 +20,18 @@ namespace DiceApi.Services.Implements
     {
         private readonly IUserService _userService;
         private readonly ICacheService _cacheService;
+        private readonly IWageringRepository _wageringRepository;
+
         private readonly IHubContext<HorseGameBetsHub> _hubContext;
 
         public HorseRaceService(IUserService userService,
             ICacheService cacheService,
+            IWageringRepository wageringRepository,
             IHubContext<HorseGameBetsHub> hubContext)
         {
             _userService = userService;
             _cacheService = cacheService;
+            _wageringRepository = wageringRepository;
             _hubContext = hubContext;
         }
 
@@ -34,7 +39,7 @@ namespace DiceApi.Services.Implements
         {
             var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
 
-            if (bettedUserIds.Contains(request.UserId))
+            if (bettedUserIds != null && bettedUserIds.Contains(request.UserId))
             {
                 return "Bet already exist";
             }
@@ -52,6 +57,7 @@ namespace DiceApi.Services.Implements
 
             await _userService.UpdateUserBallance(user.Id, updatedBallance);
 
+            await UpdateWageringAsync(request.UserId, betSum);
 
             if (bettedUserIds == null)
             {
@@ -75,7 +81,6 @@ namespace DiceApi.Services.Implements
 
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
             }
-
 
             return "Succesfull";
         }
@@ -119,5 +124,24 @@ namespace DiceApi.Services.Implements
 
             return res;
         }
+
+        #region private
+
+        private async Task UpdateWageringAsync(long userId, decimal sum)
+        {
+            var wagering = await _wageringRepository.GetActiveWageringByUserId(userId);
+
+            if (wagering != null)
+            {
+                await _wageringRepository.UpdatePlayed(userId, sum);
+
+                if (wagering.Wagering < wagering.Played + sum)
+                {
+                    await _wageringRepository.DeactivateWagering(wagering.Id);
+                }
+            }
+        }
+
+        #endregion
     }
 }

@@ -180,5 +180,10 @@ namespace DiceApi.Services
         {
             return await _userRepository.GetUserByName(name);
         }
+
+        public async Task<bool> IsTelegramUserRegistred(long telegramId)
+        {
+            return await _userRepository.IsTelegramUserRegistred(telegramId);
+        }
     }
 }

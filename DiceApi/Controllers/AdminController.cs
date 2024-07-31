@@ -124,8 +124,8 @@ namespace DiceApi.Controllers
         [HttpPost("getUserById")]
         public async Task<AdminUser> GetUserById(GetByUserIdRequest request)
         {
-            var user = _userService.GetById(request.Id);
-            var wager = await _wageringRepository.GetActiveWageringByUserId(request.Id);
+            var user = _userService.GetById(request.UserId);
+            var wager = await _wageringRepository.GetActiveWageringByUserId(request.UserId);
             var mappedUser = _mapper.Map<AdminUser>(user);
 
             mappedUser.AuthIpAddres = "";
@@ -146,7 +146,7 @@ namespace DiceApi.Controllers
             mappedUser.Wager = wager != null ? wager.Wagering - wager.Played : 0;
             mappedUser.BallanceInGame = 0;
 
-            var cache = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.Id);
+            var cache = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.UserId);
             if (cache != null)
             {
                 mappedUser.BallanceInGame = SerializationHelper.Deserialize<ActiveMinesGame>(cache).BetSum;
@@ -183,8 +183,8 @@ namespace DiceApi.Controllers
         [HttpPost("getGamesStats")]
         public async Task<GamesStatsResponce> GetGamesStats(GetByUserIdRequest request)
         {
-            var diceGames = await _diceService.GetAllDiceGamesByUserId(request.Id);
-            var minesGames = await _minesService.GetMinesGamesByUserId(request.Id);
+            var diceGames = await _diceService.GetAllDiceGamesByUserId(request.UserId);
+            var minesGames = await _minesService.GetMinesGamesByUserId(request.UserId);
 
             var result = new GamesStatsResponce();
 
@@ -242,7 +242,7 @@ namespace DiceApi.Controllers
         [HttpPost("deleteUserById")]
         public async Task DeleteUserById(GetByUserIdRequest request)
         {
-           await _userService.DeleteUserById(request.Id);
+           await _userService.DeleteUserById(request.UserId);
 
         }
 
@@ -250,7 +250,7 @@ namespace DiceApi.Controllers
         [HttpPost("getPaymantRequisitesByUserId")]
         public async Task<PaymentRequisite> GetPaymantRequisitesByUserId(GetByUserIdRequest request)
         {
-            return await _paymentRequisitesRepository.GetPaymentRequisiteByUserId(request.Id);
+            return await _paymentRequisitesRepository.GetPaymentRequisiteByUserId(request.UserId);
         }
 
         //[Authorize(true)]

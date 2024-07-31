@@ -1,4 +1,5 @@
-﻿using DiceApi.Data;
+﻿using DiceApi.Attributes;
+using DiceApi.Data;
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Requests;
@@ -27,7 +28,7 @@ namespace DiceApi.Controllers
             _hubContext = hubContext;
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("createMinesGame")]
         public async Task<CreateMinesGameResponce> CreateMinesGame(CreateMinesGameRequest request)
         {
@@ -41,12 +42,14 @@ namespace DiceApi.Controllers
             return await _minesService.OpenCell(request);
         }
 
+        //[Authorize]
         [HttpPost("getMinesGame")]
         public async Task<MinesGameApiModel> GetMinesGame(GetByUserIdRequest request)
         {
             return await _minesService.GetActiveMinesGameByUserId(request);
         }
 
+        //[Authorize]
         [HttpPost("finishMinesGame")]
         public async Task<FinishMinesGameResponce> FinishMinesGame(GetByUserIdRequest request)
         {

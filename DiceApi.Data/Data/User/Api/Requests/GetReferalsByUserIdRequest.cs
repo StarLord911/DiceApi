@@ -10,7 +10,7 @@ namespace DiceApi.Data
     public class GetReferalsByUserIdRequest
     {
         [JsonProperty("userId")]
-        public long Id { get; set; }
+        public long UserId { get; set; }
 
         [JsonProperty("pageNumber")]
         public int PageNumber { get; set; }

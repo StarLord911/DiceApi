@@ -18,5 +18,7 @@ namespace DiceApi.Data
         public long? OwnerId { get; set; }
 
         public string IpAddres { get; set; }
+
+        public long TelegramUserId { get; set; }
     }
 }

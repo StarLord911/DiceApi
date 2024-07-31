@@ -50,8 +50,8 @@ namespace DiceApi.DataAcces.Repositoryes
                     throw new Exception("Is user contains");
                 }
 
-                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent, registrationIp )
-                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent, @RegistrationIp)
+                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent, registrationIp, telegramUserId)
+                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent, @RegistrationIp, @TelegramUserId)
                                     SELECT CAST(SCOPE_IDENTITY() AS int)";
 
                 var parameters = new
@@ -63,7 +63,8 @@ namespace DiceApi.DataAcces.Repositoryes
                     RegistrationDate = DateTime.UtcNow,
                     IsActive = true,
                     ReferalPercent = 50,
-                    RegistrationIp = user.IpAddres
+                    RegistrationIp = user.IpAddres,
+                    TelegramUserId = user.TelegramUserId
                 };
 
                 var userId = await db.ExecuteScalarAsync<long>(query, parameters);
@@ -106,9 +107,9 @@ namespace DiceApi.DataAcces.Repositoryes
 
                 var queryResult = (await db.QueryAsync<User>($@"SELECT * FROM Users WHERE isActive = 1 and ownerId = @ownerId 
                                 ORDER BY Id OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY",
-                                new { ownerId = request.Id, Offset = offset, PageSize = request.PageSize })).ToList();
+                                new { ownerId = request.UserId, Offset = offset, PageSize = request.PageSize })).ToList();
 
-                var countQuery = await db.ExecuteScalarAsync<int>($@"SELECT count(*) FROM Users WHERE isActive = 1 and ownerId = @ownerId", new { ownerId = request.Id });
+                var countQuery = await db.ExecuteScalarAsync<int>($@"SELECT count(*) FROM Users WHERE isActive = 1 and ownerId = @ownerId", new { ownerId = request.UserId });
                 var pageCont = (int)Math.Ceiling((double)countQuery / request.PageSize);
 
                 result.PaginatedData = new PaginatedList<User>(queryResult, pageCont, request.PageNumber);
@@ -426,6 +427,14 @@ namespace DiceApi.DataAcces.Repositoryes
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 return await db.QueryFirstAsync<User>("SELECT * FROM Users WHERE name = @name", new { name });
+            }
+        }
+
+        public async Task<bool> IsTelegramUserRegistred(long telegramId)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                return (await db.QueryAsync<User>("SELECT * FROM Users WHERE telegramUserId = @telegramId", new { telegramId })).Any();
             }
         }
     }

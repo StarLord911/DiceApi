@@ -44,5 +44,7 @@ namespace DiceApi.DataAcces.Repositoryes
         Task UpdateAuthIpByUserId(long userId, string ip);
         Task DeleteUserById(long id);
         Task UpdateRefferalOwnerId(long userId, long value);
+
+        Task<bool> IsTelegramUserRegistred(long telegramId);
     }
 }

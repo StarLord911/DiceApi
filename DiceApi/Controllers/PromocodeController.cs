@@ -29,5 +29,11 @@ namespace DiceApi.Controllers
             return await _promocodeService.ActivetePromocode(promoCode);
         }
 
+        [Authorize]
+        [HttpPost("generateRefferalPromocode")]
+        public async Task<GenerateRefferalPromocodeResponce> GeneratePromocode(GenerateRefferalPromocodeRequest promoCode)
+        {
+            return await _promocodeService.CreateRefferalPromocode(promoCode);
+        }
     }
 }

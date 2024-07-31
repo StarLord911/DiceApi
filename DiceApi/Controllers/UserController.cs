@@ -78,7 +78,7 @@ namespace DiceApi.Controllers
         public async Task<IActionResult> Register(UserRegisterResponce userModel)
         {
             var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-            
+
             if (userModel.Name.Length < 5)
             {
                 return BadRequest(new { message = "Short name. Name leght should be > 5" });
@@ -104,11 +104,36 @@ namespace DiceApi.Controllers
             return Ok(response);
         }
 
+        [HttpPost("registerTelegram")]
+        public async Task<IActionResult> Register(UserTelegramRegisterResponce userModel)
+        {
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
+
+            var userRegister = _mapper.Map<UserRegistrationModel>(userModel);
+            userRegister.IpAddres = ipAddress;
+            userRegister.TelegramUserId = userModel.TelegramUserId;
+
+            var response = await _userService.Register(userRegister);
+
+            if (response == null)
+            {
+                return BadRequest(new { message = "Didn't register!" });
+            }
+
+            return Ok(response);
+        }
+
+        [HttpPost("isTelegramUserRegistred")]
+        public async Task<bool> IsTelegramUserRegistred(IsTelegramUserRegistredRequest telegramId)
+        {
+            return await _userService.IsTelegramUserRegistred(telegramId.TelegramUserId);
+        }
+
         [Authorize]
         [HttpPost("getUserById")]
         public UserApi GetUserById(GetByUserIdRequest request)
         {
-            var user = _userService.GetById(request.Id);
+            var user = _userService.GetById(request.UserId);
 
             if (user == null)
             {
@@ -120,32 +145,32 @@ namespace DiceApi.Controllers
 
         [Authorize]
         [HttpPost("getDailyBonusByUserId")]
-        public async Task<string> GetDailyBonusByUserId(GetByUserIdRequest request)
+        public async Task<GetDailyBonusByUserIdResponce> GetDailyBonusByUserId(GetByUserIdRequest request)
         {
-            var cache = await _cacheService.ReadCache(CacheConstraints.EVERY_DAY_BONUS + request.Id);
+            var cache = await _cacheService.ReadCache(CacheConstraints.EVERY_DAY_BONUS + request.UserId);
 
             if (!string.IsNullOrEmpty(cache))
             {
-                return "Alredy use bonus";
+                return new GetDailyBonusByUserIdResponce { Message = "Вы уже получили бонус сегодня.", Success = false };
             }
-            var user = _userService.GetById(request.Id);
+            var user = _userService.GetById(request.UserId);
 
             if (false) //TODO: привязка тг
             {
-                return "Telegram use bonus";
+                return new GetDailyBonusByUserIdResponce { Message = "Telegram use bonus", Success = false};
             }
 
-            var bonus = new Random().Next(10);
+            var bonus = new Random().Next(5);
 
             var newBallance = user.Ballance + bonus;
 
-            await _cacheService.WriteCache(CacheConstraints.EVERY_DAY_BONUS + request.Id, "true", TimeSpan.FromHours(24));
+            await _cacheService.WriteCache(CacheConstraints.EVERY_DAY_BONUS + request.UserId, "true", TimeSpan.FromHours(24));
 
-            var wager = await _wageringRepository.GetActiveWageringByUserId(request.Id);
+            var wager = await _wageringRepository.GetActiveWageringByUserId(request.UserId);
 
             if (wager != null)
             {
-                await _wageringRepository.UpdateWagering(request.Id, wager.Wagering + (bonus * 20));
+                await _wageringRepository.UpdateWagering(request.UserId, wager.Wagering + (bonus * 20));
             }
             else
             {
@@ -154,50 +179,22 @@ namespace DiceApi.Controllers
                     Wagering = bonus * 20,
                     IsActive = true,
                     Played = 0,
-                    UserId = request.Id
+                    UserId = request.UserId
                 };
 
                 await _wageringRepository.AddWearing(newWager);
             }
 
-            await _userService.UpdateUserBallance(request.Id, newBallance);
+            await _userService.UpdateUserBallance(request.UserId, newBallance);
 
-            return "Succes";
+            return new GetDailyBonusByUserIdResponce { Message = $"Вы получили ежедневный бонус {bonus}", Success = true };
         }
 
         [Authorize]
         [HttpPost("changeUserData")]
         public async Task ChangeUserInformation(ChangeUserInformationRequest request)
         {
-            var user = _userService.GetById(request.UserId);
-
-            await _userService.UpdateUserInformation(new UpdateUserRequest {UserId = request.UserId, Name = request.NewName, Password = request.NewPassword });
+            await _userService.UpdateUserInformation(new UpdateUserRequest { UserId = request.UserId, Name = request.NewName, Password = request.NewPassword });
         }
-
-
-            #region
-
-            //[HttpGet]
-            //public IActionResult Login()
-            //{
-            //    // Перенаправление пользователя на страницу авторизации Telegram
-            //    string redirectUrl = $"https://telegram.me/{_telegramBotClient.GetMeAsync().Result.Username}?start=auth";
-            //    return Redirect(redirectUrl);
-            //}
-
-            //[HttpPost]
-            //public IActionResult Auth([FromBody] Update update)
-            //{
-            //    // Parsed from the query string / from the callback object
-            //    Dictionary<string, string> fields = QueryStringFields;
-
-            //    LoginWidget loginWidget = new LoginWidget("your API access Token");
-            //    if (loginWidget.CheckAuthorization(fields) == Authorization.Valid)
-            //    {
-            //        // ...
-            //    }
-            //}
-
-            #endregion
-        }
+    }
 }

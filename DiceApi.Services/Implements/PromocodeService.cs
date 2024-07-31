@@ -1,6 +1,7 @@
 ﻿using DiceApi.Data;
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
+using DiceApi.Data.Data.Promocode;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
 using System;
@@ -109,8 +110,9 @@ namespace DiceApi.Services.Implements
                 await _wageringRepository.AddWearing(wearing);
             }
 
-            responce.Message = "Промокод активирован";
+            responce.Message = $"Активирован промокод на {promocode.BallanceAdd} руб.";
             responce.Successful = true;
+            responce.BallanceAdded = promocode.BallanceAdd;
             await _promocodeActivationHistory.AddPromocodeActivation(promocodeActivation);
 
             return responce;
@@ -139,6 +141,50 @@ namespace DiceApi.Services.Implements
             await _promocodeRepository.CreatePromocode(promocode);
 
             return "Промокод успешно создан";
+        }
+
+        public async Task<GenerateRefferalPromocodeResponce> CreateRefferalPromocode(GenerateRefferalPromocodeRequest request)
+        {
+            var promocode = new Promocode()
+            {
+                ActivationCount = 500,
+                BallanceAdd = 5,
+                PromoCode = request.Promocode,
+                IsActive = true,
+                Wagering = 20,
+                IsRefferalPromocode = true,
+                RefferalPromocodeOwnerId = request.UserId
+            };
+
+            var promocodeContains = await _promocodeRepository.IsPromocodeContains(promocode.PromoCode);
+
+            if (promocodeContains)
+            {
+                return new GenerateRefferalPromocodeResponce()
+                {
+                    Message = "Такой промокод уже существует",
+                    Success = false
+                };
+            }
+
+            var promocodeCount = await _promocodeRepository.GetActiveRefferalPromocodeCount(request.UserId);
+
+            if (promocodeCount >= 10)
+            {
+                return new GenerateRefferalPromocodeResponce()
+                {
+                    Message = "У вас больше 10 активных промокодов",
+                    Success = false
+                };
+            }
+
+            await _promocodeRepository.CreatePromocode(promocode);
+
+            return new GenerateRefferalPromocodeResponce()
+            {
+                Message = "Промокод успешно создан",
+                Success = true
+            };
         }
 
         public async Task<PaginatedList<PromocodeApiModel>> GetPromocodeByNameByLike(GetPromocodesByNameRequest request)
@@ -208,6 +254,32 @@ namespace DiceApi.Services.Implements
             var totalPages = (int)Math.Ceiling((double)totalItemCount / request.Pagination.PageSize);
 
             return new PaginatedList<PromocodeApiModel>(result.OrderBy(p => p.AllActivationCount - p.ActivatedCount).ToList(), totalPages, request.Pagination.PageNumber);
+        }
+
+        public async Task<List<RefferalPromocode>> GetRefferalPromocodesByUserId(long userId)
+        {
+            var promocodes = await _promocodeRepository.GetRefferalPromocodesByUserId(userId);
+            var result = new List<RefferalPromocode>();
+
+
+            if (promocodes.Count == 0)
+            {
+                return result;
+            }
+
+            foreach (var promocode in promocodes)
+            {
+                var activatedCount = (await _promocodeActivationHistory.GetPromocodeActivates(promocode.PromoCode)).Count;
+
+                result.Add(new RefferalPromocode()
+                {
+                    Promocode = promocode.PromoCode,
+                    ActivatedCount = activatedCount,
+                    ActivationCount = promocode.ActivationCount
+                });
+            }
+
+            return result;
         }
     }
 }

@@ -10,11 +10,7 @@ namespace DiceApi.Services.Common
     {
         public static decimal GetRevShareIncome(decimal sum, int revSharePercent)
         {
-            // Отнимаем 20% от суммы
-            decimal sumAfter20Percent = sum - (sum * 0.2m);
-
-            // Рассчитываем доход с учетом процента revSharePercent
-            decimal revShareIncome = sumAfter20Percent * revSharePercent / 100;
+            decimal revShareIncome = (sum/ 100) * revSharePercent;
 
             return revShareIncome;
         }

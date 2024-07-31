@@ -2,6 +2,7 @@
 using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Roulette;
+using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.SignalR;
@@ -20,14 +21,18 @@ namespace DiceApi.Services
     {
         private readonly IUserService _userService;
         private readonly ICacheService _cacheService;
+        private readonly IWageringRepository _wageringRepository;
+
         private readonly IHubContext<RouletteBetsHub> _hubContext;
 
         public RouletteService(IUserService userService,
             ICacheService cacheService,
+            IWageringRepository wageringRepository,
             IHubContext<RouletteBetsHub> hubContext)
         {
             _userService = userService;
             _cacheService = cacheService;
+            _wageringRepository = wageringRepository;
             _hubContext = hubContext;
         }
 
@@ -51,8 +56,9 @@ namespace DiceApi.Services
 
             var updatedBallance = user.Ballance - betSum;
 
-            await _userService.UpdateUserBallance(user.Id, updatedBallance);
+            await UpdateWageringAsync(request.UserId, betSum);
 
+            await _userService.UpdateUserBallance(user.Id, updatedBallance);
 
             if (bettedUserIds == null)
             {
@@ -149,6 +155,21 @@ namespace DiceApi.Services
                 var gameJson = JsonConvert.SerializeObject(new RouletteActiveBet() { UserName = username, BetSum = bet.BetSum, Multiplayer = multiplier });
 
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+            }
+        }
+
+        private async Task UpdateWageringAsync(long userId, decimal sum)
+        {
+            var wagering = await _wageringRepository.GetActiveWageringByUserId(userId);
+
+            if (wagering != null)
+            {
+                await _wageringRepository.UpdatePlayed(userId, sum);
+
+                if (wagering.Wagering < wagering.Played + sum)
+                {
+                    await _wageringRepository.DeactivateWagering(wagering.Id);
+                }
             }
         }
     }

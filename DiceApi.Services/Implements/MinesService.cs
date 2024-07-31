@@ -22,6 +22,7 @@ namespace DiceApi.Services
         private readonly IUserService _userService;
         private readonly IMinesRepository _minesRepository;
         private readonly IAntiMinusService _antiMinusService;
+        private readonly IWageringRepository _wageringRepository;
 
         private IHubContext<NewGameHub> _hubContext;
         private readonly Dictionary<int, List<double>> chanses = new Dictionary<int, List<double>>
@@ -57,6 +58,7 @@ namespace DiceApi.Services
             IUserService userService,
             IMinesRepository minesRepository,
             IAntiMinusService antiMinusService,
+            IWageringRepository wageringRepository,
             IMapper mapper,
             IHubContext<NewGameHub> hubContext)
         {
@@ -64,6 +66,7 @@ namespace DiceApi.Services
             _userService = userService;
             _minesRepository = minesRepository;
             _antiMinusService = antiMinusService;
+            _wageringRepository = wageringRepository;
 
             _hubContext = hubContext;
             _mapper = mapper;
@@ -109,6 +112,8 @@ namespace DiceApi.Services
                 }
             }
 
+            await UpdateWageringAsync(request.UserId, request.Sum);
+
             var game = new ActiveMinesGame(request.MinesCount);
             game.BetSum = request.Sum;
             game.UserId = request.UserId;
@@ -125,7 +130,7 @@ namespace DiceApi.Services
 
         public async Task<MinesGameApiModel> GetActiveMinesGameByUserId(GetByUserIdRequest request)
         {
-            var serializedGame = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.Id);
+            var serializedGame = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.UserId);
 
             if (serializedGame == null)
             {
@@ -143,17 +148,17 @@ namespace DiceApi.Services
 
         public async Task<FinishMinesGameResponce> FinishGame(GetByUserIdRequest request)
         {
-            var game = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.Id);
+            var game = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.UserId);
 
             if (game == null || !game.IsActiveGame())
             {
                 return new FinishMinesGameResponce { Succes = false, Message = "Game not found" };
             }
 
-            await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.Id);
+            await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
 
-            var user = _userService.GetById(request.Id);
-            await _userService.UpdateUserBallance(request.Id, user.Ballance + game.CanWin);
+            var user = _userService.GetById(request.UserId);
+            await _userService.UpdateUserBallance(request.UserId, user.Ballance + game.CanWin);
             game.FinishGame = true;
 
             var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
@@ -174,9 +179,6 @@ namespace DiceApi.Services
 
         public async Task<OpenCellResponce> OpenCell(OpenCellRequest request)
         {
-            var timer = new Stopwatch();
-            timer.Start();
-
             // Retrieve active game from cache
             var game = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.UserId);
             if (game == null || !game.IsActiveGame())
@@ -194,7 +196,7 @@ namespace DiceApi.Services
             var settings = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
 
             // Check if the player can win
-            if (_antiMinusService.CheckMinesAntiMinus(game, settings))
+            if (!_antiMinusService.CheckMinesAntiMinus(game, settings))
             {
                 return await HandleMineBalance(game, request, settings);
             }
@@ -202,7 +204,6 @@ namespace DiceApi.Services
             // Update game state in cache
             await UpdateGameInCache(game, request.UserId);
 
-            timer.Stop();
             return new OpenCellResponce
             {
                 Succes = true,
@@ -221,6 +222,21 @@ namespace DiceApi.Services
         #endregion
 
         #region private methods
+
+        private async Task UpdateWageringAsync(long userId, decimal sum)
+        {
+            var wagering = await _wageringRepository.GetActiveWageringByUserId(userId);
+
+            if (wagering != null)
+            {
+                await _wageringRepository.UpdatePlayed(userId, sum);
+
+                if (wagering.Wagering < wagering.Played + sum)
+                {
+                    await _wageringRepository.DeactivateWagering(wagering.Id);
+                }
+            }
+        }
 
         private async Task<OpenCellResponce> HandleMineFound(ActiveMinesGame game, OpenCellRequest request)
         {
@@ -250,7 +266,26 @@ namespace DiceApi.Services
             settings.MinesGameWinningSettings.MinesAntiminusBallance += game.BetSum;
 
             var cells = game.GetCells();
-            RelocateMines(cells, request.X, request.Y);
+            bool found = false;
+
+            for (int i = 0; i < 5 && !found; i++)
+            {
+                for (int j = 0; j < 5; j++)
+                {
+                    if (cells[i, j].IsMined && !found)
+                    {
+                        cells[i, j].IsMined = false;
+                        found = true;
+                        break;  // выход из внутреннего цикла
+                    }
+                }
+                if (found)
+                {
+                    break;  // выход из внешнего цикла
+                }
+            }
+
+            cells[request.X, request.Y].IsMined = true;
 
             await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settings);
             await SaveGameAndDeleteCache(game, request.UserId);
@@ -267,23 +302,6 @@ namespace DiceApi.Services
                     GameOver = true
                 }
             };
-        }
-
-        private void RelocateMines(Cell[,] cells, int x, int y)
-        {
-            for (int i = 0; i < 5; i++)
-            {
-                for (int j = 0; j < 5; j++)
-                {
-                    var cell = cells[i, j];
-                    if (cell.IsMined && !cell.IsOpen)
-                    {
-                        cell.IsMined = false;
-                        break;
-                    }
-                }
-            }
-            cells[x, y].IsMined = true;
         }
 
         private async Task SaveGameAndDeleteCache(ActiveMinesGame game, long userId)

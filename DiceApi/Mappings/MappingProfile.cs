@@ -56,6 +56,11 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password))
                 .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId));
 
+            CreateMap<UserTelegramRegisterResponce, UserRegistrationModel>()
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Password, opt => opt.MapFrom(src => src.Password))
+                .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId));
+
             CreateMap<Cell, CellApiModel>()
                 .ForMember(destination => destination.IsOpen, opt => opt.MapFrom(source => source.IsOpen))
                 .ForMember(destination => destination.X, opt => opt.MapFrom(source => source.X))

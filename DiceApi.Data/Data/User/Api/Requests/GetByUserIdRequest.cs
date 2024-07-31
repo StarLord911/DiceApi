@@ -10,6 +10,6 @@ namespace DiceApi.Data.Requests
     public class GetByUserIdRequest
     {
         [JsonProperty("userId")]
-        public long Id { get; set; }
+        public long UserId { get; set; }
     }
 }

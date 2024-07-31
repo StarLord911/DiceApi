@@ -30,6 +30,11 @@ namespace DiceApi.Services.Implements
             var user = _userService.GetById(request.UserId);
             var dateRange = GetDateRange(request.DateRange);
 
+            if (dateRange == null)
+            {
+                dateRange = user.RegistrationDate;
+            }
+
             var refferals = await _userService.GetRefferalsByUserId(request.UserId);
 
             var firstDeposits = 0;
@@ -61,7 +66,7 @@ namespace DiceApi.Services.Implements
             result.RefferalStatasInfo.FirstDeposits = firstDeposits;
             result.RefferalStatasInfo.PaymentsSum = paymentSum;
             result.RefferalStatasInfo.PaymentCount = paymentCount;
-            result.RefferalStatasInfo.AverageIncomePerPlayer = (paymentSum / 2) / refferals.Count;
+            result.RefferalStatasInfo.AverageIncomePerPlayer = ((paymentSum / 100) * user.ReferalPercent) / refferals.Count;
 
             result.DashBoardInformation = GetDashBoardInformation(request, allPayments, user, refferals);
 
@@ -72,11 +77,11 @@ namespace DiceApi.Services.Implements
         {
             var result = new List<DashBoardInformation>();
             var dateRange = request.DateRange == DateRange.AllTime
-                ?  DateTime.UtcNow.AddDays(-30)
+                ? owner.RegistrationDate
                 : GetDateRange(request.DateRange);
 
-            List<DateTime> dateList = Enumerable.Range(0, (DateTime.UtcNow - dateRange).Days + 1)
-            .Select(offset => dateRange.AddDays(offset))
+            List<DateTime> dateList = Enumerable.Range(0, (DateTime.UtcNow - dateRange).Value.Days + 1)
+            .Select(offset => dateRange.Value.AddDays(offset))
             .ToList();
 
             foreach (var date in dateList)
@@ -91,15 +96,15 @@ namespace DiceApi.Services.Implements
                 info.Income = RevShareHelper.GetRevShareIncome(dayPayments.Sum(p => p.Amount), owner.ReferalPercent);
                 info.DepositsSum = dayPayments.Sum(p => p.Amount);
 
+                result.Add(info);
             }
-
 
 
             return result;
         }
 
 
-        public DateTime GetDateRange(DateRange dateRange)
+        public DateTime? GetDateRange(DateRange dateRange)
         {
             if (dateRange == DateRange.Day)
             {
@@ -115,7 +120,7 @@ namespace DiceApi.Services.Implements
                 return DateTime.UtcNow.AddDays(-30);
             }
 
-            return DateTime.MinValue;
+            return null;
         }
     }
 }

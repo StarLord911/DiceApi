@@ -13,6 +13,8 @@ namespace DiceApi.DataAcces.Repositoryes
     /// </summary>
     public interface IPromocodeRepository 
     {
+        Task<List<Promocode>> GetRefferalPromocodesByUserId(long userId);
+
         Task CreatePromocode(Promocode promocode);
 
         Task<bool> IsPromocodeContains(string promocode);
@@ -24,5 +26,7 @@ namespace DiceApi.DataAcces.Repositoryes
         Task<List<Promocode>> GetAllPromocodes();
 
         Task<List<Promocode>> GetPromocodeByLike(string name);
+
+        Task<int> GetActiveRefferalPromocodeCount(long userId);
     }
 }

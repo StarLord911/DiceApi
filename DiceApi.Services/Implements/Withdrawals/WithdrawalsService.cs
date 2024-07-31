@@ -46,9 +46,7 @@ namespace DiceApi.Services.Implements
             var user = _userService.GetById(request.UserId);
             var responce = new CreateWithdrawalResponce();
 
-            var settingsCache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
-
-            var cache = SerializationHelper.Deserialize<Settings>(settingsCache);
+            var cache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
 
             if (!cache.WithdrawalActive)
             {
@@ -58,7 +56,7 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
-            if (wagering != null && wagering.IsActive)
+            if (wagering != null && wagering.IsActive && (wagering.Wagering - wagering.Played > 0))
             {
                 responce.Succses = false;
                 responce.Message = $"Нужно отыграть по промокоду {wagering.Wagering - wagering.Played}";
@@ -129,13 +127,13 @@ namespace DiceApi.Services.Implements
 
             await _withdrawalsRepository.AddWithdrawal(withdrowal);
  
-            //revshare отнимаем у овнера, так как реферал сделал вывод 
-            if (user.OwnerId != null && user.OwnerId.Value != 0)
-            {
-                var owner = _userService.GetById(user.OwnerId.Value);
+            ////revshare отнимаем у овнера, так как реферал сделал вывод 
+            //if (user.OwnerId != null && user.OwnerId.Value != 0)
+            //{
+            //    var owner = _userService.GetById(user.OwnerId.Value);
 
-                await _userService.UpdateUserBallance(request.UserId, owner.Ballance - request.Amount);
-            }
+            //    await _userService.UpdateUserBallance(request.UserId, owner.Ballance - request.Amount);
+            //}
 
             responce.Succses = true;
             responce.Message = $"Заявка на вывод принята";

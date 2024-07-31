@@ -45,6 +45,18 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
+        public async Task<int> GetActiveRefferalPromocodeCount(long userId)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                var query = $@"
+                select count(*) from PromoCodes
+                where RefferalPromocodeOwnerId = {userId} and isActive = 1";
+
+                return await connection.ExecuteAsync(query);
+            }
+        }
+
         public async Task DiactivatePromocode(string promocode)
         {
             using (IDbConnection db = new SqlConnection(_connectionString))
@@ -82,6 +94,14 @@ namespace DiceApi.DataAcces.Repositoryes
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 return (await db.QueryAsync<Promocode>("SELECT * FROM PromoCodes WHERE promocode = @code", new { code = promocode })).Any();
+            }
+        }
+
+        public async Task<List<Promocode>> GetRefferalPromocodesByUserId(long userId)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                return (await db.QueryAsync<Promocode>($"SELECT * FROM PromoCodes where refferalPromocodeOwnerId = {userId}")).ToList();
             }
         }
     }

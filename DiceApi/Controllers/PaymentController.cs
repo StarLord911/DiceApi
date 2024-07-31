@@ -95,14 +95,14 @@ namespace DiceApi.Controllers
         [HttpPost("getPaymentsByUserId")]
         public async Task<List<Payment>> GetPaymentsByUserId(GetByUserIdRequest request)
         {
-            return await _paymentService.GetPaymentsByUserId(request.Id);
+            return await _paymentService.GetPaymentsByUserId(request.UserId);
         }
 
         [Authorize]
         [HttpPost("getWithdrawasByUserId")]
         public async Task<List<Withdrawal>> GetWithdrawasByUserId(GetByUserIdRequest request)
         {
-            return await _withdrawalsService.GetAllByUserId(request.Id);
+            return await _withdrawalsService.GetAllByUserId(request.UserId);
         }
 
         [HttpPost("getSpbWithdrawalBanks")]

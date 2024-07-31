@@ -16,6 +16,8 @@ namespace DiceApi.Services
 
         Task<AuthenticateResponse> Register(UserRegistrationModel userModel);
 
+        Task<bool> IsTelegramUserRegistred(long telegramId);
+
         IEnumerable<User> GetAll();
 
         User GetById(long id);

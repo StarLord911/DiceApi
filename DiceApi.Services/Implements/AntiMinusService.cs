@@ -20,7 +20,7 @@ namespace DiceApi.Services.Implements
                 return false;
             }
 
-            if ((minesGame.CanWin / settings.MinesGameWinningSettings.MinesMaxMultyplayer) > minesGame.BetSum)
+            if (minesGame.Chances.ElementAt(minesGame.OpenedCellsCount - 1) > settings.MinesGameWinningSettings.MinesMaxMultyplayer)
             {
                 return false;
             }

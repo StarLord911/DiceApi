@@ -32,6 +32,7 @@ namespace DiceApi.Controllers
         {
             try
             {
+                //TODO переделать, нужно брать юзера из бд и имя у юзера
                 await _chatService.AddChatMessage(chatMessage);
 
                 var chatJson = JsonConvert.SerializeObject(chatMessage);

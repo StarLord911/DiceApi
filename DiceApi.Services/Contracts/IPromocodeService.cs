@@ -1,6 +1,7 @@
 ﻿using DiceApi.Data;
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
+using DiceApi.Data.Data.Promocode;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,5 +19,9 @@ namespace DiceApi.Services.Contracts
         Task<PaginatedList<PromocodeApiModel>> GetPromocodesByPagination(GetPromocodesByPaginationRequest request);
 
         Task<PaginatedList<PromocodeApiModel>> GetPromocodeByNameByLike(GetPromocodesByNameRequest request);
+
+        Task<GenerateRefferalPromocodeResponce> CreateRefferalPromocode(GenerateRefferalPromocodeRequest request);
+
+        Task<List<RefferalPromocode>> GetRefferalPromocodesByUserId(long userId);
     }
 }

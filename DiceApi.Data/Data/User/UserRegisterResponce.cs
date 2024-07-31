@@ -18,4 +18,25 @@ namespace DiceApi.Data
         [JsonProperty("ownerId")]
         public long? OwnerId { get; set; }
     }
+
+    public class UserTelegramRegisterResponce
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("password")]
+        public string Password { get; set; }
+
+        [JsonProperty("ownerId")]
+        public long? OwnerId { get; set; }
+
+        public long TelegramUserId { get; set; }
+
+    }
+
+    public class IsTelegramUserRegistredRequest
+    {
+        public long TelegramUserId { get; set; }
+    }
+    
 }
