@@ -7,9 +7,11 @@ using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
 using FreeKassa.NET;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -35,24 +37,12 @@ namespace DiceApi.Controllers
            
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("createPayment")]
-        public async Task<string> CreatePayment(CreatePaymentRequest createPaymentRequest)
+        public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentRequest createPaymentRequest)
         {
-            var paymentMethods = FreeKassaActivePaymentMethodsHelper.GetPaymentMethodsInfo();
 
-            var selectedMethod = paymentMethods.FirstOrDefault(m => m.MethodId == (int)createPaymentRequest.PaymentType);
-
-            if (selectedMethod == null)
-            {
-                return $"Не найдет тип оплаты {(int)createPaymentRequest.PaymentType}";
-            }
-
-            if (createPaymentRequest.Amount < selectedMethod.MinDeposited 
-                || createPaymentRequest.Amount > selectedMethod.MaxDeposit)
-            {
-                return $"Минимальная сумма пополнения {selectedMethod.MinDeposited} рублей, максимальная {selectedMethod.MaxDeposit}";
-            }
+           
 
             var payment = new Payment
             {
@@ -64,10 +54,40 @@ namespace DiceApi.Controllers
             };
 
             var paymentId = await _paymentService.AddPayment(payment);
+            
+            var result = await _paymentAdapterService.CreatePaymentForm(createPaymentRequest, paymentId);
 
-            var paymentForm = await _paymentAdapterService.CreatePaymentForm(createPaymentRequest, paymentId);
+            if (!result.Succesful)
+            {
+                var paymentMethods = FreeKassaActivePaymentMethodsHelper.GetPaymentMethodsInfo();
+                var selectedMethod = paymentMethods.FirstOrDefault(m => m.MethodId == (int)createPaymentRequest.PaymentType);
 
-            return paymentForm;
+                if (selectedMethod == null)
+                {
+                    return new CreatePaymentResponse
+                    {
+                        Succesful = false,
+                        Message = $"Не найдет тип оплаты {(int)createPaymentRequest.PaymentType}",
+                        Location = null
+                    };
+                }
+
+                if (createPaymentRequest.Amount < selectedMethod.MinDeposited
+                    || createPaymentRequest.Amount > selectedMethod.MaxDeposit)
+                {
+                    return new CreatePaymentResponse
+                    {
+                        Succesful = false,
+                        Message = $"Минимальная сумма пополнения {selectedMethod.MinDeposited} рублей, максимальная {selectedMethod.MaxDeposit}",
+                        Location = null
+                    };
+
+                }
+
+                await _paymentService.DeletePayment(paymentId);
+            }
+
+            return result;
         }
 
         [Authorize]
@@ -77,18 +97,11 @@ namespace DiceApi.Controllers
             return FreeKassaActivePaymentMethodsHelper.GetPaymentMethodsInfo();
         }
 
-        [Authorize]
+        //[Authorize]
         [HttpPost("createWithdrawal")]
         public async Task<CreateWithdrawalResponce> CreateWithdrawal(CreateWithdrawalRequest createWithdrawalRequest)
         {
             return await _withdrawalsService.CreateWithdrawalRequest(createWithdrawalRequest);
-        }
-
-        [Authorize(true)]
-        [HttpPost("confirmWithdrawal")]
-        public async Task ConfirmWithdrawal(ConfirmWithdrawalRequest request)
-        {
-            await _withdrawalsService.СonfirmWithdrawal(request.WithdrawalId);
         }
 
         [Authorize]

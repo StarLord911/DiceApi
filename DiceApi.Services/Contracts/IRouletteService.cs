@@ -10,7 +10,7 @@ namespace DiceApi.Services.Contracts
 {
     public interface IRouletteService
     {
-        Task<string> BetRouletteGame(CreateRouletteBetRequest request);
+        Task<CreateRouletteBetResponce> BetRouletteGame(CreateRouletteBetRequest request);
 
         Task<List<RouletteGameResult>> GetLastRouletteGameResults();
 

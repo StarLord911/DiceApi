@@ -32,5 +32,11 @@ namespace DiceApi.Data.Data.Roulette
 
         public float Multiplayer { get; set; }
 
+        public bool IsColorBet { get; set; }
+
+        public string BetColor { get; set; }
+
+        public int? BetNumber { get; set; }
+
     }
 }

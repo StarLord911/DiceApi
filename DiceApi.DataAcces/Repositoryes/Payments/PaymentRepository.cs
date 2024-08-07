@@ -44,6 +44,16 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
+        public async Task DeletePayment(long paymentId)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = $"Delete from Payments where Id = {paymentId}";
+
+                await connection.ExecuteAsync(query);
+            }
+        }
+
         public async Task<List<Payment>> GetAllPayedPayments()
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))

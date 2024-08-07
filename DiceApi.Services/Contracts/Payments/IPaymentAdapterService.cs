@@ -18,7 +18,7 @@ namespace DiceApi.Services.Contracts
         /// </summary>
         /// <param name="createPaymentRequest"></param>
         /// <returns></returns>
-        Task<string> CreatePaymentForm(CreatePaymentRequest createPaymentRequest, long paymentId);
+        Task<CreatePaymentResponse> CreatePaymentForm(CreatePaymentRequest createPaymentRequest, long paymentId);
 
 
         Task<GetFreeKassaOrderByIdResponce> GetOrderByFreeKassaId(long orderId);
@@ -29,17 +29,12 @@ namespace DiceApi.Services.Contracts
         Task<decimal> GetCurrentBallance();
 
         /// <summary>
-        /// Обновление баланса для антиминуса при пополнений.
-        /// </summary>
-        /// <param name="sum"></param>
-        /// <returns></returns>
-        void UpdateCurrentBallance(decimal sum);
-
-        /// <summary>
         /// Сделать вывод.
         /// </summary>
         /// <returns></returns>
-        Task<bool> CreateWithdrawal(Withdrawal withdrawal);
+        Task<FkWaletWithdrawalStatusResponce> CreateWithdrawal(Withdrawal withdrawal);
+
+        Task<FkWaletWithdrawalStatusResponce> GetWithdrawalStatusFkWalet(long fkWaletId);
 
         Task<List<FkWaletSpbWithdrawalBank>> GetSpbWithdrawalBanks();
 

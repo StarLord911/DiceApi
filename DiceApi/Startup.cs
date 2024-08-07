@@ -5,6 +5,7 @@ using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Mappings;
 using DiceApi.MiddleWares;
 using DiceApi.Services;
+using DiceApi.Services.BackgroundServices;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.Implements;
 using DiceApi.Services.Jobs;
@@ -81,7 +82,7 @@ namespace DiceApi
 
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = "apparent-cow-35432.upstash.io:6379,password=AYpoAAIncDFlYTM0MWFkODM4YzE0ZWNmYTE0ZGUxOThkMTdjNjI2ZHAxMzU0MzI,ssl=true"; // ”кажите адрес и порт вашего Redis-сервера
+                options.Configuration = "relaxed-bullfrog-49195.upstash.io:6379,password=AcArAAIjcDFhZjcwMjAzY2M0ZDM0ZDQzYjQ3YzU4MzVmYjI1Y2QyN3AxMA,ssl=true"; // ”кажите адрес и порт вашего Redis-сервера
                 options.InstanceName = "gameCache"; // ќпционально. ”кажите им€ вашего экземпл€ра Redis
             });
 
@@ -116,6 +117,9 @@ namespace DiceApi
 
             services.AddSingleton<ITelegramBotClient>(new TelegramBotClient("6829158443:AAFx85c81t7tTZFRtZtU-R0-xpWd-2hlMkg"));
 
+            services.AddHostedService<RouleteService>();
+            services.AddHostedService<HorsesService>();
+
             ConfigHelper.LoadConfig(Configuration);
         }
 
@@ -125,7 +129,7 @@ namespace DiceApi
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiceApi v1"));
-            
+
             app.UseRouting();
 
             app.UseCors("AllowAll");
@@ -148,22 +152,12 @@ namespace DiceApi
                 endpoints.MapHub<RouletteGameStartTaimerHub>("/rouletteGamesStartTaimerHub");
                 endpoints.MapHub<HorsesGameStartTaimerHub>("/horsesGamesStartTaimerHub");
 
-                
+
                 endpoints.MapControllers();
             });
 
             var cache = app.ApplicationServices.GetRequiredService<ICacheService>();
-            var userService = app.ApplicationServices.GetRequiredService<IUserService>();
-            var rouletteEndGame = app.ApplicationServices.GetRequiredService<IHubContext<RouletteEndGameHub>>();
-            var newGameHub = app.ApplicationServices.GetRequiredService<IHubContext<NewGameHub>>();
-            var horseGameEnd = app.ApplicationServices.GetRequiredService<IHubContext<HorseGameEndGameHub>>();
-            var taimerHub = app.ApplicationServices.GetRequiredService<IHubContext<RouletteGameStartTaimerHub>>();
-            var horseTaimerHub = app.ApplicationServices.GetRequiredService<IHubContext<HorsesGameStartTaimerHub>>();
 
-
-            var log = app.ApplicationServices.GetRequiredService<ILogRepository>();
-
-            
             var settingsCache = cache.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY).Result;
 
             if (settingsCache == null)
@@ -189,7 +183,7 @@ namespace DiceApi
             }
 
             var stats = cache.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY).Result;
-            
+
             if (stats == null)
             {
                 stats = new WinningStats();
@@ -198,10 +192,6 @@ namespace DiceApi
             }
 
             JobManager.Initialize(new DropWinningsJob(cache));
-
-            Task.Run(async() => await new RouletteJob(cache, userService, rouletteEndGame, newGameHub, log, taimerHub).RouleteRun());
-            Task.Run(async () => await new HorseRaceJob(cache, userService, horseGameEnd, newGameHub, log, horseTaimerHub).RaceRun());
         }
-
     }
 }

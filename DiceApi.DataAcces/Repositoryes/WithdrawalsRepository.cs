@@ -107,9 +107,9 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 connection.Open();
 
-                string query = $@"update Withdrawal set Status = 2 where Id = {id}";
+                string query = $@"update Withdrawal set Status = 3 where Id = {id}";
 
-                await connection.QueryAsync<Withdrawal>(query);
+                await connection.ExecuteAsync(query);
 
             }
         }
@@ -184,6 +184,44 @@ namespace DiceApi.DataAcces.Repositoryes
                 {
                     return 0;
                 }
+            }
+        }
+
+        public async Task UpdateStatus(long id, WithdrawalStatus status)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = $@"update Withdrawal set Status = 4 where Id = {id}";
+
+                await connection.ExecuteAsync(query);
+
+            }
+        }
+
+        public async Task UpdateFkWaletId(long id, long waletId)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = $@"update Withdrawal set FkWaletId = {waletId} where Id = {id}";
+
+                await connection.ExecuteAsync(query);
+            }
+        }
+
+        public async Task<List<Withdrawal>> GetAllConfirmedAsync()
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = $@"Select * From Withdrawal where Status = 2";
+
+                return (await connection.QueryAsync<Withdrawal>(query)).ToList();
+
             }
         }
     }

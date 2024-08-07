@@ -14,6 +14,8 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task<List<Withdrawal>> GetAllActive();
 
+        Task<List<Withdrawal>> GetAllConfirmedAsync();
+
         Task<List<Withdrawal>> GetAll();
 
         Task<Withdrawal> GetById(long id);
@@ -23,7 +25,14 @@ namespace DiceApi.DataAcces.Repositoryes
         Task DeactivateWithdrawal(long id);
 
         Task<List<Withdrawal>> GetByUserIdAll(long userId);
+
         Task<PaginatedList<Withdrawal>> GetPaginatedWithdrawals(GetPaymentWithdrawalsRequest request);
+
         Task<decimal> GetWithdrawalWaitSum();
+
+        Task UpdateStatus(long id, WithdrawalStatus status);
+
+        Task UpdateFkWaletId(long id, long waletId);
+
     }
 }

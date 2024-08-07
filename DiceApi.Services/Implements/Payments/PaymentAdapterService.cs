@@ -39,11 +39,43 @@ namespace DiceApi.Services.Implements
         /// </summary>
         /// <param name="createPaymentRequest"></param>
         /// <returns></returns>
-        public async Task<string> CreatePaymentForm(CreatePaymentRequest request, long paymentId)
+        public async Task<CreatePaymentResponse> CreatePaymentForm(CreatePaymentRequest request, long paymentId)
         {
             var createPaymentRequest = FreeKassHelper.CreateOrderRequest(request, paymentId);
 
-            return (await RequestToFreeKassa<CreatePaymentResponce>("orders/create", createPaymentRequest)).Location;
+            string apiUrl = "https://api.freekassa.com/v1/orders/create";
+
+            var httpContent = new StringContent(createPaymentRequest, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, httpContent);
+
+            string jsonResponse = await response.Content.ReadAsStringAsync();
+            var decodedJson = DecodeUnicode(jsonResponse);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await _logRepository.LogInfo("CreatePaymentForm" + DecodeUnicode(jsonResponse));
+                var result = SerializationHelper.Deserialize<CreateFreeKassaPaymentResponce>(jsonResponse);
+
+                return new CreatePaymentResponse
+                {
+                    Succesful = true,
+                    Message = null,
+                    Location = result.Location
+                };
+            }
+            else
+            {
+                await _logRepository.LogError($"Error when create payment form {decodedJson}");
+
+                return new CreatePaymentResponse
+                {
+                    Succesful = false,
+                    Message = decodedJson,
+                    Location = null
+                };
+            }
+
         }
 
         public async Task<decimal> GetCurrentBallance()
@@ -56,33 +88,48 @@ namespace DiceApi.Services.Implements
             return await Task.FromResult<decimal>(50000);
         }
 
-        /// <summary>
-        /// Обновление баланса
-        /// </summary>
-        /// <param name="sum"></param>
-        public void UpdateCurrentBallance(decimal sum)
-        {
-            _currentBallance += sum;
-        }
 
         public async Task<List<FkWaletSpbWithdrawalBank>> GetSpbWithdrawalBanks()
         {
-            return await GetSpbWithdrawalBanksRequestFkWalet();
+            var signWithBody = CalculateSHA256Hash(_walletPrivateKey);
 
+            var responce = await SendRequest("https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/sbp_list", null, signWithBody, HttpMethod.Get);
+            var result = SerializationHelper.Deserialize<FkWaletSpbWithdrawalBankResponce>(responce);
+
+            return result.GetSpbWithdrawalBanks;
         }
 
-        public async Task<bool> CreateWithdrawal(Withdrawal withdrawal)
+        public async Task<FkWaletWithdrawalStatusResponce> CreateWithdrawal(Withdrawal withdrawal)
         {
             try
             {
-                await CreateWithdrawalRequestFkWalet(withdrawal);
+                var dataWithBody = FreeKassHelper.GetWithdrawalRequest(withdrawal);
+                var jsonDataWithBody = JsonConvert.SerializeObject(dataWithBody);
+                var signWithBody = CalculateSHA256Hash(jsonDataWithBody + _walletPrivateKey);
+
+                using (var client = new HttpClient())
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Post, "https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/withdrawal");
+
+                    if (!string.IsNullOrEmpty(jsonDataWithBody))
+                    {
+                        request.Content = new StringContent(jsonDataWithBody, Encoding.UTF8, "application/json");
+                    }
+
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", signWithBody);
+
+                    var response = await client.SendAsync(request);
+
+                    var rrr = DecodeUnicode(await response.Content.ReadAsStringAsync());
+
+                    return SerializationHelper.Deserialize<FkWaletWithdrawalStatusResponce>(DecodeUnicode(await response.Content.ReadAsStringAsync()));
+                }
             }
             catch (Exception ex)
             {
                 await _logRepository.LogError($"CreateWithdrawal error {withdrawal.Id} {ex.Message} {ex.StackTrace}");
-                return false;
+                throw;
             }
-            return true;
         }
 
         public async Task<GetFreeKassaOrderByIdResponce> GetOrderByFreeKassaId(long orderId)
@@ -96,7 +143,24 @@ namespace DiceApi.Services.Implements
             {
                 try
                 {
-                    return (await RequestToFreeKassa<OrderResponse>("orders", request)).Orders.FirstOrDefault();
+                    var apiUrl = "https://api.freekassa.com/v1/orders";
+                    var httpContent = new StringContent(request, Encoding.UTF8, "application/json");
+
+                    HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, httpContent);
+
+                    string jsonResponse = await response.Content.ReadAsStringAsync();
+                    var decodedJson = DecodeUnicode(jsonResponse);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        await _logRepository.LogInfo("CreatePaymentForm" + DecodeUnicode(jsonResponse));
+                        return SerializationHelper.Deserialize<OrderResponse>(jsonResponse).Orders.FirstOrDefault();
+                    }
+                    else
+                    {
+                        await _logRepository.LogError($"Error when create payment form {decodedJson}");
+                        throw new ApplicationException($"Failed to create order. Status code: {response.StatusCode} Reason: {decodedJson}");
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -109,47 +173,20 @@ namespace DiceApi.Services.Implements
             throw lastException;
         }
 
-        private async Task<T> RequestToFreeKassa<T>(string url, string json)
-        {
-            string apiUrl = "https://api.freekassa.com/v1/" + url;
-
-            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await _httpClient.PostAsync(apiUrl, httpContent);
-
-            string jsonResponse = await response.Content.ReadAsStringAsync();
-            var decodedJson = DecodeUnicode(jsonResponse);
-
-            if (response.IsSuccessStatusCode)
-            {
-                await _logRepository.LogInfo("CreatePaymentForm" + DecodeUnicode(jsonResponse));
-                return SerializationHelper.Deserialize<T>(jsonResponse);
-            }
-            else
-            {
-                await _logRepository.LogError($"Error when create payment form {decodedJson}");
-                throw new ApplicationException($"Failed to create order. Status code: {response.StatusCode} Reason: {decodedJson}");
-            }
-        }
-
-        private async Task<List<FkWaletSpbWithdrawalBank>> GetSpbWithdrawalBanksRequestFkWalet()
+        public async Task<FkWaletWithdrawalStatusResponce> GetWithdrawalStatusFkWalet(long fkWaletId)
         {
             var signWithBody = CalculateSHA256Hash(_walletPrivateKey);
 
-            var responce = await SendRequest("https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/sbp_list", null , signWithBody, HttpMethod.Get);
-            var result = SerializationHelper.Deserialize<FkWaletSpbWithdrawalBankResponce>(responce);
+            using (var client = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/withdrawal/{fkWaletId}");
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", signWithBody);
 
-            return result.GetSpbWithdrawalBanks;
-        }
+                var response = await client.SendAsync(request);
+                var rr = DecodeUnicode(await response.Content.ReadAsStringAsync());
+                return SerializationHelper.Deserialize<FkWaletWithdrawalStatusResponce>(await response.Content.ReadAsStringAsync());
+            }
 
-
-        private async Task CreateWithdrawalRequestFkWalet(Withdrawal withdrawal)
-        {
-            var dataWithBody = FreeKassHelper.GetWithdrawalRequest(withdrawal);
-            var jsonDataWithBody = JsonConvert.SerializeObject(dataWithBody);
-            var signWithBody = CalculateSHA256Hash(jsonDataWithBody + _walletPrivateKey);
-
-            await SendRequest("https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/withdrawal", jsonDataWithBody, signWithBody, HttpMethod.Post);
         }
 
         private async Task<string> SendRequest(string url, string jsonData, string sign, HttpMethod method)
@@ -166,10 +203,10 @@ namespace DiceApi.Services.Implements
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", sign);
 
                 var response = await client.SendAsync(request);
-
                 return DecodeUnicode(await response.Content.ReadAsStringAsync());
             }
         }
+
 
         private string DecodeUnicode(string value)
         {

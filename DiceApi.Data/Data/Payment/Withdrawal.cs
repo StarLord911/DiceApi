@@ -26,5 +26,7 @@ namespace DiceApi.Data
 
         public string? BankId { get; set; }
 
+        public long? FkWaletId { get; set; }
+
     }
 }

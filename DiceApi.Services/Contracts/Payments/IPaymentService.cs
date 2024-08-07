@@ -16,6 +16,9 @@ namespace DiceApi.Services.Contracts
     {
         Task<long> AddPayment(Payment payment);
 
+        Task DeletePayment(long paymentId);
+
+
         Task ConfirmReferalOwnerPayment(ConfirmPayment payment);
 
         Task<List<Payment>> GetPaymentsByUserId(long userId);
@@ -27,6 +30,7 @@ namespace DiceApi.Services.Contracts
         Task<List<Payment>> GetAllPayedPayments();
 
         Task<PaymentStats> GetPaymentStats();
+
         Task<PaginatedList<Payment>> GetPaginatedPayments(GetPaymentsRequest request);
     }
 }

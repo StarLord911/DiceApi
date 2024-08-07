@@ -64,6 +64,11 @@ namespace DiceApi.Services.Implements
             }
         }
 
+        public async Task DeletePayment(long paymentId)
+        {
+            await _paymentRepository.DeletePayment(paymentId);
+        }
+
         public async Task<List<Payment>> GetAllPayedPayments()
         {
             return await _paymentRepository.GetAllPayedPayments();

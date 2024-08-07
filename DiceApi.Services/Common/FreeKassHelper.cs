@@ -27,6 +27,11 @@ namespace DiceApi.Services
                 PaymentId = paymentId.ToString()
             };
 
+            if ((int)createPayment.PaymentType == 14 || (int)createPayment.PaymentType == 15)
+            {
+                request.Currency = "USDT";
+            }
+
             var parameters = new Dictionary<string, string>()
             {
                 { "currency", request.Currency.ToString() },
@@ -74,17 +79,17 @@ namespace DiceApi.Services
             {
                 Amount = withdrawal.Amount,
                 Currency_id = 1,
-                Account = withdrawal.CardNumber,
+                Account = withdrawal.CardNumber.Replace("+", ""),
                 PaymentSystemId = 6,
                 Description = "Description",
-                FeeFromBalance = 1,
+                FeeFromBalance = 0,
                 IdempotenceKey = Guid.NewGuid().ToString(),
                 OrderId = withdrawal.Id,
             };
 
             if (!string.IsNullOrEmpty(withdrawal.BankId))
             {
-                request.Fields.Add(withdrawal.BankId);
+                request.Fields.Add("sbp_bank_id", withdrawal.BankId);
                 request.PaymentSystemId = 5;
             }
 

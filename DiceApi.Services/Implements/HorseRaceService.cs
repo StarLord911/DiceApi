@@ -77,7 +77,13 @@ namespace DiceApi.Services.Implements
 
             foreach (var bet in request.HorseBets)
             {
-                var gameJson = JsonConvert.SerializeObject(new HorseRaceActiveBet() { UserName = user.Name, BetSum = bet.BetSum, Multiplayer = 8});
+                var gameJson = JsonConvert.SerializeObject(new HorseRaceActiveBet() 
+                {
+                    UserName = user.Name,
+                    BetSum = bet.BetSum,
+                    Multiplayer = 8,
+                    HorseColor = bet.HorseColor
+                });
 
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
             }
@@ -105,7 +111,10 @@ namespace DiceApi.Services.Implements
                 {
                     foreach (var bet in userBets.HorseBets)
                     {
-                        result.Bets.Add(new HorseRaceActiveBet() { UserName = user.Name, BetSum = bet.BetSum, Multiplayer = 8 });
+                        result.Bets.Add(new HorseRaceActiveBet() 
+                        { 
+                            UserName = user.Name, BetSum = bet.BetSum, Multiplayer = 8, HorseColor = bet.HorseColor 
+                        });
                     }
                 }
             }

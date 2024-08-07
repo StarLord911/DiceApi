@@ -1,6 +1,7 @@
 ﻿using DiceApi.Data;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services;
+using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -20,17 +21,20 @@ namespace DiceApi.Controllers.CallBacks
         private IPaymentService _paymentService;
         private IUserService _userService;
         private ILogRepository _logRepository;
+        private readonly IWithdrawalsService _withdrawalsService;
         private readonly IPaymentAdapterService _paymentAdapterService;
 
         public PaymentCallBackController(IPaymentService paymentService,
             IUserService userService,
             ILogRepository logRepository,
-            IPaymentAdapterService paymentAdapterService)
+            IPaymentAdapterService paymentAdapterService,
+            IWithdrawalsService withdrawalsService)
         {
             _paymentService = paymentService;
             _userService = userService;
             _logRepository = logRepository;
             _paymentAdapterService = paymentAdapterService;
+            _withdrawalsService = withdrawalsService;
         }
         
         [HttpPost("handle")]
@@ -39,6 +43,11 @@ namespace DiceApi.Controllers.CallBacks
             try
             {
                 var fkPayment = await  _paymentAdapterService.GetOrderByFreeKassaId(paymentSuccessEvent.FreKassaOrderId);
+
+                if (fkPayment.Currency.ToLower() == "usdt")
+                {
+                    fkPayment.Amount = fkPayment.Amount * RatesHelper.GetRates();
+                }
 
                 if (fkPayment.Status != 1)
                 {
@@ -75,6 +84,33 @@ namespace DiceApi.Controllers.CallBacks
                 await _logRepository.LogException("HandlePaymentEvent error", ex);
                 return await Task.FromResult<bool>(false);
 
+            }
+        }
+
+        [HttpPost("handleWithdrawal")]
+        public async Task HandlePaymentEvent([FromForm] WithdrawalNotification model)
+        {
+            try
+            {
+                var withrowal = await _withdrawalsService.GetById(Convert.ToInt64(model.OrderId));
+
+                var status = Convert.ToInt32(model.Status);
+
+                if (status == 1)
+                {
+                    await _withdrawalsService.UpdateStatus(withrowal.Id, WithdrawalStatus.Confirmed);
+                }
+                else if(status == 8 || status == 9 || status == 10)
+                {
+                    await _withdrawalsService.UpdateStatus(withrowal.Id, WithdrawalStatus.Error);
+                }
+
+                await _logRepository.LogInfo($"Processing withrowal {withrowal.Id}, {status}, {model.Amount}");
+            }
+            catch (Exception ex)
+            {
+
+                await _logRepository.LogInfo($"Error when processing withrowal {model.OrderId} amount: { model.Amount}");
             }
         }
     }

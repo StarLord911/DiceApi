@@ -54,6 +54,20 @@ namespace DiceApi.Services.Common
                     MethodId = 36,
                     MinDeposited = 500,
                     MaxDeposit = 75000
+                },
+                new PaymentFreeKassaMethodInformation()
+                {
+                    MethodName = "TRC20",
+                    MethodId = 15,
+                    MinDeposited = 5,
+                    MaxDeposit = 100000
+                },
+                new PaymentFreeKassaMethodInformation()
+                {
+                    MethodName = "ERC20",
+                    MethodId = 14,
+                    MinDeposited = 10,
+                    MaxDeposit = 100000
                 }
             };
         }

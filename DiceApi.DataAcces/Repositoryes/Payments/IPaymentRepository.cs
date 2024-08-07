@@ -12,6 +12,8 @@ namespace DiceApi.DataAcces.Repositoryes
     {
         Task<long> CreatePayment(Payment payment);
 
+        Task DeletePayment(long paymentId);
+
         Task<List<Payment>> GetPaymentsByUserId(long userId);
 
         Task UpdatePaymentStatus(long paymentId, PaymentStatus status);

@@ -10,17 +10,26 @@ namespace DiceApi.Services.Contracts
     {
         Task<CreateWithdrawalResponce> CreateWithdrawalRequest(CreateWithdrawalRequest createWithdrawalRequest);
 
+        Task<Withdrawal> GetById(long id);
+
         Task<List<Withdrawal>> GetAll();
 
         Task<List<Withdrawal>> GetAllByUserId(long userId);
 
         Task<List<Withdrawal>> GetAllActiveByUserId(long userId);
 
+        Task<List<Withdrawal>> GetAllConfirmedAsync();
+
         Task СonfirmWithdrawal(long id);
 
-        Task<WithdrawalStats> GetWithdrawalStats();
         Task DeactivateWithdrawal(int id);
+
+        Task<WithdrawalStats> GetWithdrawalStats();
+
         Task<PaginatedList<Withdrawal>> GetPaginatedWithdrawals(GetPaymentWithdrawalsRequest request);
+
         Task<decimal> GetWithdrawalWaitSum();
+
+        Task UpdateStatus(long id, WithdrawalStatus status);
     }
 }

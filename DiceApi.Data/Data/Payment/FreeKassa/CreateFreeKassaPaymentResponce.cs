@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DiceApi.Data
 {
-    public class CreatePaymentResponce
+    public class CreateFreeKassaPaymentResponce
     {
         [JsonProperty("type")]
         public string Type { get; set; }

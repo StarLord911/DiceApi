@@ -18,4 +18,13 @@ namespace DiceApi.Data.Data.Payment
 
         public PaymentType PaymentType { get; set; }
     }
+
+    public class CreatePaymentResponse
+    {
+        public bool Succesful { get; set; }
+
+        public string Message { get; set; }
+
+        public string Location { get; set; }
+    }
 }

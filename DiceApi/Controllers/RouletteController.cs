@@ -21,12 +21,16 @@ namespace DiceApi.Controllers
             _rouletteService = rouletteService;
         }
 
-        [HttpPost("bet")]
-        public async Task<string> Bet(CreateRouletteBetRequest request)
+        [HttpPost("bet")]//
+        public async Task<CreateRouletteBetResponce> Bet(CreateRouletteBetRequest request)
         {
             if (GameStates.IsRouletteGameRun)
             {
-                return "GameRunned";
+                return new CreateRouletteBetResponce()
+                {
+                    Succesful = false,
+                    Message = "Дождитесь окончания игры"
+                };
             }
 
             return await _rouletteService.BetRouletteGame(request);

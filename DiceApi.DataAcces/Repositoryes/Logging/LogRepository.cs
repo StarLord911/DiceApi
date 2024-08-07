@@ -31,7 +31,13 @@ namespace DiceApi.DataAcces.Repositoryes
 
         public async Task LogException(string message, Exception exception)
         {
-            string log = $"{message} Exception: {exception.Message}\nStackTrace: {exception.StackTrace.Substring(0, 450)}";
+            string trace = exception.StackTrace;
+            if (exception.StackTrace.Count() >= 500)
+            {
+                trace = exception.StackTrace.Substring(1, 490);
+            }
+
+            string log = $"{message} Exception: {exception.Message}\nStackTrace: {trace}";
             await AddLog(log, "Exception");
         }
 

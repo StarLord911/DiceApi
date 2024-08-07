@@ -13,6 +13,13 @@ namespace DiceApi.Data.ApiReqRes
         public List<RouletteBet> Bets { get; set; } 
     }
 
+    public class CreateRouletteBetResponce
+    {
+        public bool Succesful { get; set; }
+
+        public string Message { get; set; }
+    }
+
     public class RouletteBet
     {
         public int? BetNumber { get; set; }

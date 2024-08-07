@@ -1,12 +1,13 @@
 ﻿using DiceApi.Common;
-using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Roulette;
 using DiceApi.Data.Data.Winning;
+using DiceApi.Data;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.SignalRHubs;
-using FluentScheduler;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -15,9 +16,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DiceApi.Services.Jobs
+namespace DiceApi.Services.BackgroundServices
 {
-    public class RouletteJob : Registry
+    public class RouleteService : BackgroundService
     {
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
@@ -29,7 +30,7 @@ namespace DiceApi.Services.Jobs
         private readonly string RED = "Red";
         private readonly string BLACK = "Black";
 
-        private readonly List<string> canBets = new List<string> 
+        private readonly List<string> canBets = new List<string>
         {
             "0", "1", "2", "3", "4",
             "5", "6", "7", "8", "9",
@@ -39,7 +40,7 @@ namespace DiceApi.Services.Jobs
 
         };
 
-        public RouletteJob(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext, IHubContext<NewGameHub> newGameHub,
+        public RouleteService(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext, IHubContext<NewGameHub> newGameHub,
             ILogRepository logRepository, IHubContext<RouletteGameStartTaimerHub> gameStartTaimerHub)
         {
             _cacheService = cacheService;
@@ -50,8 +51,8 @@ namespace DiceApi.Services.Jobs
 
             _gameStartTaimerHub = gameStartTaimerHub;
         }
-
-        private async Task RouleteRunRunContinuously()
+        
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (true)
             {
@@ -144,7 +145,7 @@ namespace DiceApi.Services.Jobs
 
                 await _cacheService.DeleteCache(CacheConstraints.BETTED_ROULETTE_USERS);
                 GameStates.IsRouletteGameRun = false;
-
+                await _logRepository.LogInfo("Finish roulette job");
                 await Taimer();
             }
             catch (Exception ex)
@@ -171,10 +172,10 @@ namespace DiceApi.Services.Jobs
 
                 if (i == 30)
                 {
-                    GameStates.IsHorseGameRun = false;
+                    GameStates.IsRouletteGameRun = false;
                 }
 
-                await _gameStartTaimerHub.Clients.All.SendAsync("ReceiveMessage", SerializationHelper.Serialize(new GameTypeTaimer { GameName = "Roulette", Taimer = i}));
+                await _gameStartTaimerHub.Clients.All.SendAsync("ReceiveMessage", SerializationHelper.Serialize(new GameTypeTaimer { GameName = "Roulette", Taimer = i }));
             }
         }
 
@@ -194,7 +195,7 @@ namespace DiceApi.Services.Jobs
             }
 
             lastGames.Add(
-                new RouletteGameResult() 
+                new RouletteGameResult()
                 {
                     DroppedNumber = droppedNumner,
                     DroppedCollor = GetDroppedColor(droppedNumner)
@@ -219,8 +220,6 @@ namespace DiceApi.Services.Jobs
 
             return apiModel;
         }
-
-       
 
         private string GetDroppedColor(int number)
         {

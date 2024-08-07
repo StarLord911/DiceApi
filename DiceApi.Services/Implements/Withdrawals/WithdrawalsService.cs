@@ -121,23 +121,14 @@ namespace DiceApi.Services.Implements
                 CardNumber = request.CartNumber,
                 CreateDate = DateTime.Now,
                 Status = WithdrawalStatus.New,
+                BankId = request.BankId
             };
 
             await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.Amount);
-
             await _withdrawalsRepository.AddWithdrawal(withdrowal);
  
-            ////revshare отнимаем у овнера, так как реферал сделал вывод 
-            //if (user.OwnerId != null && user.OwnerId.Value != 0)
-            //{
-            //    var owner = _userService.GetById(user.OwnerId.Value);
-
-            //    await _userService.UpdateUserBallance(request.UserId, owner.Ballance - request.Amount);
-            //}
-
             responce.Succses = true;
             responce.Message = $"Заявка на вывод принята";
-
             return responce;
         }
 
@@ -197,14 +188,11 @@ namespace DiceApi.Services.Implements
 
             var res = await _paymentAdapterService.CreateWithdrawal(withdrawal);
 
-            if (res == false)
-            {
-                throw new Exception("Error when confirm witrowal");
-            }
+            await UpdateStatus(withdrawal.Id, WithdrawalStatus.Moderation);
+
+            await _withdrawalsRepository.UpdateFkWaletId(withdrawal.Id, res.Data.Id);
 
             await UpdateWithdrawalToDay(withdrawal.Amount);
-
-            await _withdrawalsRepository.DeactivateWithdrawal(id);
         }
 
         private async Task UpdateWithdrawalToDay(decimal amount)
@@ -229,6 +217,21 @@ namespace DiceApi.Services.Implements
             int targetWeek = calendar.GetWeekOfYear(dateTime, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
 
             return currentWeek == targetWeek;
+        }
+
+        public async Task<List<Withdrawal>> GetAllConfirmedAsync()
+        {
+            return await _withdrawalsRepository.GetAllConfirmedAsync();
+        }
+
+        public async Task UpdateStatus(long id, WithdrawalStatus status)
+        {
+            await _withdrawalsRepository.UpdateStatus(id, status);
+        }
+
+        public async Task<Withdrawal> GetById(long id)
+        {
+            return await _withdrawalsRepository.GetById(id);
         }
     }
 }

@@ -16,7 +16,10 @@ namespace DiceApi.Data.Data.Payment.FreeKassa
         OnlineBank = 13,
         Sbp = 42,
         MasterCardRub = 8,
-        CardRub = 36
+        CardRub = 36,
+        UsdtErc20 = 14,
+        UsdtTrc20 = 15
+
     }
 
     public enum WithdrawalType

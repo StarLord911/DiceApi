@@ -1,14 +1,12 @@
 ﻿using DiceApi.Common;
-using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.HorseGame;
-using DiceApi.Data.Data.Roulette;
 using DiceApi.Data.Data.Winning;
+using DiceApi.Data;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.SignalRHubs;
-using FluentScheduler;
 using Microsoft.AspNetCore.SignalR;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,9 +14,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace DiceApi.Services.Jobs
+namespace DiceApi.Services.BackgroundServices
 {
-    public class HorseRaceJob : Registry
+    public class HorsesService : BackgroundService
     {
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
@@ -28,7 +26,7 @@ namespace DiceApi.Services.Jobs
 
         private readonly ILogRepository _logRepository;
 
-        public HorseRaceJob(ICacheService cacheService, IUserService userService, IHubContext<HorseGameEndGameHub> hubContext, IHubContext<NewGameHub> newGameHub,
+        public HorsesService(ICacheService cacheService, IUserService userService, IHubContext<HorseGameEndGameHub> hubContext, IHubContext<NewGameHub> newGameHub,
             ILogRepository logRepository, IHubContext<HorsesGameStartTaimerHub> gameStartTaimerHub)
         {
             _cacheService = cacheService;
@@ -37,11 +35,9 @@ namespace DiceApi.Services.Jobs
             _newGameHub = newGameHub;
             _logRepository = logRepository;
             _gameStartTaimerHub = gameStartTaimerHub;
-
-            Schedule(async () => { await RunRaceRunContinuously(); }).WithName("HorseRaceJob").ToRunNow();
         }
 
-        private async Task RunRaceRunContinuously()
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (true)
             {
@@ -83,7 +79,7 @@ namespace DiceApi.Services.Jobs
 
                 await UpdateLastHorseGames(color);
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
-                    
+
                 await ProccessBets(color, allBets);
 
                 await _cacheService.DeleteCache(CacheConstraints.BETTED_HORSE_RACE_USERS);
@@ -206,7 +202,7 @@ namespace DiceApi.Services.Jobs
 
         public async Task UpdateLastHorseGames(HorseColor horseColor)
         {
-            var lastGames =  await _cacheService.ReadCache<List<HorseGameResult>>(CacheConstraints.LAST_HORSE_GAMES);
+            var lastGames = await _cacheService.ReadCache<List<HorseGameResult>>(CacheConstraints.LAST_HORSE_GAMES);
 
             if (lastGames == null)
             {
@@ -237,5 +233,7 @@ namespace DiceApi.Services.Jobs
             HorseColor winnedHorseColor = horseColors[random.Next(horseColors.Length)];
             return winnedHorseColor;
         }
+
+        
     }
 }

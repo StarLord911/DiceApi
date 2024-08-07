@@ -50,8 +50,8 @@ namespace DiceApi.DataAcces.Repositoryes
                     throw new Exception("Is user contains");
                 }
 
-                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent, registrationIp, telegramUserId)
-                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent, @RegistrationIp, @TelegramUserId)
+                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent, registrationIp, telegramUserId, enableWithdrawal)
+                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent, @RegistrationIp, @TelegramUserId, @EnableWithdrawal)
                                     SELECT CAST(SCOPE_IDENTITY() AS int)";
 
                 var parameters = new
@@ -64,7 +64,8 @@ namespace DiceApi.DataAcces.Repositoryes
                     IsActive = true,
                     ReferalPercent = 50,
                     RegistrationIp = user.IpAddres,
-                    TelegramUserId = user.TelegramUserId
+                    TelegramUserId = user.TelegramUserId,
+                    EnableWithdrawal = true
                 };
 
                 var userId = await db.ExecuteScalarAsync<long>(query, parameters);

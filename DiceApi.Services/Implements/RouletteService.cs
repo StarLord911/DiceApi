@@ -36,13 +36,17 @@ namespace DiceApi.Services
             _hubContext = hubContext;
         }
 
-        public async Task<string> BetRouletteGame(CreateRouletteBetRequest request)
+        public async Task<CreateRouletteBetResponce> BetRouletteGame(CreateRouletteBetRequest request)
         {
             var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_ROULETTE_USERS);
 
             if (bettedUserIds.Contains(request.UserId))
             {
-                return "Bet already exist";
+                return new CreateRouletteBetResponce()
+                {
+                    Succesful = false,
+                    Message = "Вы уже сделали ставку."
+                };
             }
 
             var user = _userService.GetById(request.UserId);
@@ -51,7 +55,11 @@ namespace DiceApi.Services
 
             if (user.Ballance < betSum)
             {
-                return "Low ballance";
+                return new CreateRouletteBetResponce()
+                {
+                    Succesful = false,
+                    Message = "Низкий баланс."
+                };
             }
 
             var updatedBallance = user.Ballance - betSum;
@@ -78,7 +86,11 @@ namespace DiceApi.Services
 
             await NotifyNewBets(request, user.Name);
 
-            return "Succesfull";
+            return new CreateRouletteBetResponce()
+            {
+                Succesful = true,
+                Message = string.Empty
+            };
         }
 
         public async Task<List<RouletteGameResult>> GetLastRouletteGameResults()
@@ -111,22 +123,36 @@ namespace DiceApi.Services
 
                 foreach (var bet in userBets.Bets)
                 {
+                    bool isColorBet = false;
+
                     var multiplier = 0;
 
                     if (bet.BetNumber.HasValue)
                     {
                         multiplier = 18;
+                        isColorBet = false;
                     }
                     else if (bet.BetColor.IsNotNullOrEmpty() && (bet.BetColor == RoutletteConsts.RED || bet.BetColor == RoutletteConsts.BLACK))
                     {
                         multiplier = 2;
+                        isColorBet = true;
                     }
                     else if (bet.BetRange.IsNotNullOrEmpty() && (bet.BetRange == RoutletteConsts.FirstRange || bet.BetRange == RoutletteConsts.SecondRange))
                     {
                         multiplier = 2;
+                        isColorBet = true;
                     }
 
-                    result.Bets.Add(new RouletteActiveBet() { UserName = user.Name, BetSum = bet.BetSum, Multiplayer = multiplier });
+                    result.Bets.Add(new RouletteActiveBet() 
+                    {
+                        UserName = user.Name,
+                        BetSum = bet.BetSum,
+                        Multiplayer = multiplier,
+                        IsColorBet = isColorBet,
+                        BetColor = bet.BetColor,
+
+                        BetNumber = isColorBet ? bet.BetNumber : null
+                    });
                 }
             }
 
@@ -137,22 +163,36 @@ namespace DiceApi.Services
         {
             foreach (var bet in request.Bets)
             {
+                bool isColorBet = false;
+
                 var multiplier = 0;
 
                 if (bet.BetNumber.HasValue)
                 {
                     multiplier = 18;
+                    isColorBet = false;
                 }
                 else if (bet.BetColor.IsNotNullOrEmpty() && (bet.BetColor == RoutletteConsts.RED || bet.BetColor == RoutletteConsts.BLACK))
                 {
                     multiplier = 2;
+                    isColorBet = true;
                 }
                 else if (bet.BetRange.IsNotNullOrEmpty() && (bet.BetRange == RoutletteConsts.FirstRange || bet.BetRange == RoutletteConsts.SecondRange))
                 {
                     multiplier = 2;
+                    isColorBet = true;
                 }
 
-                var gameJson = JsonConvert.SerializeObject(new RouletteActiveBet() { UserName = username, BetSum = bet.BetSum, Multiplayer = multiplier });
+                var gameJson = JsonConvert.SerializeObject(new RouletteActiveBet() 
+                { 
+                    UserName = username, 
+                    BetSum = bet.BetSum, 
+                    Multiplayer = multiplier,
+                    IsColorBet = isColorBet, 
+                    BetColor = isColorBet ? bet.BetColor : null,
+                    
+                    BetNumber = !isColorBet ? bet.BetNumber : null
+                });
 
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
             }

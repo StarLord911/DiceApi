@@ -77,8 +77,8 @@ namespace DiceApi.Data
         [JsonProperty("order_id")]
         public int OrderId { get; set; }
 
-        [JsonProperty("fields")]
-        public List<object> Fields { get; set; } = new List<object>();
+        [JsonProperty("fields")] 
+        public Dictionary<object, object> Fields { get; set; } = new Dictionary<object, object>();
 
         [JsonProperty("idempotence_key")]
         public string IdempotenceKey { get; set; }
@@ -113,5 +113,23 @@ namespace DiceApi.Data
 
         [JsonProperty("data")]
         public List<FkWaletSpbWithdrawalBank> GetSpbWithdrawalBanks { get; set; }
+    }
+
+    public class InnerData
+    {
+        [JsonProperty("id")]
+        public long Id { get; set; }
+
+        [JsonProperty("status")]
+        public int Status { get; set; }
+    }
+
+    public class FkWaletWithdrawalStatusResponce
+    {
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("data")]
+        public InnerData Data { get; set; }
     }
 }
