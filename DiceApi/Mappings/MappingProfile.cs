@@ -23,6 +23,7 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId))
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
+                .ForMember(dest => dest.RefferalPercent, opt => opt.MapFrom(src => src.ReferalPercent))
                 .ForMember(dest => dest.BlockReason, opt => opt.MapFrom(src => src.BlockReason));
 
             CreateMap<User, AdminUserInfo>()

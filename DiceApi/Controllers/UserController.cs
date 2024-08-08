@@ -147,15 +147,16 @@ namespace DiceApi.Controllers
         [HttpPost("getDailyBonusByUserId")]
         public async Task<GetDailyBonusByUserIdResponce> GetDailyBonusByUserId(GetByUserIdRequest request)
         {
-            var cache = await _cacheService.ReadCache(CacheConstraints.EVERY_DAY_BONUS + request.UserId);
+            var cache = await _cacheService.ReadCache<object>(CacheConstraints.EVERY_DAY_BONUS + request.UserId);
 
-            if (!string.IsNullOrEmpty(cache))
+            if (cache != null)
             {
                 return new GetDailyBonusByUserIdResponce { Message = "Вы уже получили бонус сегодня.", Success = false };
             }
+
             var user = _userService.GetById(request.UserId);
 
-            if (false) //TODO: привязка тг
+            if (user.TelegramUserId != null)
             {
                 return new GetDailyBonusByUserIdResponce { Message = "Telegram use bonus", Success = false};
             }

@@ -209,18 +209,15 @@ namespace DiceApi.Services.BackgroundServices
                 lastGames = new List<HorseGameResult>();
             }
 
-            if (lastGames.Count > 15)
+            if (lastGames.Count > 25)
             {
-                lastGames.RemoveAt(0);
-
+                lastGames.RemoveAt(lastGames.Count-1);
             }
 
-            lastGames.Add(
-                new HorseGameResult()
-                {
-                    WinnedHorseColor = horseColor
-                });
-
+            lastGames.Insert(0, new HorseGameResult()
+            {
+                WinnedHorseColor = horseColor
+            });
 
             await _cacheService.UpdateCache(CacheConstraints.LAST_HORSE_GAMES, lastGames);
         }

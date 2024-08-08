@@ -1,5 +1,6 @@
 ﻿using DiceApi.Common;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,11 +21,6 @@ namespace DiceApi.Services
         public async Task DeleteCache(string key)
         {
             await _distributedCache.RemoveAsync(key);
-        }
-
-        public async Task<string> ReadCache(string key)
-        {
-            return await _distributedCache.GetStringAsync(key);
         }
 
         public async Task<T> ReadCache<T>(string key)
@@ -49,12 +45,13 @@ namespace DiceApi.Services
 
         public async Task WriteCache(string key, string value, TimeSpan timeSpan)
         {
+
             if (timeSpan == default)
             {
                 timeSpan = TimeSpan.FromDays(365);
             }
 
-            await _distributedCache.SetStringAsync(key, value, new DistributedCacheEntryOptions() {AbsoluteExpirationRelativeToNow = timeSpan });
+            await _distributedCache.SetStringAsync(key, value, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = timeSpan });
         }
 
         public async Task WriteCache<T>(string key, T value, TimeSpan timeSpan = default)

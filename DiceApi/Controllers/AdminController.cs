@@ -146,10 +146,10 @@ namespace DiceApi.Controllers
             mappedUser.Wager = wager != null ? wager.Wagering - wager.Played : 0;
             mappedUser.BallanceInGame = 0;
 
-            var cache = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.UserId);
-            if (cache != null)
+            var game = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.UserId);
+            if (game != null)
             {
-                mappedUser.BallanceInGame = SerializationHelper.Deserialize<ActiveMinesGame>(cache).BetSum;
+                mappedUser.BallanceInGame = game.BetSum;
             }
 
 
@@ -423,23 +423,13 @@ namespace DiceApi.Controllers
         [HttpPost("getSettings")]
         public async Task<Settings> GetSettings()
         {
-            var res = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
-            return SerializationHelper.Deserialize<Settings>(res);
+            return await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
         }
 
         [HttpPost("updateSettings")]
         public async Task UpdateSettings(Settings settings)
         {
-            var cache = await _cacheService.ReadCache(CacheConstraints.SETTINGS_KEY);
-
-            if (cache != null)
-            {
-                await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
-            }
-
-            var res = SerializationHelper.Serialize<Settings>(settings);
-
-            await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, res, TimeSpan.FromDays(365));
+             await _cacheService.UpdateCache<Settings>(CacheConstraints.SETTINGS_KEY, settings);
         }
 
         #endregion

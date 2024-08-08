@@ -73,6 +73,13 @@ namespace DiceApi.Services.Implements
                 await _userService.UpdateRefferalOwnerId(request.UserId, promocode.RefferalPromocodeOwnerId.Value);
             }
 
+            if (user.TelegramUserId != null)
+            {
+                responce.Message = "Привяжите телеграм";
+                responce.Successful = false;
+                return responce;
+            }
+
 
             var updatedBallance = user.Ballance += promocode.BallanceAdd;
             await _userService.UpdateUserBallance(request.UserId, updatedBallance);

@@ -40,7 +40,7 @@ namespace DiceApi.Services
         {
             var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_ROULETTE_USERS);
 
-            if (bettedUserIds.Contains(request.UserId))
+            if (bettedUserIds != null && bettedUserIds.Contains(request.UserId))
             {
                 return new CreateRouletteBetResponce()
                 {
@@ -67,20 +67,6 @@ namespace DiceApi.Services
             await UpdateWageringAsync(request.UserId, betSum);
 
             await _userService.UpdateUserBallance(user.Id, updatedBallance);
-
-            if (bettedUserIds == null)
-            {
-                bettedUserIds = new List<long>() { user.Id };
-                await _cacheService.WriteCache(CacheConstraints.BETTED_ROULETTE_USERS, bettedUserIds);
-            }
-            else
-            {
-                bettedUserIds.Add(user.Id);
-
-                await _cacheService.DeleteCache(CacheConstraints.BETTED_ROULETTE_USERS);
-
-                await _cacheService.WriteCache(CacheConstraints.BETTED_ROULETTE_USERS, bettedUserIds);
-            }
 
             await _cacheService.WriteCache(CacheConstraints.ROULETTE_USER_BET + user.Id, request);
 

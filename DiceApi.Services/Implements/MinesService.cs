@@ -97,12 +97,11 @@ namespace DiceApi.Services
                 return new CreateMinesGameResponce() { Succes = false, Info = "User blocked" };
             }
 
-            var contains = await _cacheService.ReadCache(CacheConstraints.MINES_KEY + request.UserId);
+            var activeGame = await _cacheService.ReadCache<ActiveMinesGame>(CacheConstraints.MINES_KEY + request.UserId);
 
-            if (contains != null)
+            if (activeGame != null)
             {
-                var r = SerializationHelper.Deserialize<ActiveMinesGame>(contains);
-                if (!r.IsActiveGame())
+                if (!activeGame.IsActiveGame())
                 {
                     await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
                 }

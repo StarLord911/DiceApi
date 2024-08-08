@@ -27,6 +27,10 @@ namespace DiceApi.Data.Api.Model
         [JsonProperty("isActive")]
         public bool IsActive { get; set; }
 
+        [JsonProperty("refferalPercent")]
+        public int RefferalPercent { get; set; }
+
+        [JsonProperty("blockReason")]
         public string BlockReason { get; set; }
     }
 }

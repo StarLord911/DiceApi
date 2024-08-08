@@ -12,10 +12,11 @@ namespace DiceApi.Common
 
         public const string FreeKassaSecretOne = "FreeKassaSecretOne";
 
-
         public const string DbConnectionString = "DbConnectionString";
 
         public const string SignalRHubAddres = "SignalRHubAddres";
+
+        public const string CacheAddres = "CacheAddres";
 
     }
 }

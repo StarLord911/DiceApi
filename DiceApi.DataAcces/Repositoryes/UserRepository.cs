@@ -62,7 +62,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     OwnerId = user.OwnerId,
                     RegistrationDate = DateTime.UtcNow,
                     IsActive = true,
-                    ReferalPercent = 50,
+                    ReferalPercent = 10,
                     RegistrationIp = user.IpAddres,
                     TelegramUserId = user.TelegramUserId,
                     EnableWithdrawal = true

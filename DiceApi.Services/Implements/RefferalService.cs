@@ -32,7 +32,11 @@ namespace DiceApi.Services.Implements
 
             if (dateRange == null)
             {
-                dateRange = user.RegistrationDate;
+                dateRange = user.RegistrationDate.Date;
+            }
+            else
+            {
+                dateRange = dateRange.Value.Date;
             }
 
             var refferals = await _userService.GetRefferalsByUserId(request.UserId);
@@ -42,6 +46,11 @@ namespace DiceApi.Services.Implements
             decimal paymentSum = 0;
 
             var allPayments = new List<Payment>();
+
+            //if (refferals == null || refferals.Count ==0)
+            //{
+            //    return GetEmptyData(user, dateRange);
+            //}
 
             foreach (var refferal in refferals)
             {
@@ -66,7 +75,15 @@ namespace DiceApi.Services.Implements
             result.RefferalStatasInfo.FirstDeposits = firstDeposits;
             result.RefferalStatasInfo.PaymentsSum = paymentSum;
             result.RefferalStatasInfo.PaymentCount = paymentCount;
-            result.RefferalStatasInfo.AverageIncomePerPlayer = ((paymentSum / 100) * user.ReferalPercent) / refferals.Count;
+
+            if (refferals.Count > 0)
+            {
+                result.RefferalStatasInfo.AverageIncomePerPlayer = ((paymentSum / 100) * user.ReferalPercent) / refferals.Count;
+            }
+            else
+            {
+                result.RefferalStatasInfo.AverageIncomePerPlayer = 0;
+            }
 
             result.DashBoardInformation = GetDashBoardInformation(request, allPayments, user, refferals);
 
@@ -77,11 +94,11 @@ namespace DiceApi.Services.Implements
         {
             var result = new List<DashBoardInformation>();
             var dateRange = request.DateRange == DateRange.AllTime
-                ? owner.RegistrationDate
-                : GetDateRange(request.DateRange);
+                ? owner.RegistrationDate.Date
+                : GetDateRange(request.DateRange).Value.Date;
 
-            List<DateTime> dateList = Enumerable.Range(0, (DateTime.UtcNow - dateRange).Value.Days + 1)
-            .Select(offset => dateRange.Value.AddDays(offset))
+            List<DateTime> dateList = Enumerable.Range(0, (DateTime.UtcNow.Date - dateRange).Days + 1)
+            .Select(offset => dateRange.AddDays(offset))
             .ToList();
 
             foreach (var date in dateList)
@@ -99,10 +116,48 @@ namespace DiceApi.Services.Implements
                 result.Add(info);
             }
 
-
             return result;
         }
 
+
+        public GetReferalStatsResponce GetEmptyData(User user, DateTime? dateRange)
+        {
+            var result = new GetReferalStatsResponce();
+
+            result.RevSharePercent = user.ReferalPercent;
+            result.Ballance = user.Ballance;
+            result.Income = 0;
+
+            result.RefferalStatasInfo.RegistrationCount = 0;
+            result.RefferalStatasInfo.FirstDeposits = 0;
+            result.RefferalStatasInfo.PaymentsSum = 0;
+            result.RefferalStatasInfo.PaymentCount = 0;
+            result.RefferalStatasInfo.AverageIncomePerPlayer = 0;
+
+            result.DashBoardInformation = new List<DashBoardInformation>();
+
+
+            List<DateTime> dateList = Enumerable.Range(0, (DateTime.UtcNow - dateRange).Value.Days + 1)
+            .Select(offset => dateRange.Value.AddDays(offset))
+            .ToList();
+
+            foreach (var date in dateList)
+            {
+                var info = new DashBoardInformation();
+
+                info.Date = date;
+                info.RegistrationCount = 0;
+                info.DepositsCount = 0;
+                info.Income = 0;
+                info.DepositsSum = 0;
+
+                result.DashBoardInformation.Add(info);
+            }
+
+            return result;
+
+
+        }
 
         public DateTime? GetDateRange(DateRange dateRange)
         {

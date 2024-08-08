@@ -68,9 +68,7 @@ namespace DiceApi.Services.Implements
             {
                 bettedUserIds.Add(user.Id);
 
-                await _cacheService.DeleteCache(CacheConstraints.BETTED_HORSE_RACE_USERS);
-
-                await _cacheService.WriteCache(CacheConstraints.BETTED_HORSE_RACE_USERS, bettedUserIds);
+                await _cacheService.UpdateCache(CacheConstraints.BETTED_HORSE_RACE_USERS, bettedUserIds);
             }
 
             await _cacheService.WriteCache(CacheConstraints.HORSE_RACE_USER_BET + user.Id, request);
@@ -95,7 +93,7 @@ namespace DiceApi.Services.Implements
         {
             var result = new HorseRaceActiveBets();
 
-            var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_ROULETTE_USERS);
+            var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
 
             if (bettedUserIds == null)
             {

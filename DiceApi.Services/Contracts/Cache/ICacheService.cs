@@ -14,10 +14,7 @@ namespace DiceApi.Services
 
         Task UpdateCache<T>(string key, T value, TimeSpan timeSpan = default);
 
-        Task<string> ReadCache(string key);
-
         Task<T> ReadCache<T>(string key);
-
 
         Task DeleteCache(string key);
     }

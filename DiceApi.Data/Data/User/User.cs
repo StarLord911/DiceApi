@@ -30,6 +30,9 @@ namespace DiceApi.Data
         [JsonProperty("isActive")]
         public bool IsActive { get; set; }
 
+        /// <summary>
+        /// Роль юзера.
+        /// </summary>
         public string Role { get; set; }
 
         /// <summary>
@@ -42,6 +45,9 @@ namespace DiceApi.Data
         /// </summary>
         public decimal ReferalSum { get; set; }
 
+        /// <summary>
+        /// Ip регистраций.
+        /// </summary>
         public string RegistrationIp { get; set; }
 
         public string BlockReason { get; set; }
@@ -56,6 +62,8 @@ namespace DiceApi.Data
         public string LastAuthIp { get; set; }
 
         public bool EnableWithdrawal { get; set; }
+
+        public long? TelegramUserId { get; set; }
 
     }
 }
