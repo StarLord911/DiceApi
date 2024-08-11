@@ -27,19 +27,16 @@ namespace DiceApi.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
-        private readonly ITelegramBotClient _telegramBotClient;
         private readonly ICacheService _cacheService;
         private readonly IWageringRepository _wageringRepository;
 
 
         public UserController(IUserService userService,
-            ITelegramBotClient telegramBotClient,
             ICacheService cacheService,
             IWageringRepository wageringRepository,
             IMapper mapper)
         {
             _userService = userService;
-            _telegramBotClient = telegramBotClient;
             _cacheService = cacheService;
             _wageringRepository = wageringRepository;
 

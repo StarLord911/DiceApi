@@ -98,7 +98,7 @@ namespace DiceApi.Controllers.CallBacks
 
                 if (status == 1)
                 {
-                    await _withdrawalsService.UpdateStatus(withrowal.Id, WithdrawalStatus.Confirmed);
+                    await _withdrawalsService.UpdateStatus(withrowal.Id, WithdrawalStatus.Processed);
                 }
                 else if(status == 8 || status == 9 || status == 10)
                 {

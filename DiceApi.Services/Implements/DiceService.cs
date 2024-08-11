@@ -17,28 +17,30 @@ namespace DiceApi.Services.Implements
         private readonly IDiceGamesRepository _diceGamesRepository;
         private readonly IWageringRepository _wageringRepository;
         private readonly ICacheService _cacheService;
-
+        private readonly ILastGamesService _lastGamesService;
         private readonly ILogRepository _logRepository;
 
         public DiceService(IUserService userService,
             IDiceGamesRepository diceGamesRepository,
             ILogRepository logRepository,
             IWageringRepository wageringRepository,
-            ICacheService cacheService)
+            ICacheService cacheService,
+            ILastGamesService lastGamesService)
         {
             _userService = userService;
             _diceGamesRepository = diceGamesRepository;
             _logRepository = logRepository;
             _wageringRepository = wageringRepository;
             _cacheService = cacheService;
+            _lastGamesService = lastGamesService;
         }
 
-        public async Task<(DiceResponce, DiceGame)> StartDice(DiceRequest request)
+        public async Task<DiceResponce> StartDice(DiceRequest request)
         {
             // Проверка валидности запроса
             if (!ValidateDiceRequest(request))
             {
-                return (new DiceResponce { IsSucces = false }, new DiceGame());
+                return new DiceResponce { IsSucces = false };
             }
 
             var response = new DiceResponce();
@@ -95,10 +97,16 @@ namespace DiceApi.Services.Implements
             // Обновление ежедневных выигрышей (если выигрыш)
             if (response.IsSucces)
             {
+                await UpdateLastGames(diceGame, user);
                 await UpdateWinningToDay(winSum);
             }
 
-            return (response, diceGame);
+            return response;
+        }
+
+        private async Task UpdateLastGames(DiceGame diceGame, User user)
+        {
+            await _lastGamesService.AddLastGames(user.Name, diceGame.Sum, diceGame.CanWin, diceGame.Win, GameType.DiceGame);
         }
 
         // Метод для обработки выигрыша
@@ -120,9 +128,7 @@ namespace DiceApi.Services.Implements
         // Метод для обновления кеша с настройками игры
         private async Task UpdateGameCacheAsync(Settings cache)
         {
-            var newCache = SerializationHelper.Serialize(cache);
-            await _cacheService.DeleteCache(CacheConstraints.SETTINGS_KEY);
-            await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, newCache);
+            await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, cache);
         }
 
         // Метод для создания записи новой игры в базе данных

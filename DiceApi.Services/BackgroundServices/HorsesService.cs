@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DiceApi.Services.Contracts;
 
 namespace DiceApi.Services.BackgroundServices
 {
@@ -20,19 +21,19 @@ namespace DiceApi.Services.BackgroundServices
     {
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
-        private readonly IHubContext<NewGameHub> _newGameHub;
+        private readonly ILastGamesService _lastGamesService;
         private readonly IHubContext<HorseGameEndGameHub> _hubContext;
         private readonly IHubContext<HorsesGameStartTaimerHub> _gameStartTaimerHub;
 
         private readonly ILogRepository _logRepository;
 
-        public HorsesService(ICacheService cacheService, IUserService userService, IHubContext<HorseGameEndGameHub> hubContext, IHubContext<NewGameHub> newGameHub,
+        public HorsesService(ICacheService cacheService, IUserService userService, IHubContext<HorseGameEndGameHub> hubContext, ILastGamesService lastGamesService,
             ILogRepository logRepository, IHubContext<HorsesGameStartTaimerHub> gameStartTaimerHub)
         {
             _cacheService = cacheService;
             _userService = userService;
             _hubContext = hubContext;
-            _newGameHub = newGameHub;
+            _lastGamesService = lastGamesService;
             _logRepository = logRepository;
             _gameStartTaimerHub = gameStartTaimerHub;
         }
@@ -99,10 +100,12 @@ namespace DiceApi.Services.BackgroundServices
 
             foreach (var userBets in allBets)
             {
+                var log = new StringBuilder();
+
                 if (userBets != null)
                 {
                     var user = _userService.GetById(userBets.UserId);
-
+                    log.AppendLine($"User horses bets UserId {user.Id}");
                     var winBet = userBets.HorseBets.FirstOrDefault(b => b.HorseColor == color);
 
                     if (winBet != null)
@@ -110,12 +113,31 @@ namespace DiceApi.Services.BackgroundServices
                         var winSum = winBet.BetSum * 8;
                         allWinSums += winSum;
 
+                        log.AppendLine($"User set winned horse color: {winBet.HorseColor} betSum: {winBet.BetSum} winSum: {winSum}");
+
                         await _userService.UpdateUserBallance(user.Id, user.Ballance + winSum);
+
                     }
+
+                    foreach (var bet in userBets.HorseBets)
+                    {
+                        var winSum = bet.HorseColor == color 
+                            ? bet.BetSum * 8 
+                            : 0;
+
+                        await AddLastGames(user.Name, winBet.BetSum, winSum, winSum != 0);
+                    }
+
+                    await _logRepository.LogInfo(log.ToString());
                 }
             }
 
             await UpdateWinningToDay(allWinSums);
+        }
+
+        private async Task AddLastGames(string userName, decimal betSum, decimal canWin, bool win)
+        {
+            await _lastGamesService.SendNewLastGames(userName, betSum, canWin, win, GameType.Horses);
         }
 
         private HorseColor ChechAntiMinus(HorseColor horseColor, Dictionary<HorseColor, decimal> pairs)

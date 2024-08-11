@@ -41,7 +41,7 @@ namespace DiceApi.Controllers
         private readonly IWageringRepository _wageringRepository;
         private readonly IMinesService _minesService;
         private readonly ICacheService _cacheService;
-        private IHubContext<NewGameHub> _newGameContext;
+        private IHubContext<LastGamesHub> _newGameContext;
         private IHubContext<OnlineUsersHub> _onlineContext;
 
         public AdminController(IUserService userService,
@@ -56,7 +56,7 @@ namespace DiceApi.Controllers
             IWageringRepository wageringRepository,
             IMinesService minesService,
             ICacheService cacheService,
-            IHubContext<NewGameHub> hubContext,
+            IHubContext<LastGamesHub> hubContext,
             IHubContext<OnlineUsersHub> onlineContext,
             IMapper mapper)
         {
@@ -132,7 +132,7 @@ namespace DiceApi.Controllers
             mappedUser.RegistrationIpAddres = user.RegistrationIp;
 
             mappedUser.BallanceAdd = (await _paymentService.GetPaymentsByUserId(user.Id)).Where(p => p.Status == PaymentStatus.Payed).Sum(s => s.Amount);
-            mappedUser.ExitBallance = (await _withdrawalsService.GetAllActiveByUserId(user.Id)).Where(w => w.Status == WithdrawalStatus.Confirmed).Sum(s => s.Amount);
+            mappedUser.ExitBallance = (await _withdrawalsService.GetAllActiveByUserId(user.Id)).Where(w => w.Status == WithdrawalStatus.AdapterHandle).Sum(s => s.Amount);
             //TODO: допилить еще для маинса
             var diceGames = (await _diceService.GetAllDiceGamesByUserId(user.Id));
             var minesGames = (await _minesService.GetMinesGamesByUserId(user.Id));
@@ -326,7 +326,7 @@ namespace DiceApi.Controllers
 
             if (request.OnlyActiveWithdrawals)
             {
-                withdrawals = withdrawals.Where(w => w.Status == WithdrawalStatus.New).ToList();
+                withdrawals = withdrawals.Where(w => w.Status == WithdrawalStatus.Moderation).ToList();
             }
 
             var result = withdrawals.Skip((request.Pagination.PageNumber - 1) * request.Pagination.PageSize)
@@ -557,7 +557,7 @@ namespace DiceApi.Controllers
             foreach (var referal in referals)
             {
                 result += (await _withdrawalsService.GetAllActiveByUserId(referal.Id))
-                    .Where(p => p.Status == WithdrawalStatus.New).Sum(s => s.Amount);
+                    .Where(p => p.Status == WithdrawalStatus.Moderation).Sum(s => s.Amount);
             }
 
             return result;

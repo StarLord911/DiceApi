@@ -120,7 +120,7 @@ namespace DiceApi.Services.Implements
                 Amount = request.Amount,
                 CardNumber = request.CartNumber,
                 CreateDate = DateTime.Now,
-                Status = WithdrawalStatus.New,
+                Status = WithdrawalStatus.Moderation,
                 BankId = request.BankId
             };
 
@@ -161,7 +161,7 @@ namespace DiceApi.Services.Implements
         {
             var result = new WithdrawalStats();
             var allWithdrawals = await _withdrawalsRepository.GetAll();
-            var withdrawals = allWithdrawals.Where(w => w.Status == WithdrawalStatus.New);
+            var withdrawals = allWithdrawals.Where(w => w.Status == WithdrawalStatus.Moderation);
 
             result.ToDay = withdrawals.Where(r => r.CreateDate.Date == DateTime.Today).Sum(w => w.Amount);
 
@@ -171,7 +171,7 @@ namespace DiceApi.Services.Implements
 
             result.AllDays = withdrawals.Sum(w => w.Amount);
 
-            result.WithdrawalWaitSum = allWithdrawals.Where(w => w.Status == WithdrawalStatus.New).Sum(w => w.Amount);
+            result.WithdrawalWaitSum = allWithdrawals.Where(w => w.Status == WithdrawalStatus.Moderation).Sum(w => w.Amount);
 
             return result;
 
@@ -188,7 +188,7 @@ namespace DiceApi.Services.Implements
 
             var res = await _paymentAdapterService.CreateWithdrawal(withdrawal);
 
-            await UpdateStatus(withdrawal.Id, WithdrawalStatus.Moderation);
+            await UpdateStatus(withdrawal.Id, WithdrawalStatus.AdapterHandle);
 
             await _withdrawalsRepository.UpdateFkWaletId(withdrawal.Id, res.Data.Id);
 

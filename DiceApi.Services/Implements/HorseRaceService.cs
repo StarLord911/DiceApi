@@ -21,18 +21,21 @@ namespace DiceApi.Services.Implements
         private readonly IUserService _userService;
         private readonly ICacheService _cacheService;
         private readonly IWageringRepository _wageringRepository;
+        private readonly ILogRepository _logRepository;
 
         private readonly IHubContext<HorseGameBetsHub> _hubContext;
 
         public HorseRaceService(IUserService userService,
             ICacheService cacheService,
             IWageringRepository wageringRepository,
-            IHubContext<HorseGameBetsHub> hubContext)
+            IHubContext<HorseGameBetsHub> hubContext,
+            ILogRepository logRepository)
         {
             _userService = userService;
             _cacheService = cacheService;
             _wageringRepository = wageringRepository;
             _hubContext = hubContext;
+            _logRepository = logRepository;
         }
 
         public async Task<string> BetHorceRace(CreateHorseBetRequest request)
@@ -72,6 +75,8 @@ namespace DiceApi.Services.Implements
             }
 
             await _cacheService.WriteCache(CacheConstraints.HORSE_RACE_USER_BET + user.Id, request);
+
+            await _logRepository.LogInfo($"User {user.Id} set new bet in horses betSum: {betSum}");
 
             foreach (var bet in request.HorseBets)
             {

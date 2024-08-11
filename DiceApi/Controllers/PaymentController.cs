@@ -41,9 +41,6 @@ namespace DiceApi.Controllers
         [HttpPost("createPayment")]
         public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentRequest createPaymentRequest)
         {
-
-           
-
             var payment = new Payment
             {
                 Amount = createPaymentRequest.Amount,

@@ -36,6 +36,10 @@ namespace DiceApi.Data.Data.Roulette
 
         public string BetColor { get; set; }
 
+        public bool IsRange { get; set; }
+        
+        public string Range { get; set; }
+
         public int? BetNumber { get; set; }
 
     }

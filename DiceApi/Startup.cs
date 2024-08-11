@@ -89,6 +89,7 @@ namespace DiceApi
                 options.InstanceName = "gameCache"; // ќпционально. ”кажите им€ вашего экземпл€ра Redis
             });
 
+            services.AddTransient<ILastGamesService, LastGamesService>();
             services.AddTransient<ILogRepository, LogRepository>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IUserService, UserService>();
@@ -142,7 +143,7 @@ namespace DiceApi
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<NewGameHub>(ConfigHelper.GetConfigValue(ConfigerationNames.SignalRHubAddres));
+                endpoints.MapHub<LastGamesHub>(ConfigHelper.GetConfigValue(ConfigerationNames.SignalRHubAddres));
                 endpoints.MapHub<OnlineUsersHub>("/onlineusershub");
                 endpoints.MapHub<ChatMessagesHub>("/userChatHub");
 

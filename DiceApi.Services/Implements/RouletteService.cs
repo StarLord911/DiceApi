@@ -21,6 +21,7 @@ namespace DiceApi.Services
     {
         private readonly IUserService _userService;
         private readonly ICacheService _cacheService;
+        private readonly ILogRepository _logRepository;
         private readonly IWageringRepository _wageringRepository;
 
         private readonly IHubContext<RouletteBetsHub> _hubContext;
@@ -28,8 +29,10 @@ namespace DiceApi.Services
         public RouletteService(IUserService userService,
             ICacheService cacheService,
             IWageringRepository wageringRepository,
+            ILogRepository logRepository,
             IHubContext<RouletteBetsHub> hubContext)
         {
+            _logRepository = logRepository;
             _userService = userService;
             _cacheService = cacheService;
             _wageringRepository = wageringRepository;
@@ -63,6 +66,22 @@ namespace DiceApi.Services
             }
 
             var updatedBallance = user.Ballance - betSum;
+
+            if (bettedUserIds == null)
+            {
+                bettedUserIds = new List<long>() { user.Id };
+                await _cacheService.WriteCache(CacheConstraints.BETTED_ROULETTE_USERS, bettedUserIds);
+            }
+            else
+            {
+                bettedUserIds.Add(user.Id);
+
+                await _cacheService.DeleteCache(CacheConstraints.BETTED_ROULETTE_USERS);
+
+                await _cacheService.WriteCache(CacheConstraints.BETTED_ROULETTE_USERS, bettedUserIds);
+            }
+
+            await _logRepository.LogInfo($"User {user.Id} set new bet in roulette betSum: {betSum}");
 
             await UpdateWageringAsync(request.UserId, betSum);
 
@@ -110,6 +129,7 @@ namespace DiceApi.Services
                 foreach (var bet in userBets.Bets)
                 {
                     bool isColorBet = false;
+                    bool isRangeBet = false;
 
                     var multiplier = 0;
 
@@ -117,16 +137,19 @@ namespace DiceApi.Services
                     {
                         multiplier = 18;
                         isColorBet = false;
+                        isRangeBet = false;
                     }
                     else if (bet.BetColor.IsNotNullOrEmpty() && (bet.BetColor == RoutletteConsts.RED || bet.BetColor == RoutletteConsts.BLACK))
                     {
                         multiplier = 2;
                         isColorBet = true;
+                        isRangeBet = false;
                     }
                     else if (bet.BetRange.IsNotNullOrEmpty() && (bet.BetRange == RoutletteConsts.FirstRange || bet.BetRange == RoutletteConsts.SecondRange))
                     {
                         multiplier = 2;
-                        isColorBet = true;
+                        isColorBet = false;
+                        isRangeBet = true;
                     }
 
                     result.Bets.Add(new RouletteActiveBet() 
@@ -136,7 +159,8 @@ namespace DiceApi.Services
                         Multiplayer = multiplier,
                         IsColorBet = isColorBet,
                         BetColor = bet.BetColor,
-
+                        IsRange = isRangeBet, 
+                        Range = isRangeBet ? bet.BetRange : null,
                         BetNumber = isColorBet ? bet.BetNumber : null
                     });
                 }
@@ -150,6 +174,7 @@ namespace DiceApi.Services
             foreach (var bet in request.Bets)
             {
                 bool isColorBet = false;
+                bool isRangeBet = false;
 
                 var multiplier = 0;
 
@@ -157,16 +182,19 @@ namespace DiceApi.Services
                 {
                     multiplier = 18;
                     isColorBet = false;
+                    isRangeBet = false;
                 }
                 else if (bet.BetColor.IsNotNullOrEmpty() && (bet.BetColor == RoutletteConsts.RED || bet.BetColor == RoutletteConsts.BLACK))
                 {
                     multiplier = 2;
                     isColorBet = true;
+                    isRangeBet = false;
                 }
                 else if (bet.BetRange.IsNotNullOrEmpty() && (bet.BetRange == RoutletteConsts.FirstRange || bet.BetRange == RoutletteConsts.SecondRange))
                 {
                     multiplier = 2;
-                    isColorBet = true;
+                    isColorBet = false;
+                    isRangeBet = true;
                 }
 
                 var gameJson = JsonConvert.SerializeObject(new RouletteActiveBet() 
@@ -176,7 +204,8 @@ namespace DiceApi.Services
                     Multiplayer = multiplier,
                     IsColorBet = isColorBet, 
                     BetColor = isColorBet ? bet.BetColor : null,
-                    
+                    IsRange = isRangeBet,
+                    Range = isRangeBet ? bet.BetRange : null,
                     BetNumber = !isColorBet ? bet.BetNumber : null
                 });
 

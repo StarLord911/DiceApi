@@ -36,6 +36,6 @@ namespace DiceApi.Common
         public const string WINNINGS_TO_DAY = "WINNINGS_TO_DAY";
 
 
-
+        public const string LAST_GAMES_IN_SITE = "LAST_GAMES_IN_SITE";
     }
 }

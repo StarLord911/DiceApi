@@ -8,9 +8,9 @@ namespace DiceApi.Data
 {
     public enum WithdrawalStatus
     {
-        New = 1,
         Moderation = 4,
-        Confirmed = 2,
+        AdapterHandle = 2,
+        Processed = 6,
         UnConfirmed = 3,
         Error = 5
     }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Services.SignalRHubs
 {
-    public class NewGameHub : Hub
+    public class LastGamesHub : Hub
     {
         public async Task Send(string message)
         {

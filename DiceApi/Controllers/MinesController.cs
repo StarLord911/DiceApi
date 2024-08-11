@@ -17,10 +17,10 @@ namespace DiceApi.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMinesService _minesService;
-        private IHubContext<NewGameHub> _hubContext;
+        private IHubContext<LastGamesHub> _hubContext;
 
         public MinesController(IUserService userService,
-            IHubContext<NewGameHub> hubContext,
+            IHubContext<LastGamesHub> hubContext,
             IMinesService minesService)
         {
             _userService = userService;
@@ -35,21 +35,21 @@ namespace DiceApi.Controllers
             return await _minesService.CreateMinesGame(request);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("openCell")]
         public async Task<OpenCellResponce> OpenCell(OpenCellRequest request)
         {
             return await _minesService.OpenCell(request);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("getMinesGame")]
         public async Task<MinesGameApiModel> GetMinesGame(GetByUserIdRequest request)
         {
             return await _minesService.GetActiveMinesGameByUserId(request);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("finishMinesGame")]
         public async Task<FinishMinesGameResponce> FinishMinesGame(GetByUserIdRequest request)
         {

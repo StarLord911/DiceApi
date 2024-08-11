@@ -100,7 +100,7 @@ namespace DiceApi.Services
                 return;
             }
 
-            await _logRepository.LogInfo($"UpdateUserBallance sum: {sum} userId: {userId} ");
+            await _logRepository.LogInfo($"UpdateUserBallance new ballance: {sum} old ballance: {user.Ballance} userId: {userId} ");
 
             await _userRepository.UpdateUserBallance(userId, sum);
         }

@@ -15,6 +15,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DiceApi.Services.Contracts;
+using DiceApi.Services.Implements;
 
 namespace DiceApi.Services.BackgroundServices
 {
@@ -23,31 +25,23 @@ namespace DiceApi.Services.BackgroundServices
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
         private readonly IHubContext<RouletteEndGameHub> _hubContext;
-        private readonly IHubContext<NewGameHub> _newGameHub;
         private readonly IHubContext<RouletteGameStartTaimerHub> _gameStartTaimerHub;
         private readonly ILogRepository _logRepository;
+        private readonly ILastGamesService _lastGamesService;
 
         private readonly string RED = "Red";
         private readonly string BLACK = "Black";
 
-        private readonly List<string> canBets = new List<string>
-        {
-            "0", "1", "2", "3", "4",
-            "5", "6", "7", "8", "9",
-            "10", "11", "12", "13", "14",
-            "15", "16", "17", "18",
-            "Green"
-
-        };
-
-        public RouleteService(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext, IHubContext<NewGameHub> newGameHub,
-            ILogRepository logRepository, IHubContext<RouletteGameStartTaimerHub> gameStartTaimerHub)
+       
+        public RouleteService(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext,
+            ILogRepository logRepository, IHubContext<RouletteGameStartTaimerHub> gameStartTaimerHub,
+            ILastGamesService lastGamesService)
         {
             _cacheService = cacheService;
             _userService = userService;
             _hubContext = hubContext;
-            _newGameHub = newGameHub;
             _logRepository = logRepository;
+            _lastGamesService = lastGamesService;
 
             _gameStartTaimerHub = gameStartTaimerHub;
         }
@@ -84,6 +78,8 @@ namespace DiceApi.Services.BackgroundServices
 
                 if (bettedUserIds == null)
                 {
+                    await _logRepository.LogInfo($"Roulette bettedUserIds is null");
+
                     await Taimer();
                     return;
                 }
@@ -95,9 +91,12 @@ namespace DiceApi.Services.BackgroundServices
                     var userBets = await _cacheService.ReadCache<CreateRouletteBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
                     var user = _userService.GetById(id);
 
+                    var log = new StringBuilder();
+
                     if (userBets != null)
                     {
                         decimal winSum = 0;
+                        log.AppendLine($"User roulette bets UserId {user.Id} random value = {randomValue}");
 
                         foreach (var bet in userBets.Bets)
                         {
@@ -107,33 +106,41 @@ namespace DiceApi.Services.BackgroundServices
                             {
                                 winSum += bet.BetSum * 18;
                                 multiplier = 18;
+                                log.AppendLine($"Bet number {bet.BetNumber} multiplier = 18");
+
                             }
                             else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.RED && GetDroppedColor(randomValue) == RoutletteConsts.RED)
                             {
                                 winSum += bet.BetSum * 2;
                                 multiplier = 2;
+                                log.AppendLine($"Bet color RED multiplier = 2");
+
                             }
                             else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.BLACK && GetDroppedColor(randomValue) == RoutletteConsts.BLACK)
                             {
                                 winSum += bet.BetSum * 2;
                                 multiplier = 2;
+                                log.AppendLine($"Bet color BLACK multiplier = 2");
                             }
                             else if (bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.FirstRange && (randomValue >= 1 && randomValue <= 9))
                             {
                                 winSum += bet.BetSum * 2;
                                 multiplier = 2;
+                                log.AppendLine($"Bet select FirstRange multiplier = 2");
                             }
                             else if (bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.SecondRange && (randomValue >= 10 && randomValue <= 18))
                             {
                                 winSum += bet.BetSum * 2;
                                 multiplier = 2;
+                                log.AppendLine($"Bet select SecondRange multiplier = 2");
                             }
 
                             allWinSums += winSum;
-                            var jsonGame = JsonConvert.SerializeObject(GetNewGameApiModel(bet.BetSum, user.Name, multiplier));
 
-                            await _newGameHub.Clients.All.SendAsync(jsonGame);
+                            await AddLastGames(user.Name, bet.BetSum, bet.BetSum * multiplier, multiplier != 0);
                         }
+
+                        await _logRepository.LogInfo(log.ToString());
 
                         await _userService.UpdateUserBallance(user.Id, winSum + user.Ballance);
                     }
@@ -153,6 +160,11 @@ namespace DiceApi.Services.BackgroundServices
                 await _logRepository.LogException("Exception in roulette", ex);
             }
 
+        }
+
+        private async Task AddLastGames(string userName, decimal betSum, decimal canWin, bool win)
+        {
+            await _lastGamesService.SendNewLastGames(userName, betSum, canWin, win, GameType.Horses);
         }
 
         private async Task UpdateWinningToDay(decimal amount)

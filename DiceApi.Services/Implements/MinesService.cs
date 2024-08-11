@@ -23,8 +23,8 @@ namespace DiceApi.Services
         private readonly IMinesRepository _minesRepository;
         private readonly IAntiMinusService _antiMinusService;
         private readonly IWageringRepository _wageringRepository;
+        private readonly ILastGamesService _lastGamesService;
 
-        private IHubContext<NewGameHub> _hubContext;
         private readonly Dictionary<int, List<double>> chanses = new Dictionary<int, List<double>>
         {
             { 2, new List<double>() { 1.09, 1.19, 1.3, 1.43, 1.58, 1.75, 1.96, 2.21, 2.5, 2.86, 3.3, 3.85, 4.55, 5.45, 6.67, 8.33, 10.71, 14.29, 20, 30, 50, 100, 300 } },
@@ -60,7 +60,7 @@ namespace DiceApi.Services
             IAntiMinusService antiMinusService,
             IWageringRepository wageringRepository,
             IMapper mapper,
-            IHubContext<NewGameHub> hubContext)
+            ILastGamesService lastGamesService)
         {
             _cacheService = cacheService;
             _userService = userService;
@@ -68,8 +68,8 @@ namespace DiceApi.Services
             _antiMinusService = antiMinusService;
             _wageringRepository = wageringRepository;
 
-            _hubContext = hubContext;
             _mapper = mapper;
+            _lastGamesService = lastGamesService;
         }
         #region public methods
 
@@ -152,6 +152,11 @@ namespace DiceApi.Services
             if (game == null || !game.IsActiveGame())
             {
                 return new FinishMinesGameResponce { Succes = false, Message = "Game not found" };
+            }
+
+            if (game.OpenedCellsCount == 0)
+            {
+                return new FinishMinesGameResponce { Succes = false, Message = "Игру нельзя завершить" };
             }
 
             await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
@@ -332,18 +337,7 @@ namespace DiceApi.Services
                 userName = _userService.GetById(game.UserId).Name;
             }
 
-            var apiModel = new GameApiModel
-            {
-                UserName = ReplaceAt(userName, 4, '*'),
-                Sum = game.BetSum,
-                CanWinSum = Math.Round(game.CanWin, 2),
-                Multiplier = (decimal)Math.Round(game.Chances[game.OpenedCellsCount - 1], 2),
-                Win = game.FinishGame,
-                GameType = Data.GameType.Mines,
-                GameDate = DateTime.Now.AddHours(3).ToString("G")
-            };
-
-            await _hubContext.Clients.All.SendAsync("ReceiveMessage", apiModel);
+            await _lastGamesService.AddLastGames(userName, game.BetSum, Math.Round(game.CanWin, 2), game.FinishGame, GameType.Mines);
         }
 
         private async Task UpdateWinningToDay(decimal amount)

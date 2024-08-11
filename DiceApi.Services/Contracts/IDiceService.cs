@@ -9,7 +9,7 @@ namespace DiceApi.Services.Contracts
 {
     public interface IDiceService
     {
-        Task<(DiceResponce, DiceGame)> StartDice(DiceRequest request);
+        Task<DiceResponce> StartDice(DiceRequest request);
 
         Task<List<DiceGame>> GetAllDiceGamesByUserId(long userId);
 
