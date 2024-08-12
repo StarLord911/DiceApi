@@ -97,9 +97,10 @@ namespace DiceApi.Services.Implements
             // Обновление ежедневных выигрышей (если выигрыш)
             if (response.IsSucces)
             {
-                await UpdateLastGames(diceGame, user);
                 await UpdateWinningToDay(winSum);
             }
+
+            await UpdateLastGames(diceGame, user);
 
             return response;
         }
@@ -141,7 +142,7 @@ namespace DiceApi.Services.Implements
                 Sum = request.Sum,
                 CanWin = winSum,
                 Win = isWin,
-                GameTime = DateTime.Now
+                GameTime = DateTime.UtcNow
             };
             await _diceGamesRepository.Add(diceGame);
             return diceGame;

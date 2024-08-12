@@ -73,7 +73,7 @@ namespace DiceApi.Services.Implements
                 await _userService.UpdateRefferalOwnerId(request.UserId, promocode.RefferalPromocodeOwnerId.Value);
             }
 
-            if (user.TelegramUserId != null)
+            if (user.TelegramUserId == null)
             {
                 responce.Message = "Привяжите телеграм";
                 responce.Successful = false;
@@ -88,7 +88,7 @@ namespace DiceApi.Services.Implements
             {
                 UserId = request.UserId,
                 Promocode = request.Promocode,
-                ActivationDateTime = DateTime.Now,
+                ActivationDateTime = DateTime.UtcNow,
                 Wager = promocode.Wagering,
                 AddedBallance = promocode.BallanceAdd
             };
@@ -155,10 +155,10 @@ namespace DiceApi.Services.Implements
             var promocode = new Promocode()
             {
                 ActivationCount = 500,
-                BallanceAdd = 5,
+                BallanceAdd = 50,
                 PromoCode = request.Promocode,
                 IsActive = true,
-                Wagering = 20,
+                Wagering = 10,
                 IsRefferalPromocode = true,
                 RefferalPromocodeOwnerId = request.UserId
             };

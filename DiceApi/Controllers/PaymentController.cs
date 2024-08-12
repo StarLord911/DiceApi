@@ -1,6 +1,7 @@
 ﻿using DiceApi.Attributes;
 using DiceApi.Data;
 using DiceApi.Data.Data.Payment;
+using DiceApi.Data.Data.Payment.Api;
 using DiceApi.Data.Requests;
 using DiceApi.Services;
 using DiceApi.Services.Common;
@@ -85,6 +86,21 @@ namespace DiceApi.Controllers
             }
 
             return result;
+        }
+
+        [Authorize]
+        [HttpPost("getCryptoRates")]
+        public List<CryptoRate> GetCryptoRates()
+        {
+
+            return new List<CryptoRate>()
+            {
+                new CryptoRate()
+                {
+                    Crypto = "usdt",
+                    RateToRub = RatesHelper.GetRates()
+                } 
+            };
         }
 
         [Authorize]

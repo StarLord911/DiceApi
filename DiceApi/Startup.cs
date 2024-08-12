@@ -82,12 +82,13 @@ namespace DiceApi
             ConfigHelper.LoadConfig(Configuration);
 
             var addres = ConfigHelper.GetConfigValue(ConfigerationNames.CacheAddres);
-            var ss = "relaxed-bullfrog-49195.upstash.io:6379,password=AcArAAIjcDFhZjcwMjAzY2M0ZDM0ZDQzYjQ3YzU4MzVmYjI1Y2QyN3AxMA,ssl=true";
+
             services.AddStackExchangeRedisCache(options =>
             {
                 options.Configuration = addres; // ”кажите адрес и порт вашего Redis-сервера
                 options.InstanceName = "gameCache"; // ќпционально. ”кажите им€ вашего экземпл€ра Redis
             });
+            services.AddMemoryCache();
 
             services.AddTransient<ILastGamesService, LastGamesService>();
             services.AddTransient<ILogRepository, LogRepository>();

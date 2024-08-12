@@ -11,59 +11,122 @@ namespace DiceApi.Services
 {
     public class CacheService : ICacheService
     {
-        private readonly IDistributedCache _distributedCache;
+        private readonly IMemoryCache _cache;
 
-        public CacheService(IDistributedCache distributedCache)
+        public CacheService(IMemoryCache cache)
         {
-            _distributedCache = distributedCache;
+            _cache = cache;
         }
 
-        public async Task DeleteCache(string key)
+        public Task WriteCache(string key, string value, TimeSpan timeSpan = default)
         {
-            await _distributedCache.RemoveAsync(key);
+            return WriteCache<string>(key, value, timeSpan);
         }
 
-        public async Task<T> ReadCache<T>(string key)
+        public Task WriteCache<T>(string key, T value, TimeSpan timeSpan = default)
         {
-            var message = await _distributedCache.GetStringAsync(key);
-
-            if (string.IsNullOrEmpty(message))
-            {
-                return default;
-            }
-
-            return SerializationHelper.Deserialize<T>(message);
-
-        }
-
-        public async Task UpdateCache<T>(string key, T value, TimeSpan timeSpan = default)
-        {
-            await DeleteCache(key);
-
-            await WriteCache<T>(key, value, timeSpan);
-        }
-
-        public async Task WriteCache(string key, string value, TimeSpan timeSpan)
-        {
+            var cacheEntryOptions = new MemoryCacheEntryOptions();
 
             if (timeSpan == default)
             {
-                timeSpan = TimeSpan.FromDays(365);
+                cacheEntryOptions.SetAbsoluteExpiration(TimeSpan.FromDays(10));
             }
-
-            await _distributedCache.SetStringAsync(key, value, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = timeSpan });
-        }
-
-        public async Task WriteCache<T>(string key, T value, TimeSpan timeSpan = default)
-        {
-            if (timeSpan == default)
+            else
             {
-                timeSpan = TimeSpan.FromDays(365);
+                cacheEntryOptions.SetAbsoluteExpiration(timeSpan);
             }
 
             var cache = SerializationHelper.Serialize(value);
 
-            await _distributedCache.SetStringAsync(key, cache, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = timeSpan });
+            _cache.Set(key, cache, cacheEntryOptions);
+
+            return Task.CompletedTask;
+        }
+
+        public Task UpdateCache<T>(string key, T value, TimeSpan timeSpan = default)
+        {
+            return WriteCache(key, value, timeSpan);
+        }
+
+        public Task<T> ReadCache<T>(string key)
+        {
+            if (_cache.TryGetValue(key, out string cachedValue))
+            {
+                // 2. Проверка, является ли значение пустым или null
+                if (!string.IsNullOrEmpty(cachedValue))
+                {
+                    // 3. Десериализация строки в объект типа T
+                    var res = SerializationHelper.Deserialize<T>(cachedValue);
+                    return Task.FromResult(res);
+                }
+            }
+
+            // 4. Возвращение значения по умолчанию, если кэш пустой или значение не найдено
+            return Task.FromResult(default(T));
+        }
+
+        public Task DeleteCache(string key)
+        {
+            _cache.Remove(key);
+            return Task.CompletedTask;
         }
     }
+    //public class CacheService : ICacheService
+    //{
+    //    private readonly IDistributedCache _distributedCache;
+
+    //    public CacheService(IDistributedCache distributedCache)
+    //    {
+    //        _distributedCache = distributedCache;
+    //    }
+
+    //    public async Task<T> ReadCache<T>(string key)
+    //    {
+    //        var message = await _distributedCache.GetStringAsync(key);
+
+    //        if (string.IsNullOrEmpty(message))
+    //        {
+    //            return default;
+    //        }
+
+    //        return SerializationHelper.Deserialize<T>(message);
+
+    //    }
+
+    //    public async Task WriteCache(string key, string value, TimeSpan timeSpan)
+    //    {
+
+    //        if (timeSpan == default)
+    //        {
+    //            timeSpan = TimeSpan.FromDays(365);
+    //        }
+
+    //        await _distributedCache.SetStringAsync(key, value, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = timeSpan });
+    //    }
+
+    //    public async Task UpdateCache<T>(string key, T value, TimeSpan timeSpan = default)
+    //    {
+    //        var deleteTask = DeleteCache(key);
+    //        var writeTask = WriteCache(key, value, timeSpan);
+
+    //        await Task.WhenAll(deleteTask, writeTask);
+    //    }
+
+    //    public async Task DeleteCache(string key)
+    //    {
+    //        await _distributedCache.RemoveAsync(key);
+    //    }
+
+    //    public async Task WriteCache<T>(string key, T value, TimeSpan timeSpan = default)
+    //    {
+    //        if (timeSpan == default)
+    //        {
+    //            timeSpan = TimeSpan.FromDays(365);
+    //        }
+
+    //        var cache = SerializationHelper.Serialize(value);
+
+    //        await _distributedCache.SetStringAsync(key, cache, new DistributedCacheEntryOptions() { AbsoluteExpirationRelativeToNow = timeSpan });
+    //    }
+    //}
 }

@@ -36,7 +36,7 @@ namespace DiceApi.Services.Implements
                 Multiplier = Math.Round(canWin / betSum, 2),
                 Win = win,
                 GameType = gameType,
-                GameDate = DateTime.Now.ToString("HH:mm")
+                GameDate = DateTime.UtcNow.ToString("HH:mm")
             };
 
             var lastGames = await _cacheService.ReadCache<List<GameApiModel>>(CacheConstraints.LAST_GAMES_IN_SITE);
