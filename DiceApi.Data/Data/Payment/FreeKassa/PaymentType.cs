@@ -13,10 +13,8 @@ namespace DiceApi.Data.Data.Payment.FreeKassa
     {
         UMoney = 6,
         VisaRub = 4,
-        OnlineBank = 13,
         Sbp = 42,
-        MasterCardRub = 8,
-        CardRub = 36,
+
         UsdtErc20 = 14,
         UsdtTrc20 = 15
 

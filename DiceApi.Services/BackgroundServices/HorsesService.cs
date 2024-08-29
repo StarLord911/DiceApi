@@ -62,12 +62,11 @@ namespace DiceApi.Services.BackgroundServices
                 await _logRepository.LogInfo($"Horse game win {color}");
 
                 var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
+                await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
 
                 if (bettedUserIds == null)
                 {
                     await UpdateLastHorseGames(color);
-                    await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
-
                     await Taimer();
                     return;
                 }
@@ -79,8 +78,6 @@ namespace DiceApi.Services.BackgroundServices
                 //color = ChechAntiMinus(color, calculatedBets);
 
                 await UpdateLastHorseGames(color);
-                await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
-
                 await ProccessBets(color, allBets);
 
                 await _cacheService.DeleteCache(CacheConstraints.BETTED_HORSE_RACE_USERS);
@@ -125,7 +122,7 @@ namespace DiceApi.Services.BackgroundServices
                             ? bet.BetSum * 8 
                             : 0;
 
-                        await AddLastGames(user.Name, winBet.BetSum, winSum, winSum != 0);
+                        await AddLastGames(user.Name, bet.BetSum, bet.BetSum * 8, winSum != 0);
                     }
 
                     await _logRepository.LogInfo(log.ToString());
@@ -137,7 +134,7 @@ namespace DiceApi.Services.BackgroundServices
 
         private async Task AddLastGames(string userName, decimal betSum, decimal canWin, bool win)
         {
-            await _lastGamesService.SendNewLastGames(userName, betSum, canWin, win, GameType.Horses);
+            await _lastGamesService.AddLastGames(userName, betSum, canWin, win, GameType.Horses);
         }
 
         private HorseColor ChechAntiMinus(HorseColor horseColor, Dictionary<HorseColor, decimal> pairs)

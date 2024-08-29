@@ -47,7 +47,7 @@ namespace DiceApi.Controllers
                 Amount = createPaymentRequest.Amount,
                 OrderId = Guid.NewGuid().ToString(),
                 Status = PaymentStatus.New,
-                CreatedAt = DateTime.Now,
+                CreatedAt = DateTime.UtcNow,
                 UserId = createPaymentRequest.UserId
             };
 
@@ -121,14 +121,18 @@ namespace DiceApi.Controllers
         [HttpPost("getPaymentsByUserId")]
         public async Task<List<Payment>> GetPaymentsByUserId(GetByUserIdRequest request)
         {
-            return await _paymentService.GetPaymentsByUserId(request.UserId);
+            var result = await _paymentService.GetPaymentsByUserId(request.UserId);
+            result.Reverse();
+            return result;
         }
 
         [Authorize]
         [HttpPost("getWithdrawasByUserId")]
         public async Task<List<Withdrawal>> GetWithdrawasByUserId(GetByUserIdRequest request)
         {
-            return await _withdrawalsService.GetAllByUserId(request.UserId);
+            var result = await _withdrawalsService.GetAllByUserId(request.UserId);
+            result.Reverse();
+            return result;
         }
 
         [HttpPost("getSpbWithdrawalBanks")]

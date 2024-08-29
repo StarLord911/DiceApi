@@ -119,7 +119,7 @@ namespace DiceApi.Services.Implements
                 UserId = request.UserId,
                 Amount = request.Amount,
                 CardNumber = request.CartNumber,
-                CreateDate = DateTime.Now,
+                CreateDate = DateTime.UtcNow,
                 Status = WithdrawalStatus.Moderation,
                 BankId = request.BankId
             };
@@ -144,12 +144,12 @@ namespace DiceApi.Services.Implements
 
         public async Task<List<Withdrawal>> GetAllActiveByUserId(long userId)
         {
-            return await _withdrawalsRepository.GetAllActiveByUserId(userId);
+            return await _withdrawalsRepository.GetAllByUserId(userId);
         }
 
         public async Task<List<Withdrawal>> GetAllByUserId(long userId)
         {
-            return await _withdrawalsRepository.GetAllActiveByUserId(userId);
+            return await _withdrawalsRepository.GetAllByUserId(userId);
         }
 
         public async Task<PaginatedList<Withdrawal>> GetPaginatedWithdrawals(GetPaymentWithdrawalsRequest request)

@@ -42,6 +42,8 @@ namespace DiceApi.Controllers.CallBacks
         {
             try
             {
+                await _logRepository.LogInfo($"Handle payment event {paymentSuccessEvent.FreKassaOrderId}, amount{paymentSuccessEvent.Amount}, status {paymentSuccessEvent.PaymentId}");
+
                 var fkPayment = await  _paymentAdapterService.GetOrderByFreeKassaId(paymentSuccessEvent.FreKassaOrderId);
 
                 if (fkPayment.Currency.ToLower() == "usdt")
@@ -72,7 +74,9 @@ namespace DiceApi.Controllers.CallBacks
 
                 await _paymentService.UpdatePaymentStatus(payment.Id, PaymentStatus.Payed);
 
-                await _userService.UpdateUserBallance(payment.UserId, fkPayment.Amount);
+                var user = _userService.GetById(payment.UserId);
+
+                await _userService.UpdateUserBallance(payment.UserId, user.Ballance + fkPayment.Amount);
 
                 await _logRepository.LogInfo($"Successful balance update for the user {payment.UserId} amount {payment.Amount}");
 
@@ -88,10 +92,14 @@ namespace DiceApi.Controllers.CallBacks
         }
 
         [HttpPost("handleWithdrawal")]
-        public async Task HandlePaymentEvent([FromForm] WithdrawalNotification model)
+        public async Task HandleWithdrawal([FromForm] WithdrawalNotification model)
         {
             try
             {
+                await _logRepository.LogInfo($"Processing withrowal start");
+
+                await _logRepository.LogInfo($"Processing withrowal start {model.Id}, {model.Status}, {model.Amount}");
+
                 var withrowal = await _withdrawalsService.GetById(Convert.ToInt64(model.OrderId));
 
                 var status = Convert.ToInt32(model.Status);
@@ -109,7 +117,6 @@ namespace DiceApi.Controllers.CallBacks
             }
             catch (Exception ex)
             {
-
                 await _logRepository.LogInfo($"Error when processing withrowal {model.OrderId} amount: { model.Amount}");
             }
         }

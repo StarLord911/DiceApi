@@ -10,18 +10,15 @@ using DiceApi.Services.Contracts;
 using DiceApi.Services.Implements;
 using DiceApi.Services.Jobs;
 using DiceApi.Services.SignalRHubs;
+using EasyMemoryCache.Configuration;
 using FluentScheduler;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Telegram.Bot;
 
 namespace DiceApi
 {
@@ -81,14 +78,10 @@ namespace DiceApi
 
             ConfigHelper.LoadConfig(Configuration);
 
-            var addres = ConfigHelper.GetConfigValue(ConfigerationNames.CacheAddres);
-
-            services.AddStackExchangeRedisCache(options =>
+            services.AddEasyCache(new CacheSettings() 
             {
-                options.Configuration = addres; // ”кажите адрес и порт вашего Redis-сервера
-                options.InstanceName = "gameCache"; // ќпционально. ”кажите им€ вашего экземпл€ра Redis
+                CacheProvider = CacheProvider.MemoryCache,
             });
-            services.AddMemoryCache();
 
             services.AddTransient<ILastGamesService, LastGamesService>();
             services.AddTransient<ILogRepository, LogRepository>();
@@ -119,8 +112,6 @@ namespace DiceApi
             services.AddTransient<IHorseRaceService, HorseRaceService>();
             services.AddTransient<IRefferalService, RefferalService>();
             services.AddTransient<IAntiMinusService, AntiMinusService>();
-
-            services.AddSingleton<ITelegramBotClient>(new TelegramBotClient("6829158443:AAFx85c81t7tTZFRtZtU-R0-xpWd-2hlMkg"));
 
             services.AddHostedService<RouleteService>();
             services.AddHostedService<HorsesService>();

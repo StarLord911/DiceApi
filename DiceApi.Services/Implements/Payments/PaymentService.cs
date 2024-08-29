@@ -27,21 +27,6 @@ namespace DiceApi.Services.Implements
 
         public async Task<long> AddPayment(Payment payment)
         {
-            var user = _userService.GetById(payment.UserId);
-
-            if (user.OwnerId != null && user.OwnerId.Value != 0)
-            {
-                var owner = _userService.GetById(user.OwnerId.Value);
-                //добавить к полю referalSum updateOwnerBallance
-
-                var updateOwnerBallance = RevShareHelper.GetRevShareIncome(payment.Amount, owner.ReferalPercent);
-
-                // var updateOwnerBallance + user.ReferalSum
-                // UpdateUserReferalSum
-
-                await _userService.UpdateUserBallance(user.OwnerId.Value, owner.Ballance + updateOwnerBallance);
-            }
-
             return await _paymentRepository.CreatePayment(payment);
         }
 

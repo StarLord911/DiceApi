@@ -15,9 +15,6 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Extensions.LoginWidget;
-using Telegram.Bot.Types;
 
 namespace DiceApi.Controllers
 {

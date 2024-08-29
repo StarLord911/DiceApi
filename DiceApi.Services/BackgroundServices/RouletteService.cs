@@ -137,7 +137,7 @@ namespace DiceApi.Services.BackgroundServices
 
                             allWinSums += winSum;
 
-                            await AddLastGames(user.Name, bet.BetSum, bet.BetSum * multiplier, multiplier != 0);
+                            await AddLastGames(user.Name, bet.BetSum, bet.BetSum * GetMultyplayer(bet), multiplier != 0);
                         }
 
                         await _logRepository.LogInfo(log.ToString());
@@ -162,9 +162,35 @@ namespace DiceApi.Services.BackgroundServices
 
         }
 
+        private int GetMultyplayer(RouletteBet bet)
+        {
+            if (bet.BetNumber.HasValue)
+            {
+                return 18;
+            }
+            else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.RED)
+            {
+                return 2;
+            }
+            else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.BLACK)
+            {
+                return 2;
+            }
+            else if (bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.FirstRange)
+            {
+                return 2;
+            }
+            else if (bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.SecondRange)
+            {
+                return 2;
+            }
+
+            return 0;
+        }
+
         private async Task AddLastGames(string userName, decimal betSum, decimal canWin, bool win)
         {
-            await _lastGamesService.SendNewLastGames(userName, betSum, canWin, win, GameType.Horses);
+            await _lastGamesService.AddLastGames(userName, betSum, canWin, win, GameType.Roulette);
         }
 
         private async Task UpdateWinningToDay(decimal amount)

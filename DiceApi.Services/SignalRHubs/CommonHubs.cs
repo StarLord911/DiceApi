@@ -24,18 +24,14 @@ namespace DiceApi.Services.SignalRHubs
         {
         }
 
-
         public async Task UserConnected(long userId)
         {
-            if (_users.Contains(userId))
+            if (!_users.Contains(userId))
             {
                 await Clients.All.SendAsync("UserConnected", _users.Count + FakeActiveHelper.FakeUserCount);
                 return;
             }
-            _users.Add(userId);
             FakeActiveHelper.UserCount = _users.Count;
-
-            await Clients.All.SendAsync("UserConnected", FakeActiveHelper.FakeUserCount + _users.Count);
         }
 
         public async Task UserDisconnected(long userId)

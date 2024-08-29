@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -23,12 +24,16 @@ namespace DiceApi.Data.ApiReqRes.HorseRace
     /// </summary>
     public class HorseRaceActiveBet
     {
+        [JsonProperty("UserName")]
         public string UserName { get; set; }
 
+        [JsonProperty("BetSum")]
         public decimal BetSum { get; set; }
 
+        [JsonProperty("Multiplayer")]
         public float Multiplayer { get; set; }
 
+        [JsonProperty("HorseColor")]
         public HorseColor HorseColor { get; set; }
     }
 }

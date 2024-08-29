@@ -16,9 +16,9 @@ namespace DiceApi.Data
         [DataMember]
         public int OpenedCellsCount { get; set; }
         [DataMember]
-        private readonly Cell[,] _cells;
+        public readonly Cell[,] _cells;
         [DataMember]
-        private bool _gameOver;
+        public bool _gameOver;
         public bool FinishGame { get; set; }
         [DataMember]
         public int MinesCount { get; set; }

@@ -62,13 +62,13 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
-        public async Task<List<Withdrawal>> GetAllActiveByUserId(long userId)
+        public async Task<List<Withdrawal>> GetAllByUserId(long userId)
         {
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 connection.Open();
 
-                string query = $@"Select * From Withdrawal where Status = 1 and UserId = {userId}";
+                string query = $@"Select * From Withdrawal where UserId = {userId}";
 
                 return (await connection.QueryAsync<Withdrawal>(query)).ToList();
 

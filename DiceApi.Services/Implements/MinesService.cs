@@ -118,9 +118,7 @@ namespace DiceApi.Services
             game.UserId = request.UserId;
             game.Chances = chanses[game.MinesCount];
 
-            var serializedGame = SerializationHelper.Serialize(game);
-
-            await _cacheService.WriteCache(CacheConstraints.MINES_KEY + request.UserId, serializedGame);
+            await _cacheService.WriteCache(CacheConstraints.MINES_KEY + request.UserId, game);
 
             await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.Sum);
 

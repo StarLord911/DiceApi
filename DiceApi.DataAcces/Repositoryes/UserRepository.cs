@@ -379,7 +379,7 @@ namespace DiceApi.DataAcces.Repositoryes
                 var pageCont = (int)Math.Ceiling((double)totalCount / request.Pagination.PageSize);
 
                 // Выполнение SQL-запроса с параметрами
-                var queryResult = connection.Query<UserMultyAccaunt>(sql, new { Offset = (request.Pagination.PageNumber - 1) * request.Pagination.PageSize, PageSize = request.Pagination.PageSize });
+                var queryResult = await connection.QueryAsync<UserMultyAccaunt>(sql, new { Offset = (request.Pagination.PageNumber - 1) * request.Pagination.PageSize, PageSize = request.Pagination.PageSize });
 
                 return new PaginatedList<UserMultyAccaunt>(queryResult.ToList(), pageCont, request.Pagination.PageNumber);
             }
