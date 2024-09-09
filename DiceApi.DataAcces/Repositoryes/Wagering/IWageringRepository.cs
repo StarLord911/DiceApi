@@ -20,5 +20,7 @@ namespace DiceApi.DataAcces.Repositoryes
         Task DeactivateWagering(int wagerId);
 
         Task ActivateWagering(int wagerId);
+
+
     }
 }

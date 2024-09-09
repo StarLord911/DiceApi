@@ -37,7 +37,7 @@ namespace DiceApi.Controllers
             _promocodeService = promocodeService;
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("getRefferalStats")]
         public async Task<GetReferalStatsResponce> GetRefferalStats(GetRefferalStatsByUserIdRequest request)
         {

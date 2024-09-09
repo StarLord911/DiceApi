@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace DiceApi.Services.Implements
 {
@@ -23,14 +24,15 @@ namespace DiceApi.Services.Implements
         private readonly IPaymentAdapterService _paymentAdapterService;
         private readonly IPaymentService _paymentService;
         private readonly ICacheService _cacheService;
+        private readonly ILogRepository _logRepository;
 
         public WithdrawalsService(IWageringRepository wageringRepository,
             IUserService userService,
             IWithdrawalsRepository withdrawalsRepository,
             IPaymentAdapterService paymentAdapterService,
             IPaymentService paymentService,
-            ICacheService cacheService)
-
+            ICacheService cacheService,
+            ILogRepository logRepository)
         {
             _wageringRepository = wageringRepository;
             _userService = userService;
@@ -38,6 +40,7 @@ namespace DiceApi.Services.Implements
             _paymentAdapterService = paymentAdapterService;
             _paymentService = paymentService;
             _cacheService = cacheService;
+            _logRepository = logRepository;
         }
 
         public async Task<CreateWithdrawalResponce> CreateWithdrawalRequest(CreateWithdrawalRequest request)
@@ -119,22 +122,30 @@ namespace DiceApi.Services.Implements
                 UserId = request.UserId,
                 Amount = request.Amount,
                 CardNumber = request.CartNumber,
-                CreateDate = DateTime.UtcNow,
+                CreateDate = DateTime.UtcNow.AddHours(3),
                 Status = WithdrawalStatus.Moderation,
                 BankId = request.BankId
             };
 
             await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.Amount);
             await _withdrawalsRepository.AddWithdrawal(withdrowal);
- 
+
+            await _logRepository.LogInfo($"Create Withdrawal for user {user.Id}, amount {withdrowal.Amount}");
             responce.Succses = true;
             responce.Message = $"Заявка на вывод принята";
             return responce;
         }
 
-        public async Task DeactivateWithdrawal(int id)
+        public async Task DeactivateWithdrawal(long id)
         {
             await _withdrawalsRepository.DeactivateWithdrawal(id);
+
+            var data = await _withdrawalsRepository.GetById(id);
+
+            await _userService.AddUserBallance(data.UserId, data.Amount);
+
+            await _logRepository.LogInfo($"Deactivate withdrawal for user {data.UserId}, amount {data.Amount}");
+
         }
 
         public async Task<List<Withdrawal>> GetAll()
@@ -191,8 +202,9 @@ namespace DiceApi.Services.Implements
             await UpdateStatus(withdrawal.Id, WithdrawalStatus.AdapterHandle);
 
             await _withdrawalsRepository.UpdateFkWaletId(withdrawal.Id, res.Data.Id);
-
             await UpdateWithdrawalToDay(withdrawal.Amount);
+
+            await _logRepository.LogInfo($"Сonfirm withdrawal for user {withdrawal.UserId}, amount {withdrawal.Amount}");
         }
 
         private async Task UpdateWithdrawalToDay(decimal amount)
@@ -232,6 +244,16 @@ namespace DiceApi.Services.Implements
         public async Task<Withdrawal> GetById(long id)
         {
             return await _withdrawalsRepository.GetById(id);
+        }
+
+        public async Task UpdateStatusWithFkValetId(long id, WithdrawalStatus status)
+        {
+            await _withdrawalsRepository.UpdateStatusWithFkValetId(id, status);
+        }
+
+        public async Task<long> GetWithdrawalIdByFkWaletId(long id)
+        {
+            return await _withdrawalsRepository.GetWithdrawalIdByFkWaletId(id);
         }
     }
 }

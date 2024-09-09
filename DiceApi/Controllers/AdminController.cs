@@ -160,7 +160,7 @@ namespace DiceApi.Controllers
         [HttpPost("getPromocodeActivateHistory")]
         public async Task<PaginatedList<PrimocodeActivation>> GetPromocodeActivateHistory(PromocodeActivateHisoryRequest request)
         {
-            var history = await _promocodeActivationHistory.GetPromocodeActivatesByUserId(request.Id);
+            var history = (await _promocodeActivationHistory.GetPromocodeActivatesByUserId(request.Id)).OrderByDescending(h => h.ActivationDateTime).ToList();
 
             var pageCount = DivideWithCeiling(history.Count, request.PageSize);
 

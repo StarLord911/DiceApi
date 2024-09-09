@@ -55,7 +55,7 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 connection.Open();
 
-                string query = $@"Select * From Withdrawal where Status = 1";
+                string query = $@"Select * From Withdrawal";
 
                 return (await connection.QueryAsync<Withdrawal>(query)).ToList();
 
@@ -193,7 +193,7 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 connection.Open();
 
-                string query = $@"update Withdrawal set Status = 4 where Id = {id}";
+                string query = $@"update Withdrawal set Status = {(int)status} where Id = {id}";
 
                 await connection.ExecuteAsync(query);
 
@@ -222,6 +222,32 @@ namespace DiceApi.DataAcces.Repositoryes
 
                 return (await connection.QueryAsync<Withdrawal>(query)).ToList();
 
+            }
+        }
+
+        public async Task UpdateStatusWithFkValetId(long id, WithdrawalStatus status)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = $@"update Withdrawal set Status = {(int)status} where FkWaletId = {id}";
+
+                await connection.ExecuteAsync(query);
+            }
+        }
+
+        public async Task<long> GetWithdrawalIdByFkWaletId(long id)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = $@"Select * From Withdrawal where FkWaletId = {id}";
+
+                var res = await connection.QueryFirstAsync<Withdrawal>(query);
+
+                return res.Id;
             }
         }
     }

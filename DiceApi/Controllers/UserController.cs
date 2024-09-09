@@ -60,7 +60,7 @@ namespace DiceApi.Controllers
             var response = await _userService.Authenticate(model);
             var user = _userService.GetById(response.Id);
 
-            if (user.Role != "Admin")
+            if (!UserRole.IsAdmin(user.Role))
             {
                 return BadRequest(new { message = "User role is incorrect" });
             }
@@ -84,7 +84,6 @@ namespace DiceApi.Controllers
 
             }
 
-            //TODO: добвить запись айпи входа
             var userRegister = _mapper.Map<UserRegistrationModel>(userModel);
             userRegister.IpAddres = ipAddress;
 

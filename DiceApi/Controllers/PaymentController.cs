@@ -34,11 +34,9 @@ namespace DiceApi.Controllers
             _paymentService = paymentService;
             _paymentAdapterService = paymentAdapterService;
             _withdrawalsService = withdrawalsService;
-
-           
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("createPayment")]
         public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentRequest createPaymentRequest)
         {
@@ -47,7 +45,7 @@ namespace DiceApi.Controllers
                 Amount = createPaymentRequest.Amount,
                 OrderId = Guid.NewGuid().ToString(),
                 Status = PaymentStatus.New,
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow.AddHours(3),
                 UserId = createPaymentRequest.UserId
             };
 

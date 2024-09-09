@@ -52,5 +52,14 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
+        public async Task LogGame(string message)
+        {
+            await AddLog(message, "Game");
+        }
+
+        public async Task LogInfo(string message, string level)
+        {
+            await AddLog(message, level);
+        }
     }
 }

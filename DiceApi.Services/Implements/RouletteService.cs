@@ -56,6 +56,15 @@ namespace DiceApi.Services
 
             var betSum = request.Bets.Sum(b => b.BetSum);
 
+            if (!user.IsActive)
+            {
+                return new CreateRouletteBetResponce()
+                {
+                    Succesful = false,
+                    Message = "Вы заблокированы."
+                };
+            }
+
             if (user.Ballance < betSum)
             {
                 return new CreateRouletteBetResponce()

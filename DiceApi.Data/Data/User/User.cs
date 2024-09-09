@@ -14,16 +14,16 @@ namespace DiceApi.Data
 
         [JsonProperty("name")]
         public string Name { get; set; }
-        
+
         [JsonProperty("password")]
         public string Password { get; set; }
 
         [JsonProperty("ballance")]
         public decimal Ballance { get; set; }
-        
+
         [JsonProperty("ownerId")]
         public long? OwnerId { get; set; }
-        
+
         [JsonProperty("registrationDate")]
         public DateTime RegistrationDate { get; set; }
 
@@ -65,5 +65,30 @@ namespace DiceApi.Data
 
         public long? TelegramUserId { get; set; }
 
+    }
+
+    public static class UserRole
+    {
+        public const string Admin = "Admin";
+
+        public const string Promocoder = "Promocoder";
+
+        public const string Streamer = "Streamer";
+
+
+        public static bool IsAdmin(string role)
+        {
+            return Admin.ToLower() == role.ToLower();
+        }
+
+        public static bool IsPromocoder(string role)
+        {
+            return Promocoder.ToLower() == role.ToLower();
+        }
+
+        public static bool IsStreamer(string role)
+        {
+            return Streamer.ToLower() == role.ToLower();
+        }
     }
 }

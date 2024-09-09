@@ -8,9 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace DiceApi.Controllers.CallBacks
 {
@@ -96,29 +95,47 @@ namespace DiceApi.Controllers.CallBacks
         {
             try
             {
-                await _logRepository.LogInfo($"Processing withrowal start");
+                var result = GetPropertiesAsString(model);
 
-                await _logRepository.LogInfo($"Processing withrowal start {model.Id}, {model.Status}, {model.Amount}");
+                await _logRepository.LogInfo($"Processing withrowal start {result}");
 
-                var withrowal = await _withdrawalsService.GetById(Convert.ToInt64(model.OrderId));
+                var withrowal = await _withdrawalsService.GetWithdrawalIdByFkWaletId(Convert.ToInt64(model.Id));
 
                 var status = Convert.ToInt32(model.Status);
 
                 if (status == 1)
                 {
-                    await _withdrawalsService.UpdateStatus(withrowal.Id, WithdrawalStatus.Processed);
+                    await _withdrawalsService.UpdateStatusWithFkValetId(withrowal, WithdrawalStatus.Processed);
                 }
                 else if(status == 8 || status == 9 || status == 10)
                 {
-                    await _withdrawalsService.UpdateStatus(withrowal.Id, WithdrawalStatus.Error);
+                    await _withdrawalsService.UpdateStatusWithFkValetId(withrowal, WithdrawalStatus.Error);
+
+                    await _withdrawalsService.DeactivateWithdrawal(withrowal);
                 }
 
-                await _logRepository.LogInfo($"Processing withrowal {withrowal.Id}, {status}, {model.Amount}");
+                await _logRepository.LogInfo($"Processing withrowal {withrowal}, {status}, {model.Amount}");
             }
             catch (Exception ex)
             {
-                await _logRepository.LogInfo($"Error when processing withrowal {model.OrderId} amount: { model.Amount}");
+                await _logRepository.LogException($"Error when processing withrowal {model.OrderId} amount: { model.Amount}", ex);
             }
+        }
+
+
+        private static string GetPropertiesAsString(object obj)
+        {
+            Type type = obj.GetType();
+            PropertyInfo[] properties = type.GetProperties();
+            string result = "";
+
+            foreach (var property in properties)
+            {
+                var value = property.GetValue(obj);
+                result += $"{property.Name}: {value}\n";
+            }
+
+            return result;
         }
     }
 }

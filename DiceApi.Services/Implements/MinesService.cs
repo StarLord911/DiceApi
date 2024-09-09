@@ -138,7 +138,7 @@ namespace DiceApi.Services
                 return null;
             }
 
-            return new MinesGameApiModel() { Cells = MapCells(serializedGame.GetCells()), MinesCount = serializedGame.MinesCount,
+            return new MinesGameApiModel() { Cells = SerializationHelper.Serialize(MapCells(serializedGame.GetCells())), MinesCount = serializedGame.MinesCount,
                 OpenedCount = serializedGame.OpenedCellsCount, BetSum = serializedGame.BetSum };
 
         }
@@ -188,19 +188,71 @@ namespace DiceApi.Services
                 return CreateErrorResponse("Game not found", true);
             }
 
+            if (game.OpenedCellsCount + game.MinesCount == 25)
+            {
+                return CreateErrorResponse("Game winned", true);
+            }
+
+            var user = _userService.GetById(game.UserId);
+
             // Open the cell in the game
             var openResult = game.OpenCell(request.X, request.Y);
+
             if (openResult.FindMine)
             {
-                return await HandleMineFound(game, request);
+                if (UserRole.IsStreamer(user.Role) && StreamerFindMine(game))
+                {
+                    bool found = false;
+
+                    for (int i = 0; i < 5 && !found; i++)
+                    {
+                        for (int j = 0; j < 5; j++)
+                        {
+                            if (game._cells[i, j].IsOpen == false && game._cells[i, j].IsMined == false && !found)
+                            {
+                                game._cells[i, j].IsMined = true;
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found)
+                        {
+                            break;
+                        }
+                    }
+
+                    game._cells[request.X, request.Y].IsMined = false;
+                    game._cells[request.X, request.Y].IsOpen = false;
+                    game._gameOver = false;
+                    openResult = game.OpenCell(request.X, request.Y);
+                }
+                else
+                {
+                    return await HandleMineFound(game, request);
+                }
             }
 
             var settings = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
 
             // Check if the player can win
-            if (!_antiMinusService.CheckMinesAntiMinus(game, settings))
+            if (!_antiMinusService.CheckMinesAntiMinus(game, settings) && !UserRole.IsStreamer(user.Role))
             {
                 return await HandleMineBalance(game, request, settings);
+            }
+
+            if (game.OpenedCellsCount + game.MinesCount == 25)
+            {
+                return new OpenCellResponce
+                {
+                    Succes = true,
+                    Message = "Game winned",
+                    Result = new OpenCellResult
+                    {
+                        Cells = SerializationHelper.Serialize(game.GetCells()),
+                        FindMine = false,
+                        GameOver = true
+                    }
+                };
             }
 
             // Update game state in cache
@@ -212,6 +264,28 @@ namespace DiceApi.Services
                 Message = "Game continue",
                 Result = openResult
             };
+        }
+
+        private bool StreamerFindMine(ActiveMinesGame game)
+        {
+            if (game.MinesCount > 21)
+            {
+                return false;
+            }
+
+            if (game.MinesCount >= 16 && game.StreamerBonus < 1 && new Random().Next(0, 1) == 1)
+            {
+                game.StreamerBonus += 1;
+                return true;
+            }
+            else if (game.MinesCount >= 10 && game.StreamerBonus < 2)
+            {
+                game.StreamerBonus += 1;
+                return true;
+            }
+
+            return false;
+
         }
 
         /// <summary>
@@ -381,6 +455,7 @@ namespace DiceApi.Services
             }
             return new string(chars);
         }
+
         #endregion
     }
 }

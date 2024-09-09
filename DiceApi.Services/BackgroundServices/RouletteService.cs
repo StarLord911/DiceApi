@@ -69,7 +69,7 @@ namespace DiceApi.Services.BackgroundServices
                 GameStates.IsRouletteGameRun = true;
                 var randomValue = new Random().Next(0, 18);
 
-                await _logRepository.LogInfo($"Roulette random value {randomValue}");
+                await _logRepository.LogGame($"Roulette random value {randomValue}");
 
                 var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_ROULETTE_USERS);
 
@@ -78,8 +78,6 @@ namespace DiceApi.Services.BackgroundServices
 
                 if (bettedUserIds == null)
                 {
-                    await _logRepository.LogInfo($"Roulette bettedUserIds is null");
-
                     await Taimer();
                     return;
                 }
@@ -140,7 +138,7 @@ namespace DiceApi.Services.BackgroundServices
                             await AddLastGames(user.Name, bet.BetSum, bet.BetSum * GetMultyplayer(bet), multiplier != 0);
                         }
 
-                        await _logRepository.LogInfo(log.ToString());
+                        await _logRepository.LogGame(log.ToString());
 
                         await _userService.UpdateUserBallance(user.Id, winSum + user.Ballance);
                     }
@@ -152,14 +150,12 @@ namespace DiceApi.Services.BackgroundServices
 
                 await _cacheService.DeleteCache(CacheConstraints.BETTED_ROULETTE_USERS);
                 GameStates.IsRouletteGameRun = false;
-                await _logRepository.LogInfo("Finish roulette job");
                 await Taimer();
             }
             catch (Exception ex)
             {
                 await _logRepository.LogException("Exception in roulette", ex);
             }
-
         }
 
         private int GetMultyplayer(RouletteBet bet)

@@ -10,6 +10,10 @@ namespace DiceApi.DataAcces.Repositoryes
     {
         Task LogInfo(string message);
 
+        Task LogInfo(string message, string level);
+
+        Task LogGame(string message);
+
         Task LogError(string message);
 
         Task LogException(string message, Exception exception);

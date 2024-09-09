@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace DiceApi.Services.Implements
@@ -155,13 +156,33 @@ namespace DiceApi.Services.Implements
             var promocode = new Promocode()
             {
                 ActivationCount = 500,
-                BallanceAdd = 50,
+                BallanceAdd = 10,
                 PromoCode = request.Promocode,
                 IsActive = true,
                 Wagering = 10,
                 IsRefferalPromocode = true,
                 RefferalPromocodeOwnerId = request.UserId
             };
+
+            var user = _userService.GetById(request.UserId);
+
+            if (!UserRole.IsPromocoder(user.Role))
+            {
+                return new GenerateRefferalPromocodeResponce()
+                {
+                    Message = "У вас нет прав, обратитесь в поддержку",
+                    Success = false
+                };
+            }
+
+            if (!Regex.IsMatch(request.Promocode, @"^[a-zA-Z]+$") && (request.Promocode.Length < 4 || request.Promocode.Length > 10))
+            {
+                return new GenerateRefferalPromocodeResponce()
+                {
+                    Message = "Промокод должен состоять из англ. символов. Длина от 4 до 10 символов.",
+                    Success = false
+                };
+            }
 
             var promocodeContains = await _promocodeRepository.IsPromocodeContains(promocode.PromoCode);
 
@@ -170,6 +191,15 @@ namespace DiceApi.Services.Implements
                 return new GenerateRefferalPromocodeResponce()
                 {
                     Message = "Такой промокод уже существует",
+                    Success = false
+                };
+            }
+
+            if (promocode.PromoCode.Length < 4)
+            {
+                return new GenerateRefferalPromocodeResponce()
+                {
+                    Message = "Минимальная длина промокода 5 символов",
                     Success = false
                 };
             }

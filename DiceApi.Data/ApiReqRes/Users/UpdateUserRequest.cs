@@ -28,5 +28,6 @@ namespace DiceApi.Data.ApiReqRes
         public decimal? PaymentForWithdrawal { get; set; }
 
         public bool? EnableWithdrawal { get; set; }
+
     }
 }

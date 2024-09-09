@@ -11,8 +11,7 @@ namespace DiceApi.Data.ApiModels
 {
     public class MinesGameApiModel
     {
-        [JsonConverter(typeof(CellApiModelArrayConverter))]
-        public CellApiModel[,] Cells { get; set; }
+        public string Cells { get; set; }
 
         public int OpenedCount { get; set; }
 
@@ -29,6 +28,13 @@ namespace DiceApi.Data.ApiModels
         public int Y { get; set; }
         [DataMember]
         public bool IsOpen { get; set; }
+
+        public CellApiModel(int x, int y, bool isOpen)
+        {
+            X = x;
+            Y = y;
+            IsOpen = isOpen;
+        }
     }
 
     public class CellApiModelArrayConverter : JsonConverter<CellApiModel[,]>

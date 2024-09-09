@@ -185,5 +185,19 @@ namespace DiceApi.Services
         {
             return await _userRepository.IsTelegramUserRegistred(telegramId);
         }
+
+        public async Task AddUserBallance(long userId, decimal sum)
+        {
+            var user = _userRepository.GetById(userId);
+
+            if (user == null)
+            {
+                return;
+            }
+
+            await _logRepository.LogInfo($"UpdateUserBallance new ballance: {sum} old ballance: {user.Ballance} userId: {userId} ");
+
+            await _userRepository.UpdateUserBallance(userId, user.Ballance + sum);
+        }
     }
 }

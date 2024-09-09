@@ -28,7 +28,7 @@ namespace DiceApi.Services.Jobs
         }
 
         private async Task Execute()
-        {
+       {
             await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, new WinningStats { WinningToDay = 0, WithdrawalToDay = 0 });
         }
     }

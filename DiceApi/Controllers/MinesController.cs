@@ -15,17 +15,11 @@ namespace DiceApi.Controllers
     [ApiController]
     public class MinesController : ControllerBase
     {
-        private readonly IUserService _userService;
         private readonly IMinesService _minesService;
-        private IHubContext<LastGamesHub> _hubContext;
 
-        public MinesController(IUserService userService,
-            IHubContext<LastGamesHub> hubContext,
-            IMinesService minesService)
+        public MinesController(IMinesService minesService)
         {
-            _userService = userService;
             _minesService = minesService;
-            _hubContext = hubContext;
         }
 
         [Authorize]

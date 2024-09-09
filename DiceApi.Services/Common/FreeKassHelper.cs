@@ -82,7 +82,7 @@ namespace DiceApi.Services
                 Account = withdrawal.CardNumber.Replace("+", ""),
                 PaymentSystemId = 6,
                 Description = "Description",
-                FeeFromBalance = 0,
+                FeeFromBalance = 1,
                 IdempotenceKey = Guid.NewGuid().ToString(),
                 OrderId = withdrawal.Id,
             };

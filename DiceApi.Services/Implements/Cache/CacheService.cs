@@ -27,7 +27,7 @@ namespace DiceApi.Services
 
         public async Task WriteCache<T>(string key, T value, TimeSpan timeSpan = default)
         {
-            var saveDays = 10;
+            var saveDays = 365;
             if (timeSpan != default)
             {
                 saveDays = timeSpan.Days;

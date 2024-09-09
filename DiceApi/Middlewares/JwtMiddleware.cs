@@ -49,20 +49,25 @@ namespace DiceApi.MiddleWares
                 IssuerSigningKey = new SymmetricSecurityKey(key),
                 ValidateIssuer = false,
                 ValidateAudience = false,
-                ClockSkew = TimeSpan.Zero
+                ClockSkew = TimeSpan.Zero,
             }, out SecurityToken validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
             var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
 
-            var isCorrectUser = await IsUserCorrect(context, userId);
+            var user = userService.GetById(userId);
 
-            if (!isCorrectUser)
+            if (user.Role.ToLower() != "admin")
             {
-                throw new BadHttpRequestException("Incorrect JWT token information");
+                var isCorrectUser = await IsUserCorrect(context, userId);
+
+                if (!isCorrectUser)
+                {
+                    throw new BadHttpRequestException("Incorrect JWT token information");
+                }
             }
 
-            context.Items["User"] = userService.GetById(userId);
+            context.Items["User"] = user;
         }
 
         private async Task<bool> IsUserCorrect(HttpContext context, long userIdFromJwt)

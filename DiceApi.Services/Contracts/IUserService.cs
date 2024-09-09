@@ -26,6 +26,9 @@ namespace DiceApi.Services
 
         Task UpdateUserBallance(long userId, decimal sum);
 
+        Task AddUserBallance(long userId, decimal sum);
+
+
         Task<GetPaginatedDataByUserIdResponce<UserReferral>> GetRefferalsByUserId(GetReferalsByUserIdRequest request);
 
         Task<List<User>> GetRefferalsByUserId(long ownerId);

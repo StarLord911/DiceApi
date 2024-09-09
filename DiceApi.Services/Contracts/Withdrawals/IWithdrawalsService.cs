@@ -22,7 +22,7 @@ namespace DiceApi.Services.Contracts
 
         Task СonfirmWithdrawal(long id);
 
-        Task DeactivateWithdrawal(int id);
+        Task DeactivateWithdrawal(long id);
 
         Task<WithdrawalStats> GetWithdrawalStats();
 
@@ -31,5 +31,10 @@ namespace DiceApi.Services.Contracts
         Task<decimal> GetWithdrawalWaitSum();
 
         Task UpdateStatus(long id, WithdrawalStatus status);
+
+        Task UpdateStatusWithFkValetId(long id, WithdrawalStatus status);
+
+        Task<long> GetWithdrawalIdByFkWaletId(long id);
+
     }
 }

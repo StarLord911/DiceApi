@@ -49,6 +49,11 @@ namespace DiceApi.Services.Implements
 
             var user = _userService.GetById(request.UserId);
 
+            if (!user.IsActive)
+            {
+                return "User block";
+            }
+
             var betSum = request.HorseBets.Sum(b => b.BetSum);
 
             if (user.Ballance < betSum)

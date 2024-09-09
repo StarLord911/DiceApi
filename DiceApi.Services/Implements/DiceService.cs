@@ -57,9 +57,17 @@ namespace DiceApi.Services.Implements
             var cache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
 
             // Проверка возможности выигрыша на основе анти-минус логики
-            if (cache.DiceGameWinningSettings.DiceAntiminusBallance > request.Sum)
+            if (cache.DiceGameWinningSettings.DiceAntiminusBallance > request.Sum && !UserRole.IsStreamer(user.Role))
             {
-                if (request.Persent > (random + cache.DiceGameWinningSettings.DiceMinusPercent))
+                var streamerBonus = UserRole.IsStreamer(user.Role)
+                    ? 10
+                    : 0;
+
+                var rand = UserRole.IsStreamer(user.Role)
+                    ? random
+                    : random + cache.DiceGameWinningSettings.DiceMinusPercent;
+
+                if (request.Persent + streamerBonus > rand)
                 {
                     // Обработка выигрыша
                     await HandleWinAsync(request, winSum, user, cache);

@@ -59,7 +59,7 @@ namespace DiceApi.Services.BackgroundServices
             {
                 GameStates.IsHorseGameRun = true;
                 var color = GetWinnedHorseColor();
-                await _logRepository.LogInfo($"Horse game win {color}");
+                await _logRepository.LogGame($"Horse game win {color}");
 
                 var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
@@ -81,7 +81,7 @@ namespace DiceApi.Services.BackgroundServices
                 await ProccessBets(color, allBets);
 
                 await _cacheService.DeleteCache(CacheConstraints.BETTED_HORSE_RACE_USERS);
-                await _logRepository.LogInfo("Finish horse job");
+                await _logRepository.LogGame("Finish horse job");
 
                 await Taimer();
             }
@@ -125,7 +125,7 @@ namespace DiceApi.Services.BackgroundServices
                         await AddLastGames(user.Name, bet.BetSum, bet.BetSum * 8, winSum != 0);
                     }
 
-                    await _logRepository.LogInfo(log.ToString());
+                    await _logRepository.LogGame(log.ToString());
                 }
             }
 

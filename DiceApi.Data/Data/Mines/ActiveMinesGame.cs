@@ -16,7 +16,7 @@ namespace DiceApi.Data
         [DataMember]
         public int OpenedCellsCount { get; set; }
         [DataMember]
-        public readonly Cell[,] _cells;
+        public Cell[,] _cells;
         [DataMember]
         public bool _gameOver;
         public bool FinishGame { get; set; }
@@ -30,6 +30,9 @@ namespace DiceApi.Data
         public List<double> Chances { get; set; }
         [DataMember]
         public decimal CanWin { get; set; }
+
+        [DataMember]
+        public int StreamerBonus { get; set; }
 
 
         public ActiveMinesGame(int minsCount)

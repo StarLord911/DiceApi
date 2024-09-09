@@ -34,5 +34,8 @@ namespace DiceApi.DataAcces.Repositoryes
 
         Task UpdateFkWaletId(long id, long waletId);
 
+        Task UpdateStatusWithFkValetId(long id, WithdrawalStatus status);
+
+        Task<long> GetWithdrawalIdByFkWaletId(long id);
     }
 }
