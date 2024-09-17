@@ -36,5 +36,7 @@ namespace DiceApi.Services.Contracts
 
         Task<long> GetWithdrawalIdByFkWaletId(long id);
 
+        Task UpdateTryCount(long id, int count);
+
     }
 }

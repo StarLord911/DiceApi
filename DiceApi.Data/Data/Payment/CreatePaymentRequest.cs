@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DiceApi.Data.Data.Payment
@@ -26,5 +27,9 @@ namespace DiceApi.Data.Data.Payment
         public string Message { get; set; }
 
         public string Location { get; set; }
+
+        [JsonIgnore()]
+        public int OrderId { get; set; }
+
     }
 }

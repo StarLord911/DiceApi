@@ -17,6 +17,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.Implements;
+using DiceApi.Data.ApiReqRes.HorseRace;
+using Org.BouncyCastle.Math.EC.Multiplier;
 
 namespace DiceApi.Services.BackgroundServices
 {
@@ -32,10 +34,20 @@ namespace DiceApi.Services.BackgroundServices
         private readonly string RED = "Red";
         private readonly string BLACK = "Black";
 
-       
+        private readonly IHubContext<RouletteBetsHub> _rouletBetsHub;
+
+
+        List<int> randomDigits = new List<int>()
+        {
+            15, 20, 50, 70, 60, 45,75, 44,58,96,53, 99, 100,150, 120, 180, 200, 300, 350, 323, 425, 400, 458, 500, 412,88,77,45,12,5,11,9,6,1,1,1,21,22,12,15,47,56,78,21,489,656,44,89,98,878,78,56,15,35,48,46,12,35,77,55,69,63,62,61
+        };
+
+        private List<RouletteActiveBet> _fakeGames = new List<RouletteActiveBet>();
+
+
         public RouleteService(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext,
             ILogRepository logRepository, IHubContext<RouletteGameStartTaimerHub> gameStartTaimerHub,
-            ILastGamesService lastGamesService)
+            ILastGamesService lastGamesService, IHubContext<RouletteBetsHub> hubContext1)
         {
             _cacheService = cacheService;
             _userService = userService;
@@ -43,6 +55,7 @@ namespace DiceApi.Services.BackgroundServices
             _logRepository = logRepository;
             _lastGamesService = lastGamesService;
 
+            _rouletBetsHub = hubContext1;
             _gameStartTaimerHub = gameStartTaimerHub;
         }
         
@@ -75,6 +88,11 @@ namespace DiceApi.Services.BackgroundServices
 
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", randomValue);
                 await UpdateLastGames(randomValue);
+
+                foreach (var game in _fakeGames)
+                {
+                    await AddLastGames(game.UserName, game.BetSum, 0, GetDroppedColor(randomValue) == game.BetColor);
+                }
 
                 if (bettedUserIds == null)
                 {
@@ -209,6 +227,35 @@ namespace DiceApi.Services.BackgroundServices
                     GameStates.IsRouletteGameRun = false;
                 }
 
+                var random = new Random();
+
+                if (random.Next(0, 2) == 0)
+                {
+                    var iterCount = random.Next(1, 3);
+                    for (int x = 0; x < iterCount; x++)
+                    {
+                        var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);
+
+                        var color = random.Next(0, 1);
+
+                        var betSum = randomDigits[random.Next(0, randomDigits.Count)];
+
+                        var bet = new RouletteActiveBet()
+                        {
+                            UserName = FakeActiveHelper.FakeNames[nameInex],
+                            BetSum = betSum,
+                            Multiplayer = 2,
+                            IsColorBet = true,
+                            BetColor = color == 0 ? "Red" : "Black"
+                        };
+
+                        var gameJson = JsonConvert.SerializeObject(bet);
+
+                        _fakeGames.Add(bet);
+                        await _rouletBetsHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
+                    }
+                }
+
                 await _gameStartTaimerHub.Clients.All.SendAsync("ReceiveMessage", SerializationHelper.Serialize(new GameTypeTaimer { GameName = "Roulette", Taimer = i }));
             }
         }
@@ -238,21 +285,6 @@ namespace DiceApi.Services.BackgroundServices
             await _cacheService.DeleteCache(CacheConstraints.LAST_ROULETTE_GAMES);
 
             await _cacheService.WriteCache(CacheConstraints.LAST_ROULETTE_GAMES, lastGames);
-        }
-
-        private GameApiModel GetNewGameApiModel(decimal betSum, string userName, int multiplier)
-        {
-            var apiModel = new GameApiModel
-            {
-                UserName = ReplaceAt(userName, 4, '*'),
-                Sum = betSum,
-                CanWinSum = betSum * 2,
-                Multiplier = multiplier,
-                Win = multiplier != 0,
-                GameType = Data.GameType.Roulette
-            };
-
-            return apiModel;
         }
 
         private string GetDroppedColor(int number)

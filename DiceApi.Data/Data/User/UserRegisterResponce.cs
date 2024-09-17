@@ -38,5 +38,14 @@ namespace DiceApi.Data
     {
         public long TelegramUserId { get; set; }
     }
-    
+
+
+    public class LinkTelegram
+    {
+        public long UserId { get; set; }
+
+        public long TelegramId { get; set; }
+
+        public string UserName { get; set; }
+    }
 }

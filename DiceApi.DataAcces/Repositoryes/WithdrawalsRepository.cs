@@ -250,5 +250,18 @@ namespace DiceApi.DataAcces.Repositoryes
                 return res.Id;
             }
         }
+
+        public async Task UpdateTryCount(long id, int count)
+        {
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+
+                string query = $@"update Withdrawal set tryCount = {count} where Id = {id}";
+
+                await connection.ExecuteAsync(query);
+
+            }
+        }
     }
 }

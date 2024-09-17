@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace DiceApi.Controllers.CallBacks
@@ -39,55 +40,57 @@ namespace DiceApi.Controllers.CallBacks
         [HttpPost("handle")]
         public async Task<bool> HandlePaymentEvent(PaymentSuccessEvent paymentSuccessEvent)
         {
-            try
-            {
-                await _logRepository.LogInfo($"Handle payment event {paymentSuccessEvent.FreKassaOrderId}, amount{paymentSuccessEvent.Amount}, status {paymentSuccessEvent.PaymentId}");
 
-                var fkPayment = await  _paymentAdapterService.GetOrderByFreeKassaId(paymentSuccessEvent.FreKassaOrderId);
+            return true;
+            //try
+            //{
+            //    await _logRepository.LogInfo($"Handle payment event {paymentSuccessEvent.FreKassaOrderId}, amount{paymentSuccessEvent.Amount}, status {paymentSuccessEvent.PaymentId}");
 
-                if (fkPayment.Currency.ToLower() == "usdt")
-                {
-                    fkPayment.Amount = fkPayment.Amount * RatesHelper.GetRates();
-                }
+            //    var fkPayment = await  _paymentAdapterService.GetOrderByFreeKassaId(paymentSuccessEvent.FreKassaOrderId);
 
-                if (fkPayment.Status != 1)
-                {
-                    await _logRepository.LogInfo($"Error on handle request from free kassa {paymentSuccessEvent.FreKassaOrderId}, amount{paymentSuccessEvent.Amount}");
-                }
+            //    if (fkPayment.Currency.ToLower() == "usdt")
+            //    {
+            //        fkPayment.Amount = fkPayment.Amount * RatesHelper.GetRates();
+            //    }
 
-                var payment = await _paymentService.GetPaymentsById(paymentSuccessEvent.PaymentId);
+            //    if (fkPayment.Status != 1)
+            //    {
+            //        await _logRepository.LogInfo($"Error on handle request from free kassa {paymentSuccessEvent.FreKassaOrderId}, amount{paymentSuccessEvent.Amount}");
+            //    }
 
-                if (payment == null)
-                {
-                    await _logRepository.LogError("Cannot find payment by id " + paymentSuccessEvent.PaymentId);
-                    return false;
-                }
+            //    var payment = await _paymentService.GetPaymentsById(paymentSuccessEvent.PaymentId);
 
-                await _logRepository.LogInfo($"CallBack payment start {paymentSuccessEvent.PaymentId}");
-                if (payment.Status == PaymentStatus.Payed)
-                {
-                    return false;
-                }
+            //    if (payment == null)
+            //    {
+            //        await _logRepository.LogError("Cannot find payment by id " + paymentSuccessEvent.PaymentId);
+            //        return false;
+            //    }
 
-                await _paymentService.ConfirmReferalOwnerPayment(new ConfirmPayment { UserId = payment.UserId, Amount = payment.Amount });
+            //    await _logRepository.LogInfo($"CallBack payment start {paymentSuccessEvent.PaymentId}");
+            //    if (payment.Status == PaymentStatus.Payed)
+            //    {
+            //        return false;
+            //    }
 
-                await _paymentService.UpdatePaymentStatus(payment.Id, PaymentStatus.Payed);
+            //    await _paymentService.ConfirmReferalOwnerPayment(new ConfirmPayment { UserId = payment.UserId, Amount = payment.Amount });
 
-                var user = _userService.GetById(payment.UserId);
+            //    await _paymentService.UpdatePaymentStatus(payment.Id, PaymentStatus.Payed);
 
-                await _userService.UpdateUserBallance(payment.UserId, user.Ballance + fkPayment.Amount);
+            //    var user = _userService.GetById(payment.UserId);
 
-                await _logRepository.LogInfo($"Successful balance update for the user {payment.UserId} amount {payment.Amount}");
+            //    await _userService.UpdateUserBallance(payment.UserId, user.Ballance + fkPayment.Amount);
 
-                return await Task.FromResult<bool>(true);
+            //    await _logRepository.LogInfo($"Successful balance update for the user {payment.UserId} amount {payment.Amount}");
 
-            }
-            catch (Exception ex)
-            {
-                await _logRepository.LogException("HandlePaymentEvent error", ex);
-                return await Task.FromResult<bool>(false);
+            //    return await Task.FromResult<bool>(true);
 
-            }
+            //}
+            //catch (Exception ex)
+            //{
+            //    await _logRepository.LogException("HandlePaymentEvent error", ex);
+            //    return await Task.FromResult<bool>(false);
+
+            //}
         }
 
         [HttpPost("handleWithdrawal")]
@@ -97,24 +100,38 @@ namespace DiceApi.Controllers.CallBacks
             {
                 var result = GetPropertiesAsString(model);
 
-                await _logRepository.LogInfo($"Processing withrowal start {result}");
+                var withrowalId = await _withdrawalsService.GetWithdrawalIdByFkWaletId(Convert.ToInt32(model.Id));
 
-                var withrowal = await _withdrawalsService.GetWithdrawalIdByFkWaletId(Convert.ToInt64(model.Id));
+                var withrowal = await _withdrawalsService.GetById(withrowalId);
+
 
                 var status = Convert.ToInt32(model.Status);
 
+                var log = new StringBuilder();
+                log.Append($"Processing withrowal start {withrowalId}, {status}, {model.Amount}");
+
                 if (status == 1)
                 {
-                    await _withdrawalsService.UpdateStatusWithFkValetId(withrowal, WithdrawalStatus.Processed);
+                    log.Append($"Processing withrowal end {withrowalId}, {status}, {model.Amount}");
+                    await _withdrawalsService.UpdateStatusWithFkValetId(withrowalId, WithdrawalStatus.Processed);
                 }
                 else if(status == 8 || status == 9 || status == 10)
                 {
-                    await _withdrawalsService.UpdateStatusWithFkValetId(withrowal, WithdrawalStatus.Error);
+                    if (withrowal.TryCount < 3)
+                    {
+                        await _withdrawalsService.UpdateTryCount(withrowal.Id, withrowal.TryCount++);
+                        await _withdrawalsService.СonfirmWithdrawal(withrowal.Id);
 
-                    await _withdrawalsService.DeactivateWithdrawal(withrowal);
+                        log.Append($"new try {withrowal.TryCount++}");
+                        await _logRepository.LogInfo(log.ToString());
+                    }
+
+                    await _withdrawalsService.UpdateStatusWithFkValetId(withrowalId, WithdrawalStatus.Error);
+
+                    await _withdrawalsService.DeactivateWithdrawal(withrowalId);
+                    log.Append($"Processing withrowal end {withrowalId}, {status}, {model.Amount}");
+                    await _logRepository.LogInfo(log.ToString());
                 }
-
-                await _logRepository.LogInfo($"Processing withrowal {withrowal}, {status}, {model.Amount}");
             }
             catch (Exception ex)
             {

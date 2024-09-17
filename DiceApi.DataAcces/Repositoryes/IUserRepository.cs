@@ -46,5 +46,9 @@ namespace DiceApi.DataAcces.Repositoryes
         Task UpdateRefferalOwnerId(long userId, long value);
 
         Task<bool> IsTelegramUserRegistred(long telegramId);
+
+        Task LinkTelegram(LinkTelegram linkTelegram);
+
+        Task<int> CheckUserAccaunt(long telegramId);
     }
 }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DiceApi.Common
 {
@@ -11,6 +7,16 @@ namespace DiceApi.Common
         public static bool IsNotNullOrEmpty(this string value)
         {
             return !string.IsNullOrEmpty(value);
+        
+        }
+
+        public static DateTime GetMSKDateTime(this DateTime dateTime)
+        {
+            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById("Russian Standard Time");
+            DateTime utcNow = DateTime.UtcNow;
+            DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(utcNow, timeZone);
+
+            return localTime;
         }
     }
 }

@@ -54,6 +54,16 @@ namespace DiceApi.DataAcces.Repositoryes
             }
         }
 
+        public async Task<List<Payment>> GetAllUnConfiemedPayments()
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = $"SELECT * FROM Payments WHERE Status = '{PaymentStatus.New}' and FkPaymentId is not null";
+
+                return (await connection.QueryAsync<Payment>(query)).ToList();
+            }
+        }
+
         public async Task<List<Payment>> GetAllPayedPayments()
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
@@ -145,6 +155,18 @@ namespace DiceApi.DataAcces.Repositoryes
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
                 string query = $"update Payments set Status = '{status}' WHERE Id = @Id";
+
+                var parameters = new { Id = paymentId };
+
+                await connection.ExecuteAsync(query, parameters);
+            }
+        }
+
+        public async Task UpdateFkOrderId(long paymentId, long fkPaymentId)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                string query = $"update Payments set FkPaymentId = '{fkPaymentId}' WHERE Id = @Id";
 
                 var parameters = new { Id = paymentId };
 

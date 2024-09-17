@@ -21,6 +21,11 @@ namespace DiceApi.DataAcces.Repositoryes
         Task<Payment> GetPaymentsById(long paymentId);
 
         Task<List<Payment>> GetAllPayedPayments();
+
+        Task<List<Payment>> GetAllUnConfiemedPayments();
+
+        Task UpdateFkOrderId(long paymentId, long fkPaymentId);
+
         Task<PaginatedList<Payment>> GetPaginatedPayments(GetPaymentsRequest request);
     }
 }

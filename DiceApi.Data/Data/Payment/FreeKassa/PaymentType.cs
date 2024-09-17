@@ -11,7 +11,6 @@ namespace DiceApi.Data.Data.Payment.FreeKassa
     /// </summary>
     public enum PaymentType
     {
-        UMoney = 6,
         VisaRub = 4,
         Sbp = 42,
 

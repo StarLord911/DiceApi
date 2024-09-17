@@ -48,7 +48,7 @@ namespace DiceApi.DataAcces.Repositoryes
                 connection.Open();
 
                 string query = "INSERT INTO Logs (Timestamp, Level, Message) VALUES (@Timestamp, @Level, @Message)";
-                await connection.ExecuteAsync(query, new { Timestamp = DateTime.UtcNow, Level = level, Message = message });
+                await connection.ExecuteAsync(query, new { Timestamp = DateTime.UtcNow.GetMSKDateTime(), Level = level, Message = message });
             }
         }
 

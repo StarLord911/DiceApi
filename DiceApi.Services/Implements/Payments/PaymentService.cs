@@ -59,6 +59,11 @@ namespace DiceApi.Services.Implements
             return await _paymentRepository.GetAllPayedPayments();
         }
 
+        public async Task<List<Payment>> GetAllUnConfiemedPayments()
+        {
+            return await _paymentRepository.GetAllUnConfiemedPayments();
+        }
+
         public async Task<PaginatedList<Payment>> GetPaginatedPayments(GetPaymentsRequest request)
         {
             return await _paymentRepository.GetPaginatedPayments(request);
@@ -91,7 +96,10 @@ namespace DiceApi.Services.Implements
             return result;
         }
 
-
+        public async Task UpdateFkOrderId(long paymentId, long fkPaymentId)
+        {
+            await _paymentRepository.UpdateFkOrderId(paymentId, fkPaymentId);
+        }
 
         public async Task UpdatePaymentStatus(long paymentId, PaymentStatus status)
         {

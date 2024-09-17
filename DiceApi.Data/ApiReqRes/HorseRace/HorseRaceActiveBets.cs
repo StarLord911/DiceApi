@@ -24,16 +24,16 @@ namespace DiceApi.Data.ApiReqRes.HorseRace
     /// </summary>
     public class HorseRaceActiveBet
     {
-        [JsonProperty("UserName")]
+        [JsonProperty("userName")]
         public string UserName { get; set; }
 
-        [JsonProperty("BetSum")]
+        [JsonProperty("betSum")]
         public decimal BetSum { get; set; }
 
-        [JsonProperty("Multiplayer")]
+        [JsonProperty("multiplayer")]
         public float Multiplayer { get; set; }
 
-        [JsonProperty("HorseColor")]
+        [JsonProperty("horseColor")]
         public HorseColor HorseColor { get; set; }
     }
 }

@@ -12,6 +12,14 @@ namespace DiceApi.Data
 
         public DiceGameWinningSettings DiceGameWinningSettings { get; set; }
 
+        public bool DiceGameActive { get; set; }
+
+        public bool MinesGameActive { get; set; }
+
+        public bool HorseGameActive { get; set; }
+
+        public bool RouletteGameActive { get; set; }
+
         public bool PaymentActive { get; set; }
 
         public bool WithdrawalActive { get; set; }

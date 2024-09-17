@@ -3,7 +3,7 @@ using DiceApi.Data;
 using DiceApi.Data.Data.Payment;
 using DiceApi.Data.Data.Payment.Api;
 using DiceApi.Data.Requests;
-using DiceApi.Services;
+using DiceApi.Common;
 using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
 using FreeKassa.NET;
@@ -45,7 +45,7 @@ namespace DiceApi.Controllers
                 Amount = createPaymentRequest.Amount,
                 OrderId = Guid.NewGuid().ToString(),
                 Status = PaymentStatus.New,
-                CreatedAt = DateTime.UtcNow.AddHours(3),
+                CreatedAt = DateTime.Now.GetMSKDateTime(),
                 UserId = createPaymentRequest.UserId
             };
 
@@ -82,6 +82,11 @@ namespace DiceApi.Controllers
 
                 await _paymentService.DeletePayment(paymentId);
             }
+            else
+            {
+                await _paymentService.UpdateFkOrderId(paymentId, result.OrderId);
+            }
+
 
             return result;
         }
@@ -136,7 +141,45 @@ namespace DiceApi.Controllers
         [HttpPost("getSpbWithdrawalBanks")]
         public async Task<List<FkWaletSpbWithdrawalBank>> GetSpbWithdrawalBanks()
         {
-            return await _paymentAdapterService.GetSpbWithdrawalBanks();
+
+            return new List<FkWaletSpbWithdrawalBank>()
+            {
+                new FkWaletSpbWithdrawalBank()
+                {
+                    BankId = "1enc00000111",
+                    BankName = "Сбербанк"
+                },
+                new FkWaletSpbWithdrawalBank()
+                {
+                    BankId = "1enc00000008",
+                    BankName = "Альфа Банк"
+                },
+                new FkWaletSpbWithdrawalBank()
+                {
+                    BankId = "1enc00000005",
+                    BankName = "ВТБ"
+                },
+                new FkWaletSpbWithdrawalBank()
+                {
+                    BankId = "1enc00000004",
+                    BankName = "Тинькофф"
+                },
+                new FkWaletSpbWithdrawalBank()
+                {
+                    BankId = "1enc00000007",
+                    BankName = "Райффайзен Банк"
+                },
+                new FkWaletSpbWithdrawalBank()
+                {
+                    BankId = "1enc00000016",
+                    BankName = "Почта банк"
+                },
+                new FkWaletSpbWithdrawalBank()
+                {
+                    BankId = "1enc00000001",
+                    BankName = "Газпромбанк"
+                }
+            };
         }
     }
 }

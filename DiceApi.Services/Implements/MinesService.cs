@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.SignalR;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace DiceApi.Services
@@ -80,6 +81,17 @@ namespace DiceApi.Services
         /// <returns></returns>
         public async Task<CreateMinesGameResponce> CreateMinesGame(CreateMinesGameRequest request)
         {
+            var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
+
+            if (!settingsCache.MinesGameActive)
+            {
+                return new CreateMinesGameResponce
+                {
+                    Info = "Игра отключена",
+                    Succes = false
+                };
+            }
+
             var user = _userService.GetById(request.UserId);
 
             if (request.MinesCount > 24 || request.MinesCount < 2)
@@ -208,9 +220,10 @@ namespace DiceApi.Services
                     {
                         for (int j = 0; j < 5; j++)
                         {
-                            if (game._cells[i, j].IsOpen == false && game._cells[i, j].IsMined == false && !found)
+                            var cell = game._cells.FirstOrDefault(c => c.X == i && c.Y == j);
+                            if (cell.IsOpen == false && cell.IsMined == false && !found)
                             {
-                                game._cells[i, j].IsMined = true;
+                                cell.IsMined = true;
                                 found = true;
                                 break;
                             }
@@ -221,9 +234,10 @@ namespace DiceApi.Services
                         }
                     }
 
-                    game._cells[request.X, request.Y].IsMined = false;
-                    game._cells[request.X, request.Y].IsOpen = false;
+                    game._cells.FirstOrDefault(c => c.X == request.X && c.Y == request.Y).IsMined = false;
+                    game._cells.FirstOrDefault(c => c.X == request.X && c.Y == request.Y).IsOpen = false;
                     game._gameOver = false;
+                    game.OpenedCellsCount -= 1;
                     openResult = game.OpenCell(request.X, request.Y);
                 }
                 else
@@ -348,9 +362,11 @@ namespace DiceApi.Services
             {
                 for (int j = 0; j < 5; j++)
                 {
-                    if (cells[i, j].IsMined && !found)
+                    var cell = game._cells.FirstOrDefault(c => c.X == i && c.Y == j);
+
+                    if (cell.IsMined && !found)
                     {
-                        cells[i, j].IsMined = false;
+                        cell.IsMined = false;
                         found = true;
                         break;  // выход из внутреннего цикла
                     }
@@ -361,7 +377,7 @@ namespace DiceApi.Services
                 }
             }
 
-            cells[request.X, request.Y].IsMined = true;
+            cells.FirstOrDefault(c => c.X == request.X && c.Y == request.Y).IsMined = true;
 
             await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settings);
             await SaveGameAndDeleteCache(game, request.UserId);
@@ -421,24 +437,10 @@ namespace DiceApi.Services
             await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
 
-        private CellApiModel[,] MapCells(Cell[,] cells)
+        private List<CellApiModel> MapCells(List<Cell> cells)
         {
-            int rows = cells.GetLength(0);
-            int columns = cells.GetLength(1);
+            return cells.Select(c => _mapper.Map<CellApiModel>(c)).ToList();
 
-            CellApiModel[,] cellApiModels = new CellApiModel[rows, columns];
-
-            for (int row = 0; row < rows; row++)
-            {
-                for (int column = 0; column < columns; column++)
-                {
-                    Cell cell = cells[row, column];
-                    CellApiModel cellApiModel = _mapper.Map<CellApiModel>(cell);
-                    cellApiModels[row, column] = cellApiModel;
-                }
-            }
-
-            return cellApiModels;
         }
 
         private string ReplaceAt(string input, int index, char newChar)

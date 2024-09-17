@@ -19,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using System.Collections.Generic;
+using FakeActiveService = DiceApi.Services.BackgroundServices.FakeActiveService;
 
 namespace DiceApi
 {
@@ -115,6 +116,11 @@ namespace DiceApi
 
             services.AddHostedService<RouleteService>();
             services.AddHostedService<HorsesService>();
+            services.AddHostedService<PaymentConfirmService>();
+
+            services.AddHostedService<FakeActiveService>();
+            services.AddHostedService<FakeOnlineService>();
+
 
             ConfigHelper.LoadConfig(Configuration);
         }
@@ -172,6 +178,10 @@ namespace DiceApi
                         MinesMaxSuccesMineOpens = 15,
                         MinesMaxWinSum = 5000
                     },
+                    DiceGameActive = true,
+                    MinesGameActive = true,
+                    HorseGameActive = true,
+                    RouletteGameActive = true,
                     PaymentActive = true,
                     TechnicalWorks = false,
                     WithdrawalActive = true

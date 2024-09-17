@@ -123,6 +123,13 @@ namespace DiceApi.Controllers
         }
 
         [Authorize]
+        [HttpPost("linkTelegram")]
+        public async Task<string> LinkTelegram(LinkTelegram telegram)
+        {
+            return await _userService.LinkTelegram(telegram);
+        }
+
+        [Authorize]
         [HttpPost("getUserById")]
         public UserApi GetUserById(GetByUserIdRequest request)
         {

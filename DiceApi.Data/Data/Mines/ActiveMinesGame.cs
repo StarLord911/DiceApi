@@ -16,7 +16,7 @@ namespace DiceApi.Data
         [DataMember]
         public int OpenedCellsCount { get; set; }
         [DataMember]
-        public Cell[,] _cells;
+        public List<Cell> _cells;
         [DataMember]
         public bool _gameOver;
         public bool FinishGame { get; set; }
@@ -48,16 +48,16 @@ namespace DiceApi.Data
             return !_gameOver;
         }
 
-        private Cell[,] GenerateMineField(int mineCount)
+        private List<Cell> GenerateMineField(int mineCount)
         {
             Random random = new Random();
-            Cell[,] mineField = new Cell[5, 5];
+            List<Cell> mineField = new List<Cell>();
 
             for (int i = 0; i < 5; i++)
             {
                 for (int j = 0; j < 5; j++)
                 {
-                    mineField[i, j] = new Cell(i, j);
+                    mineField.Add(new Cell(i, j));
                 }
             }
 
@@ -68,9 +68,9 @@ namespace DiceApi.Data
                 int x = random.Next(0, 5);
                 int y = random.Next(0, 5);
 
-                if (!mineField[x, y].IsMined)
+                if (!mineField.FirstOrDefault(c => c.X == x && c.Y == y).IsMined)
                 {
-                    mineField[x, y].IsMined = true;
+                    mineField.FirstOrDefault(c => c.X == x && c.Y == y).IsMined = true;
                     minesPlaced++;
                 }
             }
@@ -86,7 +86,7 @@ namespace DiceApi.Data
                 return new OpenCellResult { GameOver = true, IsCellOpened = false, FindMine = false };
             }
 
-            var cell = _cells[x, y];
+            var cell = _cells.FirstOrDefault(c => c.X == x && c.Y == y);
 
             if (cell.IsOpen)
             {
@@ -109,7 +109,7 @@ namespace DiceApi.Data
             return new OpenCellResult { CanWin = CanWin, GameOver = false, IsCellOpened = false, FindMine = false };
         }
 
-        public Cell[,] GetCells()
+        public List<Cell> GetCells()
         {
             return _cells;
         }

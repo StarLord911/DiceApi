@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace DiceApi.Services.Implements
 {
-
     public class LastGamesService : ILastGamesService
     {
         private readonly ICacheService _cacheService;
@@ -36,7 +35,7 @@ namespace DiceApi.Services.Implements
                 Multiplier = Math.Round(canWin / betSum, 2),
                 Win = win,
                 GameType = gameType,
-                GameDate = DateTime.UtcNow.ToString("HH:mm")
+                GameDate = DateTime.UtcNow.GetMSKDateTime().ToString("HH:mm")
             };
 
             var lastGames = await _cacheService.ReadCache<List<GameApiModel>>(CacheConstraints.LAST_GAMES_IN_SITE);
@@ -71,7 +70,7 @@ namespace DiceApi.Services.Implements
                 Multiplier = Math.Round(canWin / betSum, 2),
                 Win = win,
                 GameType = gameType,
-                GameDate = DateTime.Now.ToString("HH:mm")
+                GameDate = DateTime.Now.GetMSKDateTime().ToString("HH:mm")
             };
 
             var gameJson = JsonConvert.SerializeObject(gameApiModel);

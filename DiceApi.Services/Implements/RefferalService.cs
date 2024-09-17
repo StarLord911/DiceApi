@@ -1,4 +1,5 @@
-﻿using DiceApi.Data;
+﻿using DiceApi.Common;
+using DiceApi.Data;
 using DiceApi.Data.Data.User.Api.Requests;
 using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
@@ -46,11 +47,6 @@ namespace DiceApi.Services.Implements
             decimal paymentSum = 0;
 
             var allPayments = new List<Payment>();
-
-            //if (refferals == null || refferals.Count ==0)
-            //{
-            //    return GetEmptyData(user, dateRange);
-            //}
 
             foreach (var refferal in refferals)
             {
@@ -116,6 +112,12 @@ namespace DiceApi.Services.Implements
                 result.Add(info);
             }
 
+            if (request.DateRange == DateRange.Day)
+            {
+                result.Insert(0, new DashBoardInformation());
+                result.Add(new DashBoardInformation());
+            }
+
             return result;
         }
 
@@ -163,16 +165,16 @@ namespace DiceApi.Services.Implements
         {
             if (dateRange == DateRange.Day)
             {
-                return DateTime.UtcNow.AddDays(-1);
+                return DateTime.UtcNow.GetMSKDateTime();
             }
             if (dateRange == DateRange.Week)
             {
-                return DateTime.UtcNow.AddDays(-7);
+                return DateTime.UtcNow.AddDays(-7).GetMSKDateTime();
             }
 
             if (dateRange == DateRange.Month)
             {
-                return DateTime.UtcNow.AddDays(-30);
+                return DateTime.UtcNow.AddDays(-30).GetMSKDateTime();
             }
 
             return null;

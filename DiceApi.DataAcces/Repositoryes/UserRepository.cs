@@ -5,6 +5,7 @@ using DiceApi.Data.Api;
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
 using Microsoft.Data.SqlClient;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -436,6 +437,25 @@ namespace DiceApi.DataAcces.Repositoryes
             using (IDbConnection db = new SqlConnection(_connectionString))
             {
                 return (await db.QueryAsync<User>("SELECT * FROM Users WHERE telegramUserId = @telegramId", new { telegramId })).Any();
+            }
+        }
+
+        public async Task LinkTelegram(LinkTelegram linkTelegram)
+        {
+            using (IDbConnection db = new SqlConnection(_connectionString))
+            {
+                var query = $@"update Users set telegramUserId = {linkTelegram.TelegramId} where Id = {linkTelegram.UserId}";
+                
+                await db.ExecuteAsync(query);
+            }
+        }
+
+        public async Task<int> CheckUserAccaunt(long telegramId)
+        {
+            using (IDbConnection connection = new SqlConnection(_connectionString))
+            {
+                var query = $"SELECT COUNT(*) FROM Users where telegramUserId = {telegramId}";
+                return await connection.ExecuteScalarAsync<int>(query);
             }
         }
     }

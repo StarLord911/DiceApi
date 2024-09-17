@@ -31,11 +31,17 @@ namespace DiceApi.Services.SignalRHubs
                 await Clients.All.SendAsync("UserConnected", _users.Count + FakeActiveHelper.FakeUserCount);
                 return;
             }
+
             FakeActiveHelper.UserCount = _users.Count;
         }
 
         public async Task UserDisconnected(long userId)
         {
+            if (_users.Count == 0)
+            {
+                await Clients.All.SendAsync("UserDisconnected", _users.Count + FakeActiveHelper.FakeUserCount);
+            }
+
             if (_users.Contains(userId))
             {
                 _users.Remove(userId);

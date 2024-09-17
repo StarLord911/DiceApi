@@ -8,6 +8,7 @@ using System.Linq;
 using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.Data.Winning;
+using DiceApi.Data.ApiReqRes;
 
 namespace DiceApi.Services.Implements
 {
@@ -37,6 +38,17 @@ namespace DiceApi.Services.Implements
 
         public async Task<DiceResponce> StartDice(DiceRequest request)
         {
+            var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
+
+            if (!settingsCache.DiceGameActive)
+            {
+                return new DiceResponce
+                {
+                    Info = "Игра отключена",
+                    IsSucces = false
+                };
+            }
+
             // Проверка валидности запроса
             if (!ValidateDiceRequest(request))
             {

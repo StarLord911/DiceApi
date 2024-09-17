@@ -1,6 +1,7 @@
 ﻿using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
+using DiceApi.Data.Data.Dice;
 using DiceApi.Data.Data.Roulette;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
@@ -41,6 +42,17 @@ namespace DiceApi.Services
 
         public async Task<CreateRouletteBetResponce> BetRouletteGame(CreateRouletteBetRequest request)
         {
+            var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
+
+            if (!settingsCache.RouletteGameActive)
+            {
+                return new CreateRouletteBetResponce
+                {
+                    Message = "Игра отключена",
+                    Succesful = false
+                };
+            }
+
             var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_ROULETTE_USERS);
 
             if (bettedUserIds != null && bettedUserIds.Contains(request.UserId))

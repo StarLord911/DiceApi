@@ -75,6 +75,14 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
+            if (user.TelegramUserId == null || user.TelegramUserId == 0)
+            {
+                responce.Succses = false;
+                responce.Message = $"Привяжите телеграм аккаунт";
+
+                return responce;
+            }
+
             if (user.Ballance < request.Amount)
             {
                 responce.Succses = false;
@@ -122,7 +130,7 @@ namespace DiceApi.Services.Implements
                 UserId = request.UserId,
                 Amount = request.Amount,
                 CardNumber = request.CartNumber,
-                CreateDate = DateTime.UtcNow.AddHours(3),
+                CreateDate = DateTime.UtcNow.GetMSKDateTime(),
                 Status = WithdrawalStatus.Moderation,
                 BankId = request.BankId
             };
@@ -254,6 +262,11 @@ namespace DiceApi.Services.Implements
         public async Task<long> GetWithdrawalIdByFkWaletId(long id)
         {
             return await _withdrawalsRepository.GetWithdrawalIdByFkWaletId(id);
+        }
+
+        public async Task UpdateTryCount(long id, int count)
+        {
+            await _withdrawalsRepository.UpdateTryCount(id, count);
         }
     }
 }

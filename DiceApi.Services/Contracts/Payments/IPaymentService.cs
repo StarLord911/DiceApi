@@ -31,6 +31,10 @@ namespace DiceApi.Services.Contracts
 
         Task<PaymentStats> GetPaymentStats();
 
+        Task<List<Payment>> GetAllUnConfiemedPayments();
+
         Task<PaginatedList<Payment>> GetPaginatedPayments(GetPaymentsRequest request);
+
+        Task UpdateFkOrderId(long paymentId, long fkPaymentId);
     }
 }

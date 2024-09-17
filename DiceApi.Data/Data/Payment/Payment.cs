@@ -22,6 +22,11 @@ namespace DiceApi.Data
         public string OrderId { get; set; }
 
         /// <summary>
+        /// Номер заказа во фри кассе.
+        /// </summary>
+        public long? FkPaymentId { get; set; }
+
+        /// <summary>
         /// Юзер
         /// </summary>
         public long UserId { get; set; }

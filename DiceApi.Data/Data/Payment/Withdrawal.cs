@@ -28,5 +28,7 @@ namespace DiceApi.Data
 
         public long? FkWaletId { get; set; }
 
+        public int TryCount { get; set; }
+
     }
 }

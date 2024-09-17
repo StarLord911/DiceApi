@@ -14,6 +14,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DiceApi.Services.Contracts;
+using DiceApi.Data.ApiReqRes.HorseRace;
+using Newtonsoft.Json;
+using DiceApi.Data.Data.Roulette;
 
 namespace DiceApi.Services.BackgroundServices
 {
@@ -23,12 +26,23 @@ namespace DiceApi.Services.BackgroundServices
         private readonly IUserService _userService;
         private readonly ILastGamesService _lastGamesService;
         private readonly IHubContext<HorseGameEndGameHub> _hubContext;
+        private readonly IHubContext<HorseGameBetsHub> _horseBetsHub;
+
         private readonly IHubContext<HorsesGameStartTaimerHub> _gameStartTaimerHub;
 
         private readonly ILogRepository _logRepository;
 
+
+        List<int> randomDigits = new List<int>()
+        {
+            15, 20, 50, 70, 60, 45,75, 44,58,96,53, 99, 100,150, 120, 180, 200, 300, 350, 323, 425, 400, 458, 500, 412,88,77,45,12,5,11,9,6,1,1,1,21,22,12,15,47,56,78,21,489,656,44,89,98,878,78,56,15,35,48,46,12,35,77,55,69,63,62,61
+        };
+
+        private List<HorseRaceActiveBet> _fakeGames = new List<HorseRaceActiveBet>();
+
+
         public HorsesService(ICacheService cacheService, IUserService userService, IHubContext<HorseGameEndGameHub> hubContext, ILastGamesService lastGamesService,
-            ILogRepository logRepository, IHubContext<HorsesGameStartTaimerHub> gameStartTaimerHub)
+            ILogRepository logRepository, IHubContext<HorsesGameStartTaimerHub> gameStartTaimerHub, IHubContext<HorseGameBetsHub> horseBetsHub)
         {
             _cacheService = cacheService;
             _userService = userService;
@@ -36,6 +50,7 @@ namespace DiceApi.Services.BackgroundServices
             _lastGamesService = lastGamesService;
             _logRepository = logRepository;
             _gameStartTaimerHub = gameStartTaimerHub;
+            _horseBetsHub = horseBetsHub;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -63,6 +78,11 @@ namespace DiceApi.Services.BackgroundServices
 
                 var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
+
+                foreach (var game in _fakeGames)
+                {
+                    await AddLastGames(game.UserName, game.BetSum, 0, color == game.HorseColor);
+                }
 
                 if (bettedUserIds == null)
                 {
@@ -213,6 +233,28 @@ namespace DiceApi.Services.BackgroundServices
                 if (i == 30)
                 {
                     GameStates.IsHorseGameRun = false;
+                }
+
+                var random = new Random();
+
+                if (random.Next(0, 2) == 0)
+                {
+                    var iterCount = random.Next(1, 4);
+                    for (int x = 0; x < iterCount; x++)
+                    {
+                        var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);
+
+                        var betSum = randomDigits[random.Next(0, randomDigits.Count)];
+                        var gameJson = JsonConvert.SerializeObject(new HorseRaceActiveBet()
+                        {
+                            UserName = FakeActiveHelper.FakeNames[nameInex],
+                            BetSum = betSum,
+                            Multiplayer = 8,
+                            HorseColor = GetWinnedHorseColor()
+                        });
+
+                        await _horseBetsHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
+                    }
                 }
 
                 await _gameStartTaimerHub.Clients.All.SendAsync("ReceiveMessage", SerializationHelper.Serialize(new GameTypeTaimer { GameName = "Horses", Taimer = i }));

@@ -18,6 +18,8 @@ namespace DiceApi.Services
 
         Task<bool> IsTelegramUserRegistred(long telegramId);
 
+        Task<string> LinkTelegram(LinkTelegram linkTelegram);
+
         IEnumerable<User> GetAll();
 
         User GetById(long id);

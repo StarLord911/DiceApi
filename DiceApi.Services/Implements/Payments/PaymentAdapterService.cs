@@ -61,7 +61,8 @@ namespace DiceApi.Services.Implements
                 {
                     Succesful = true,
                     Message = null,
-                    Location = result.Location
+                    Location = result.Location,
+                    OrderId = result.OrderId
                 };
             }
             else

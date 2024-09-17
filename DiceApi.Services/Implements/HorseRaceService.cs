@@ -1,6 +1,8 @@
 ﻿using DiceApi.Common;
+using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.ApiReqRes.HorseRace;
+using DiceApi.Data.Data.Dice;
 using DiceApi.Data.Data.HorseGame;
 using DiceApi.Data.Data.Roulette;
 using DiceApi.DataAcces.Repositoryes;
@@ -42,23 +44,35 @@ namespace DiceApi.Services.Implements
         {
             var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
 
+            var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
+
+            if (!settingsCache.RouletteGameActive)
+            {
+                return "Игра отключена.";
+            }
+
             if (bettedUserIds != null && bettedUserIds.Contains(request.UserId))
             {
-                return "Bet already exist";
+                return "Вы уже сделали ставку";
             }
 
             var user = _userService.GetById(request.UserId);
 
             if (!user.IsActive)
             {
-                return "User block";
+                return "Вы не можете делать ставки";
+            }
+
+            if (request.HorseBets.Any(s => s.BetSum < 1))
+            {
+                return "Минимальная ставка 1руб";
             }
 
             var betSum = request.HorseBets.Sum(b => b.BetSum);
 
             if (user.Ballance < betSum)
             {
-                return "Low ballance";
+                return "Недостаточно баланса";
             }
 
             var updatedBallance = user.Ballance - betSum;
@@ -112,7 +126,7 @@ namespace DiceApi.Services.Implements
 
             foreach (var id in bettedUserIds)
             {
-                var userBets = await _cacheService.ReadCache<CreateHorseBetRequest>(CacheConstraints.ROULETTE_USER_BET + id);
+                var userBets = await _cacheService.ReadCache<CreateHorseBetRequest>(CacheConstraints.HORSE_RACE_USER_BET + id);
                 var user = _userService.GetById(id);
 
                 if (userBets != null)

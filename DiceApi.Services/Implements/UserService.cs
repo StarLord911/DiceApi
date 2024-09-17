@@ -32,8 +32,7 @@ namespace DiceApi.Services
         {
             var user = _userRepository
                 .GetAll()
-                .FirstOrDefault(x => x.Name == model.Name && (x.Password == HashHelper.GetSHA256Hash(model.Password) || x.Password == model.Password));
-
+                .FirstOrDefault(x => x.Name == model.Name && x.Password == model.Password);
 
             if (user == null)
             {
@@ -198,6 +197,26 @@ namespace DiceApi.Services
             await _logRepository.LogInfo($"UpdateUserBallance new ballance: {sum} old ballance: {user.Ballance} userId: {userId} ");
 
             await _userRepository.UpdateUserBallance(userId, user.Ballance + sum);
+        }
+
+        public async Task<string> LinkTelegram(LinkTelegram linkTelegram)
+        {
+            var user = _userRepository.GetById(linkTelegram.UserId);
+
+            if (user.TelegramUserId != null && user.TelegramUserId != 0)
+            {
+                return "Этот аккаунт уже привязан";
+            }
+
+            if (await _userRepository.CheckUserAccaunt(linkTelegram.TelegramId) > 0)
+            {
+                return "Этот телеграм привязан к другому аккаунту";
+            }
+
+            await _userRepository.LinkTelegram(linkTelegram);
+
+            return "Аккаунт успешно привязан";
+
         }
     }
 }
