@@ -117,13 +117,15 @@ namespace DiceApi.Controllers.CallBacks
                 }
                 else if(status == 8 || status == 9 || status == 10)
                 {
-                    if (withrowal.TryCount < 3)
+                    if (withrowal.TryCount < 5)
                     {
-                        await _withdrawalsService.UpdateTryCount(withrowal.Id, withrowal.TryCount++);
+                        var tryCount = withrowal.TryCount + 1;
+                        await _withdrawalsService.UpdateTryCount(withrowal.Id, tryCount);
                         await _withdrawalsService.СonfirmWithdrawal(withrowal.Id);
 
                         log.Append($"new try {withrowal.TryCount++}");
                         await _logRepository.LogInfo(log.ToString());
+                        return;
                     }
 
                     await _withdrawalsService.UpdateStatusWithFkValetId(withrowalId, WithdrawalStatus.Error);
