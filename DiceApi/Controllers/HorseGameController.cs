@@ -23,11 +23,15 @@ namespace DiceApi.Controllers
         }
 
         [HttpPost("bet")]
-        public async Task<string> BetHorse(CreateHorseBetRequest createHorseBetRequest)
+        public async Task<CreateHorseBetResponce> BetHorse(CreateHorseBetRequest createHorseBetRequest)
         {
             if (GameStates.IsHorseGameRun)
             {
-                return "GameRunned";
+                return new CreateHorseBetResponce
+                {
+                    Message = "Дождитесь окончания игры",
+                    Succes = false
+                };
             }
 
             return await _horseRaceService.BetHorceRace(createHorseBetRequest);

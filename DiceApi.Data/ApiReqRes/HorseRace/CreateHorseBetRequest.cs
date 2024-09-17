@@ -40,4 +40,10 @@ namespace DiceApi.Data.ApiReqRes
         Yellow = 7,
         Beige = 8
     }
+
+    public class CreateHorseBetResponce
+    {
+        public bool Succes { get; set; }
+        public string Message { get; set; }
+    }
 }

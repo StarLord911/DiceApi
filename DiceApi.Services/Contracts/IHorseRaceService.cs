@@ -12,7 +12,7 @@ namespace DiceApi.Services.Contracts
 {
     public interface IHorseRaceService
     {
-        public Task<string> BetHorceRace(CreateHorseBetRequest request);
+        public Task<CreateHorseBetResponce> BetHorceRace(CreateHorseBetRequest request);
 
         Task<List<HorseGameResult>> GetLastHorseGameResults();
         

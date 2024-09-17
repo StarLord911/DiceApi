@@ -120,12 +120,17 @@ namespace DiceApi.Services
             return dic;
         }
 
+        static List<decimal> _randomDigits = new List<decimal>()
+        {
+            15, 20, 50, 70, 60, 45,75, 44,58,96,53, 99, 100,150, 120, 180, 200, 300, 350, 323, 425, 400, 458, 500, 412,88,77,45,12,5,11,9,6,1,1,1,21,22,12,15,47,56,78,21,489,656,44,89,98,878,78,56,15,35,48,46,12,35,77,55,69,63,62,61
+        };
+
         //TODO написать феик активность для рулетки и перекинуть внутрь джобы
         public static GameApiModel GetGameApiModel()
         {
             var random = new Random();
             var nameInex = random.Next(0, FakeNames.Count);
-            double sum = random.NextDouble() * 99 + 1; // От 1 до 100
+            var sum = _randomDigits[random.Next(0, _randomDigits.Count)];
 
             if (random.Next(0, 9) != 2)
             {
@@ -133,25 +138,24 @@ namespace DiceApi.Services
             }
 
             var name = FakeNames[nameInex];
-            var multiplier = random.NextDouble() * 6 + 1;
-            bool win = random.Next(0, 6) > 3;
+            var multiplier = (decimal)random.Next(5) + (decimal)random.NextDouble();
+            bool win = random.Next(0, 5) > 3;
 
             var gameType = GameType.DiceGame;
 
             if (random.Next(0, 10) >= 8)
             {
-                multiplier = GetChanses()[random.Next(2, 9)][random.Next(4, 9)];
+                multiplier = (decimal)GetChanses()[random.Next(2, 9)][random.Next(2, 9)];
                 gameType = GameType.Mines;
             }
 
-            var canWin = (decimal)(sum * multiplier);
+            var canWin = sum * multiplier;
 
             var apiModel = new GameApiModel
             {
                 UserName = ReplaceAt(name, 4, '*'),
-                Sum = Math.Round((decimal)sum, 2),
-                CanWinSum = Math.Round(canWin, 2),
-                Multiplier = Math.Round((decimal)multiplier),
+                Sum = Math.Round(sum, 2),
+                Multiplier = Math.Round(multiplier, 2),
                 Win = win,
                 GameType = gameType,
                 GameDate = DateTime.Now.GetMSKDateTime().ToString("HH:mm")

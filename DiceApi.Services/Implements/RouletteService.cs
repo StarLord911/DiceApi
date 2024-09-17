@@ -86,6 +86,24 @@ namespace DiceApi.Services
                 };
             }
 
+            if (request.Bets.Any(b => b.BetSum < 1))
+            {
+                return new CreateRouletteBetResponce()
+                {
+                    Succesful = false,
+                    Message = "Минимальная ставка 1."
+                };
+            }
+
+            if (request.Bets.Any(b => b.BetSum > 5000))
+            {
+                return new CreateRouletteBetResponce()
+                {
+                    Succesful = false,
+                    Message = "Максимальная ставка 5000."
+                };
+            }
+
             var updatedBallance = user.Ballance - betSum;
 
             if (bettedUserIds == null)

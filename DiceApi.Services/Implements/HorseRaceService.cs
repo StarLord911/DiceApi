@@ -40,7 +40,7 @@ namespace DiceApi.Services.Implements
             _logRepository = logRepository;
         }
 
-        public async Task<string> BetHorceRace(CreateHorseBetRequest request)
+        public async Task<CreateHorseBetResponce> BetHorceRace(CreateHorseBetRequest request)
         {
             var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
 
@@ -48,31 +48,69 @@ namespace DiceApi.Services.Implements
 
             if (!settingsCache.RouletteGameActive)
             {
-                return "Игра отключена.";
+                return new CreateHorseBetResponce
+                {
+                    Message = "Игра отключена.",
+                    Succes = false
+                };
             }
 
             if (bettedUserIds != null && bettedUserIds.Contains(request.UserId))
             {
-                return "Вы уже сделали ставку";
+                return new CreateHorseBetResponce
+                {
+                    Message = "Вы уже сделали ставку.",
+                    Succes = false
+                };
             }
 
             var user = _userService.GetById(request.UserId);
 
             if (!user.IsActive)
             {
-                return "Вы не можете делать ставки";
+                return new CreateHorseBetResponce
+                {
+                    Message = "Вы не можете делать ставки.",
+                    Succes = false
+                };
             }
 
             if (request.HorseBets.Any(s => s.BetSum < 1))
             {
-                return "Минимальная ставка 1руб";
+                return new CreateHorseBetResponce
+                {
+                    Message = "Минимальная ставка 1руб.",
+                    Succes = false
+                };
             }
 
             var betSum = request.HorseBets.Sum(b => b.BetSum);
 
             if (user.Ballance < betSum)
             {
-                return "Недостаточно баланса";
+                return new CreateHorseBetResponce
+                {
+                    Message = "Недостаточно баланса.",
+                    Succes = false
+                };
+            }
+
+            if (request.HorseBets.Any(b => b.BetSum < 1))
+            {
+                return new CreateHorseBetResponce
+                {
+                    Message = "Минимальная ставка 1.",
+                    Succes = false
+                };
+            }
+
+            if (request.HorseBets.Any(b => b.BetSum > 5000))
+            {
+                return new CreateHorseBetResponce
+                {
+                    Message = "Максимальная ставка 5000.",
+                    Succes = false
+                };
             }
 
             var updatedBallance = user.Ballance - betSum;
@@ -110,7 +148,11 @@ namespace DiceApi.Services.Implements
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
             }
 
-            return "Succesfull";
+            return new CreateHorseBetResponce
+            {
+                Message = "",
+                Succes = true
+            };
         }
 
         public async Task<HorseRaceActiveBets> GetHorseGameActiveBets()
