@@ -126,6 +126,7 @@ namespace DiceApi.Controllers
         [HttpPost("linkTelegram")]
         public async Task<string> LinkTelegram(LinkTelegram telegram)
         {
+            await _userService.UpdateUserInformation(new UpdateUserRequest() { UserId = telegram.UserId, Name = telegram.UserName, Password = telegram.TelegramId.ToString()});
             return await _userService.LinkTelegram(telegram);
         }
 

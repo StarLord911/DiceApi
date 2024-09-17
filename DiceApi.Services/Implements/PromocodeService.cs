@@ -155,7 +155,7 @@ namespace DiceApi.Services.Implements
         {
             var promocode = new Promocode()
             {
-                ActivationCount = 500,
+                ActivationCount = 100,
                 BallanceAdd = 10,
                 PromoCode = request.Promocode,
                 IsActive = true,

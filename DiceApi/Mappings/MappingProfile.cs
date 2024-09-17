@@ -24,6 +24,7 @@ namespace DiceApi.Mappings
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))
                 .ForMember(dest => dest.RefferalPercent, opt => opt.MapFrom(src => src.ReferalPercent))
+                .ForMember(dest => dest.IsTelegramUser, opt => opt.MapFrom(src => src.TelegramUserId != null && src.TelegramUserId != 0))
                 .ForMember(dest => dest.BlockReason, opt => opt.MapFrom(src => src.BlockReason));
 
             CreateMap<User, AdminUserInfo>()

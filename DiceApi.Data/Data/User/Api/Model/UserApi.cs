@@ -32,5 +32,8 @@ namespace DiceApi.Data.Api.Model
 
         [JsonProperty("blockReason")]
         public string BlockReason { get; set; }
+
+        [JsonProperty("isTelegramUser")]
+        public string IsTelegramUser { get; set; }
     }
 }

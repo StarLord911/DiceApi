@@ -138,6 +138,12 @@ namespace DiceApi.Services.BackgroundServices
                                 multiplier = 2;
                                 log.AppendLine($"Bet color BLACK multiplier = 2");
                             }
+                            else if (bet.BetColor.IsNotNullOrEmpty() && bet.BetColor == RoutletteConsts.GREEN && GetDroppedColor(randomValue) == RoutletteConsts.GREEN)
+                            {
+                                winSum += bet.BetSum * 2;
+                                multiplier = 2;
+                                log.AppendLine($"Bet color GREEN multiplier = 2");
+                            }
                             else if (bet.BetRange.IsNotNullOrEmpty() && bet.BetRange == RoutletteConsts.FirstRange && (randomValue >= 1 && randomValue <= 9))
                             {
                                 winSum += bet.BetSum * 2;

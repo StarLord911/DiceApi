@@ -12,6 +12,8 @@ namespace DiceApi.Data.Data.Roulette
 
         public const string BLACK = "Black";
 
+        public const string GREEN = "Green";
+
         public const string FirstRange = "1-9";
 
         public const string SecondRange = "10-18";
