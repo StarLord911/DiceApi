@@ -38,9 +38,6 @@ namespace DiceApi.Services.BackgroundServices
             15, 20, 50, 70, 60, 45,75, 44,58,96,53, 99, 100,150, 120, 180, 200, 300, 350, 323, 425, 400, 458, 500, 412,88,77,45,12,5,11,9,6,1,1,1,21,22,12,15,47,56,78,21,489,656,44,89,98,878,78,56,15,35,48,46,12,35,77,55,69,63,62,61
         };
 
-        private List<HorseRaceActiveBet> _fakeGames = new List<HorseRaceActiveBet>();
-
-
         public HorsesService(ICacheService cacheService, IUserService userService, IHubContext<HorseGameEndGameHub> hubContext, ILastGamesService lastGamesService,
             ILogRepository logRepository, IHubContext<HorsesGameStartTaimerHub> gameStartTaimerHub, IHubContext<HorseGameBetsHub> horseBetsHub)
         {
@@ -79,7 +76,7 @@ namespace DiceApi.Services.BackgroundServices
                 var bettedUserIds = await _cacheService.ReadCache<List<long>>(CacheConstraints.BETTED_HORSE_RACE_USERS);
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", color);
 
-                foreach (var game in _fakeGames)
+                foreach (var game in FakeActiveHelper.FakeHorseRaceActiveBet)
                 {
                     await AddLastGames(game.UserName, game.BetSum, 0, color == game.HorseColor);
                 }
@@ -245,13 +242,19 @@ namespace DiceApi.Services.BackgroundServices
                         var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);
 
                         var betSum = randomDigits[random.Next(0, randomDigits.Count)];
-                        var gameJson = JsonConvert.SerializeObject(new HorseRaceActiveBet()
+
+                        var bet = new HorseRaceActiveBet()
                         {
                             UserName = FakeActiveHelper.FakeNames[nameInex],
                             BetSum = betSum,
                             Multiplayer = 8,
                             HorseColor = GetWinnedHorseColor()
-                        });
+                        };
+
+                        FakeActiveHelper.FakeHorseRaceActiveBet.Add(bet);
+
+                        var gameJson = JsonConvert.SerializeObject(bet);
+
 
                         await _horseBetsHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
                     }

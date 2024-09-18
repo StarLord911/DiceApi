@@ -1,6 +1,7 @@
 ﻿using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Roulette;
+using DiceApi.Services;
 using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -39,7 +40,11 @@ namespace DiceApi.Controllers
         [HttpPost("getActiveBets")]
         public async Task<RouletteActiveBets> GetActiveBets()
         {
-            return await _rouletteService.GetRouletteActiveBets();
+            var res = await _rouletteService.GetRouletteActiveBets();
+
+            res.Bets.AddRange(FakeActiveHelper.FakeRouletteActiveBet);
+
+            return res;
         }
 
         [HttpPost("getLastGamesResults")]

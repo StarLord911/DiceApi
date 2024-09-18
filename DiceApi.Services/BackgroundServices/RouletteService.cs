@@ -42,8 +42,6 @@ namespace DiceApi.Services.BackgroundServices
             15, 20, 50, 70, 60, 45,75, 44,58,96,53, 99, 100,150, 120, 180, 200, 300, 350, 323, 425, 400, 458, 500, 412,88,77,45,12,5,11,9,6,1,1,1,21,22,12,15,47,56,78,21,489,656,44,89,98,878,78,56,15,35,48,46,12,35,77,55,69,63,62,61
         };
 
-        private List<RouletteActiveBet> _fakeGames = new List<RouletteActiveBet>();
-
 
         public RouleteService(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext,
             ILogRepository logRepository, IHubContext<RouletteGameStartTaimerHub> gameStartTaimerHub,
@@ -89,7 +87,7 @@ namespace DiceApi.Services.BackgroundServices
                 await _hubContext.Clients.All.SendAsync("ReceiveMessage", randomValue);
                 await UpdateLastGames(randomValue);
 
-                foreach (var game in _fakeGames)
+                foreach (var game in FakeActiveHelper.FakeRouletteActiveBet)
                 {
                     await AddLastGames(game.UserName, game.BetSum, 0, GetDroppedColor(randomValue) == game.BetColor);
                 }
@@ -257,7 +255,7 @@ namespace DiceApi.Services.BackgroundServices
 
                         var gameJson = JsonConvert.SerializeObject(bet);
 
-                        _fakeGames.Add(bet);
+                        FakeActiveHelper.FakeRouletteActiveBet.Add(bet);
                         await _rouletBetsHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
                     }
                 }

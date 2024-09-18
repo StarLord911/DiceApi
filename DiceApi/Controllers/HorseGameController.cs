@@ -40,7 +40,11 @@ namespace DiceApi.Controllers
         [HttpPost("getActiveBets")]
         public async Task<HorseRaceActiveBets> GetActiveBets()
         {
-            return await _horseRaceService.GetHorseGameActiveBets();
+            var res = await _horseRaceService.GetHorseGameActiveBets();
+
+            res.Bets.AddRange(FakeActiveHelper.FakeHorseRaceActiveBet);
+
+            return res;
         }
 
         [HttpPost("getLastGamesResults")]
