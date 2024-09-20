@@ -184,8 +184,6 @@ namespace DiceApi.Services
             var mappedGame = _mapper.Map<MinesGame>(game);
             await _minesRepository.AddMinesGame(mappedGame);
 
-            await UpdateWinningToDay(mappedGame.CanWin);
-
             await SendNewGameSocket(game, user.Name);
 
             return new FinishMinesGameResponce { Cells = SerializationHelper.Serialize(game.GetCells()), UserBallance = user.Ballance + game.CanWin };
@@ -426,15 +424,6 @@ namespace DiceApi.Services
             }
 
             await _lastGamesService.AddLastGames(userName, game.BetSum, Math.Round(game.CanWin, 2), game.FinishGame, GameType.Mines);
-        }
-
-        private async Task UpdateWinningToDay(decimal amount)
-        {
-            var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
-
-            stats.WinningToDay += amount;
-
-            await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
 
         private List<CellApiModel> MapCells(List<Cell> cells)

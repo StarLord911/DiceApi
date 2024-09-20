@@ -32,12 +32,6 @@ namespace DiceApi.Services.BackgroundServices
 
         private readonly ILogRepository _logRepository;
 
-
-        List<int> randomDigits = new List<int>()
-        {
-            15, 20, 50, 70, 60, 45,75, 44,58,96,53, 99, 100,150, 120, 180, 200, 300, 350, 323, 425, 400, 458, 500, 412,88,77,45,12,5,11,9,6,1,1,1,21,22,12,15,47,56,78,21,489,656,44,89,98,878,78,56,15,35,48,46,12,35,77,55,69,63,62,61
-        };
-
         public HorsesService(ICacheService cacheService, IUserService userService, IHubContext<HorseGameEndGameHub> hubContext, ILastGamesService lastGamesService,
             ILogRepository logRepository, IHubContext<HorsesGameStartTaimerHub> gameStartTaimerHub, IHubContext<HorseGameBetsHub> horseBetsHub)
         {
@@ -223,6 +217,7 @@ namespace DiceApi.Services.BackgroundServices
 
         private async Task Taimer()
         {
+            FakeActiveHelper.FakeHorseRaceActiveBet = new List<HorseRaceActiveBet>();
             for (int i = 40; i != 0; i--)
             {
                 Thread.Sleep(1000);
@@ -241,7 +236,7 @@ namespace DiceApi.Services.BackgroundServices
                     {
                         var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);
 
-                        var betSum = randomDigits[random.Next(0, randomDigits.Count)];
+                        var betSum = FakeActiveHelper.RandomDigits[random.Next(0, FakeActiveHelper.RandomDigits.Count)];
 
                         var bet = new HorseRaceActiveBet()
                         {

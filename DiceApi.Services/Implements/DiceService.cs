@@ -115,10 +115,6 @@ namespace DiceApi.Services.Implements
             await _logRepository.LogInfo($"Add new dice game for user {user.Id} win sum {winSum}");
 
             // Обновление ежедневных выигрышей (если выигрыш)
-            if (response.IsSucces)
-            {
-                await UpdateWinningToDay(winSum);
-            }
 
             await UpdateLastGames(diceGame, user);
 

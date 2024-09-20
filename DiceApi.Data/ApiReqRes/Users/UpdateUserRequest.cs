@@ -29,5 +29,7 @@ namespace DiceApi.Data.ApiReqRes
 
         public bool? EnableWithdrawal { get; set; }
 
+        public string? Role { get; set; }
+
     }
 }

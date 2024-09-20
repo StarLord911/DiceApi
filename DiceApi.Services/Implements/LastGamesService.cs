@@ -1,5 +1,6 @@
 ﻿using DiceApi.Common;
 using DiceApi.Data;
+using DiceApi.Data.Data.Winning;
 using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.SignalRHubs;
@@ -37,6 +38,11 @@ namespace DiceApi.Services.Implements
                 GameType = gameType,
                 GameDate = DateTime.UtcNow.GetMSKDateTime().ToString("HH:mm")
             };
+
+            if (win)
+            {
+                await UpdateWinningToDay(Math.Round(betSum * gameApiModel.Multiplier, 2));
+            }
 
             var lastGames = await _cacheService.ReadCache<List<GameApiModel>>(CacheConstraints.LAST_GAMES_IN_SITE);
 
@@ -76,6 +82,15 @@ namespace DiceApi.Services.Implements
             var gameJson = JsonConvert.SerializeObject(gameApiModel);
 
             await _lastGamesHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
+        }
+
+        private async Task UpdateWinningToDay(decimal amount)
+        {
+            var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
+
+            stats.WinningToDay += amount;
+
+            await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
 
         private string ReplaceAt(string input, int index, char newChar)

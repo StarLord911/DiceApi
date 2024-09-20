@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using DiceApi.Services;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -26,20 +27,27 @@ namespace DiceApi.Controllers
         private readonly IPaymentService _paymentService;
         private readonly IPaymentAdapterService _paymentAdapterService;
         private readonly IWithdrawalsService _withdrawalsService;
+        private readonly IUserService _userService;
 
         public PaymentController(IPaymentService paymentService,
             IPaymentAdapterService paymentAdapterService,
-            IWithdrawalsService withdrawalsService)
+            IWithdrawalsService withdrawalsService,
+            IUserService userService)
         {
             _paymentService = paymentService;
             _paymentAdapterService = paymentAdapterService;
             _withdrawalsService = withdrawalsService;
+            _userService = userService;
         }
 
         [Authorize]
         [HttpPost("createPayment")]
         public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentRequest createPaymentRequest)
         {
+
+            var user = _userService.GetById(createPaymentRequest.UserId);
+            var paymentsSum = (await _paymentService.GetPaymentsByUserId(user.Id)).Where(p => p.Status == PaymentStatus.Payed).Sum(p => p.Amount);
+
             var payment = new Payment
             {
                 Amount = createPaymentRequest.Amount,

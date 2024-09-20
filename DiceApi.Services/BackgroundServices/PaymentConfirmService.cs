@@ -47,8 +47,6 @@ namespace DiceApi.Services.BackgroundServices
                     {
                         var fkPayment = await _paymentAdapterService.GetOrderByFreeKassaId(payment.FkPaymentId.Value);
 
-                        
-
                         if (fkPayment.Status == 1)
                         {
                             await _paymentService.ConfirmReferalOwnerPayment(new ConfirmPayment { UserId = payment.UserId, Amount = payment.Amount });
@@ -66,6 +64,11 @@ namespace DiceApi.Services.BackgroundServices
                             await _logRepository.LogInfo($"Successful confirm payment {payment.Id} amount {payment.Amount}");
                             continue;
                         }
+                        else if (fkPayment.Status == 8 || fkPayment.Status == 9)
+                        {
+                            await _paymentService.UpdatePaymentStatus(payment.Id, Data.PaymentStatus.Error);
+                            continue;
+                        }
 
 
                         if ((DateTime.UtcNow.GetMSKDateTime() - payment.CreatedAt).TotalMinutes > 120)
@@ -79,7 +82,7 @@ namespace DiceApi.Services.BackgroundServices
                     }
                 }
 
-                Thread.Sleep(60000);
+                Thread.Sleep(15000);
             }
         }
     }

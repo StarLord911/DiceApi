@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System.Collections.Generic;
 using FakeActiveService = DiceApi.Services.BackgroundServices.FakeActiveService;
@@ -126,7 +127,7 @@ namespace DiceApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime appLifetime)
         {
             app.UseDeveloperExceptionPage();
             app.UseSwagger();
@@ -196,6 +197,11 @@ namespace DiceApi
 
                 cache.WriteCache(CacheConstraints.WINNINGS_TO_DAY, stats).GetAwaiter().GetResult();
             }
+
+            appLifetime.ApplicationStopping.Register(() =>
+            {
+                
+            });
 
             JobManager.Initialize(new DropWinningsJob(cache));
         }

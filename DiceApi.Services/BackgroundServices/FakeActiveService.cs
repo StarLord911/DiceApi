@@ -1,4 +1,7 @@
-﻿using DiceApi.Services.SignalRHubs;
+﻿using DiceApi.Common;
+using DiceApi.Data;
+using DiceApi.Data.Data.Winning;
+using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -14,11 +17,13 @@ namespace DiceApi.Services.BackgroundServices
     public class FakeActiveService : BackgroundService
     {
         private IHubContext<LastGamesHub> _newGameContext;
+        private ICacheService _cacheService;
 
-
-        public FakeActiveService(IHubContext<LastGamesHub> hubContext)
+        public FakeActiveService(IHubContext<LastGamesHub> hubContext, ICacheService cacheService)
         {
             _newGameContext = hubContext;
+            _cacheService = cacheService;
+
         }
 
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -31,6 +36,11 @@ namespace DiceApi.Services.BackgroundServices
                 {
                     var apiModel = FakeActiveHelper.GetGameApiModel();
                     var gameJson = JsonConvert.SerializeObject(apiModel);
+
+                    if (apiModel.Win)
+                    {
+                        await UpdateWinningToDay(Math.Round(apiModel.Sum * apiModel.Multiplier, 2));
+                    }
 
                     if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
                     {
@@ -50,6 +60,15 @@ namespace DiceApi.Services.BackgroundServices
                 }
             }
           );
+        }
+
+        private async Task UpdateWinningToDay(decimal amount)
+        {
+            var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
+
+            stats.WinningToDay += amount;
+
+            await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
     }
 }

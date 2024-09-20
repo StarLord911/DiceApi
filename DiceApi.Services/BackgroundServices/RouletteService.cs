@@ -37,12 +37,7 @@ namespace DiceApi.Services.BackgroundServices
         private readonly IHubContext<RouletteBetsHub> _rouletBetsHub;
 
 
-        List<int> randomDigits = new List<int>()
-        {
-            15, 20, 50, 70, 60, 45,75, 44,58,96,53, 99, 100,150, 120, 180, 200, 300, 350, 323, 425, 400, 458, 500, 412,88,77,45,12,5,11,9,6,1,1,1,21,22,12,15,47,56,78,21,489,656,44,89,98,878,78,56,15,35,48,46,12,35,77,55,69,63,62,61
-        };
-
-
+        
         public RouleteService(ICacheService cacheService, IUserService userService, IHubContext<RouletteEndGameHub> hubContext,
             ILogRepository logRepository, IHubContext<RouletteGameStartTaimerHub> gameStartTaimerHub,
             ILastGamesService lastGamesService, IHubContext<RouletteBetsHub> hubContext1)
@@ -222,6 +217,8 @@ namespace DiceApi.Services.BackgroundServices
 
         private async Task Taimer()
         {
+            FakeActiveHelper.FakeRouletteActiveBet = new List<RouletteActiveBet>();
+
             for (int i = 40; i != 0; i--)
             {
                 Thread.Sleep(1000);
@@ -242,16 +239,25 @@ namespace DiceApi.Services.BackgroundServices
 
                         var color = random.Next(0, 1);
 
-                        var betSum = randomDigits[random.Next(0, randomDigits.Count)];
+                        var betSum = FakeActiveHelper.RandomDigits[random.Next(0, FakeActiveHelper.RandomDigits.Count)];
 
                         var bet = new RouletteActiveBet()
                         {
                             UserName = FakeActiveHelper.FakeNames[nameInex],
                             BetSum = betSum,
                             Multiplayer = 2,
-                            IsColorBet = true,
-                            BetColor = color == 0 ? "Red" : "Black"
                         };
+
+                        if (new Random().Next(0, 6) > 4)
+                        {
+                            bet.IsColorBet = true;
+                            bet.BetColor = color == 0 ? "Red" : "Black";
+                        }
+                        else
+                        {
+                            bet.BetNumber = new Random().Next(0, 18);
+                            bet.Multiplayer = 18;
+                        }
 
                         var gameJson = JsonConvert.SerializeObject(bet);
 

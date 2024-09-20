@@ -61,7 +61,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     Password = user.Password, //хешировать
                     Ballance = 0,
                     OwnerId = user.OwnerId,
-                    RegistrationDate = DateTime.UtcNow,
+                    RegistrationDate = DateTime.UtcNow.GetMSKDateTime(),
                     IsActive = true,
                     ReferalPercent = 10,
                     RegistrationIp = user.IpAddres,
@@ -228,6 +228,12 @@ namespace DiceApi.DataAcces.Repositoryes
             }
 
             if (request.EnableWithdrawal != null)
+            {
+                query.Append("enableWithdrawal = @EnableWithdrawal, ");
+                parameters.Add("@EnableWithdrawal", request.EnableWithdrawal);
+            }
+
+            if (string.IsNullOrEmpty(request.Role))
             {
                 query.Append("enableWithdrawal = @EnableWithdrawal, ");
                 parameters.Add("@EnableWithdrawal", request.EnableWithdrawal);

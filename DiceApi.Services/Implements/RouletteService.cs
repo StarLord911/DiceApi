@@ -114,10 +114,7 @@ namespace DiceApi.Services
             else
             {
                 bettedUserIds.Add(user.Id);
-
-                await _cacheService.DeleteCache(CacheConstraints.BETTED_ROULETTE_USERS);
-
-                await _cacheService.WriteCache(CacheConstraints.BETTED_ROULETTE_USERS, bettedUserIds);
+                await _cacheService.UpdateCache(CacheConstraints.BETTED_ROULETTE_USERS, bettedUserIds);
             }
 
             await _logRepository.LogInfo($"User {user.Id} set new bet in roulette betSum: {betSum}");

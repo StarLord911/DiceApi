@@ -92,11 +92,12 @@ namespace DiceApi.Services.Implements
             }
 
             var payments = await _paymentService.GetPaymentsByUserId(request.UserId);
+            var paymentsSum = payments.Where(p => p.Status == PaymentStatus.Payed).Sum(p => p.Amount);
 
-            if (payments.Any() && user.PaymentForWithdrawal > payments.Sum(p => p.Amount))
+            if (user.PaymentForWithdrawal > paymentsSum)
             {
                 responce.Succses = false;
-                responce.Message = $"Недостаточно депозита для создания заявки на вывод";
+                responce.Message = $"Для выовда нужно сделать деплозит {Math.Round(user.PaymentForWithdrawal - paymentsSum, 2)}руб.";
 
                 return responce;
             }
@@ -109,7 +110,7 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
-            if (request.Amount < 1029 && request.WithdrawalType == WithdrawalType.Sbp)
+            if (request.Amount < 1999 && request.WithdrawalType == WithdrawalType.Sbp)
             {
                 responce.Succses = false;
                 responce.Message = $"Минимальная сумма вывода по СБП 1030";
