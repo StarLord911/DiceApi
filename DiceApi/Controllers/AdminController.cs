@@ -41,8 +41,7 @@ namespace DiceApi.Controllers
         private readonly IWageringRepository _wageringRepository;
         private readonly IMinesService _minesService;
         private readonly ICacheService _cacheService;
-        private IHubContext<LastGamesHub> _newGameContext;
-        private IHubContext<OnlineUsersHub> _onlineContext;
+        private readonly ILogRepository _logRepository;
 
         public AdminController(IUserService userService,
             IPaymentService paymentService,
@@ -56,8 +55,7 @@ namespace DiceApi.Controllers
             IWageringRepository wageringRepository,
             IMinesService minesService,
             ICacheService cacheService,
-            IHubContext<LastGamesHub> hubContext,
-            IHubContext<OnlineUsersHub> onlineContext,
+            ILogRepository logRepository,
             IMapper mapper)
         {
             _userService = userService;
@@ -72,8 +70,7 @@ namespace DiceApi.Controllers
             _wageringRepository = wageringRepository;
             _minesService = minesService;
             _cacheService = cacheService;
-            _newGameContext = hubContext;
-            _onlineContext = onlineContext;
+            _logRepository = logRepository;
 
             _mapper = mapper;
         }
@@ -429,7 +426,8 @@ namespace DiceApi.Controllers
         [HttpPost("updateSettings")]
         public async Task UpdateSettings(Settings settings)
         {
-             await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settings);
+             await _logRepository.LogInfo($"Update settings: {JsonConvert.SerializeObject(settings)}");
+             await _cacheService.WriteCache(CacheConstraints.SETTINGS_KEY, settings);
         }
 
         #endregion
