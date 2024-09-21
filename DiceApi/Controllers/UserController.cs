@@ -157,9 +157,9 @@ namespace DiceApi.Controllers
 
             var user = _userService.GetById(request.UserId);
 
-            if (user.TelegramUserId != null)
+            if (user.TelegramUserId == null || user.TelegramUserId == 0)
             {
-                return new GetDailyBonusByUserIdResponce { Message = "Telegram use bonus", Success = false};
+                return new GetDailyBonusByUserIdResponce { Message = "Нужно прикрепить телеграм.", Success = false};
             }
 
             var bonus = new Random().Next(5);
