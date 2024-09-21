@@ -20,9 +20,9 @@ namespace DiceApi.Services
             _cache = cache;
         }
 
-        public Task WriteCache(string key, string value, TimeSpan timeSpan = default)
+        public async Task WriteCache(string key, string value, TimeSpan timeSpan = default)
         {
-            return WriteCache<string>(key, value, timeSpan);
+            await WriteCache<string>(key, value, timeSpan);
         }
 
         public async Task WriteCache<T>(string key, T value, TimeSpan timeSpan = default)
@@ -53,10 +53,9 @@ namespace DiceApi.Services
             return res;
         }
 
-        public Task DeleteCache(string key)
+        public async Task DeleteCache(string key)
         {
-            _cache.Invalidate(key);
-            return Task.CompletedTask;
+            await Task.Run(() => _cache.Invalidate(key));
         }
     }
 }
