@@ -99,7 +99,6 @@ namespace DiceApi.Controllers
             return result;
         }
 
-        [Authorize]
         [HttpPost("getCryptoRates")]
         public List<CryptoRate> GetCryptoRates()
         {
@@ -114,14 +113,13 @@ namespace DiceApi.Controllers
             };
         }
 
-        [Authorize]
         [HttpPost("getActivePaymentMethods")]
         public List<PaymentFreeKassaMethodInformation> GetActivePaymentMethods()
         {
             return FreeKassaActivePaymentMethodsHelper.GetPaymentMethodsInfo();
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpPost("createWithdrawal")]
         public async Task<CreateWithdrawalResponce> CreateWithdrawal(CreateWithdrawalRequest createWithdrawalRequest)
         {

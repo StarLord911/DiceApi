@@ -1,4 +1,5 @@
-﻿using DiceApi.Data;
+﻿using DiceApi.Common;
+using DiceApi.Data;
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Promocode;
@@ -89,7 +90,7 @@ namespace DiceApi.Services.Implements
             {
                 UserId = request.UserId,
                 Promocode = request.Promocode,
-                ActivationDateTime = DateTime.UtcNow,
+                ActivationDateTime = DateTime.UtcNow.GetMSKDateTime(),
                 Wager = promocode.Wagering,
                 AddedBallance = promocode.BallanceAdd
             };
@@ -155,11 +156,11 @@ namespace DiceApi.Services.Implements
         {
             var promocode = new Promocode()
             {
-                ActivationCount = 100,
-                BallanceAdd = 10,
+                ActivationCount = 1000,
+                BallanceAdd = 30,
                 PromoCode = request.Promocode,
                 IsActive = true,
-                Wagering = 10,
+                Wagering = 15,
                 IsRefferalPromocode = true,
                 RefferalPromocodeOwnerId = request.UserId
             };
@@ -195,22 +196,14 @@ namespace DiceApi.Services.Implements
                 };
             }
 
-            if (promocode.PromoCode.Length < 4)
-            {
-                return new GenerateRefferalPromocodeResponce()
-                {
-                    Message = "Минимальная длина промокода 5 символов",
-                    Success = false
-                };
-            }
-
+           
             var promocodeCount = await _promocodeRepository.GetActiveRefferalPromocodeCount(request.UserId);
 
-            if (promocodeCount >= 10)
+            if (promocodeCount >= 20)
             {
                 return new GenerateRefferalPromocodeResponce()
                 {
-                    Message = "У вас больше 10 активных промокодов",
+                    Message = "У вас больше 20 активных промокодов",
                     Success = false
                 };
             }

@@ -1,4 +1,5 @@
-﻿using DiceApi.Data;
+﻿using DiceApi.Attributes;
+using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Roulette;
 using DiceApi.Services;
@@ -22,7 +23,8 @@ namespace DiceApi.Controllers
             _rouletteService = rouletteService;
         }
 
-        [HttpPost("bet")]//
+        [Authorize]
+        [HttpPost("bet")]
         public async Task<CreateRouletteBetResponce> Bet(CreateRouletteBetRequest request)
         {
             if (GameStates.IsRouletteGameRun)

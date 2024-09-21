@@ -2,6 +2,7 @@
 using DiceApi.Data;
 using DiceApi.Data.Data.Winning;
 using DiceApi.Services.SignalRHubs;
+using MathNet.Numerics.Random;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -44,16 +45,22 @@ namespace DiceApi.Services.BackgroundServices
 
                     if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
                     {
-                        await Task.Delay(new Random().Next(500, 2000));
+                        await Task.Delay(new Random().Next(1000, 2000));
 
                     }
                     else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                     {
-                        await Task.Delay(new Random().Next(500, 1500));
+                        await Task.Delay(new Random().Next(1000, 2000));
                     }
                     else
                     {
-                        await Task.Delay(new Random().Next(500, 900));
+                        await Task.Delay(new Random().Next(500, 1500));
+                    }
+
+                    if (new Random().Next(1, 15) == 5)
+                    {
+                        var randoom = new Random();
+                        await UpdateWithdrawalToDay(randoom.Next(2000, 3000) + randoom.NextDecimal());
                     }
 
                     await _newGameContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
@@ -67,6 +74,15 @@ namespace DiceApi.Services.BackgroundServices
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
             stats.WinningToDay += amount;
+
+            await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
+        }
+
+        private async Task UpdateWithdrawalToDay(decimal amount)
+        {
+            var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
+
+            stats.WithdrawalToDay += amount;
 
             await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }

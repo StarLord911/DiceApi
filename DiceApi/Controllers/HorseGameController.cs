@@ -1,4 +1,5 @@
-﻿using DiceApi.Data;
+﻿using DiceApi.Attributes;
+using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.ApiReqRes.HorseRace;
 using DiceApi.Data.Data.HorseGame;
@@ -22,6 +23,7 @@ namespace DiceApi.Controllers
             _horseRaceService = horseRaceService;
         }
 
+        [Authorize]
         [HttpPost("bet")]
         public async Task<CreateHorseBetResponce> BetHorse(CreateHorseBetRequest createHorseBetRequest)
         {
@@ -36,6 +38,7 @@ namespace DiceApi.Controllers
 
             return await _horseRaceService.BetHorceRace(createHorseBetRequest);
         }
+
 
         [HttpPost("getActiveBets")]
         public async Task<HorseRaceActiveBets> GetActiveBets()

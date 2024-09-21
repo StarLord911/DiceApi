@@ -315,7 +315,7 @@ namespace DiceApi.Services
         {
             var wagering = await _wageringRepository.GetActiveWageringByUserId(userId);
 
-            if (wagering != null)
+            if (wagering != null && wagering.IsActive)
             {
                 await _wageringRepository.UpdatePlayed(userId, sum);
 
