@@ -57,10 +57,7 @@ namespace DiceApi.MiddleWares
             var password = jwtToken.Claims.First(x => x.Type == "password").Value;
             var user = userService.GetById(userId);
 
-            if (user.Password != password)
-            {
-                throw new BadHttpRequestException("Incorrect JWT token information");
-            }
+            
 
             if (user.Role.ToLower() != "admin")
             {
