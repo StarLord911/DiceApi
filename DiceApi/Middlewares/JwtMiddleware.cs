@@ -54,10 +54,7 @@ namespace DiceApi.MiddleWares
 
             var jwtToken = (JwtSecurityToken)validatedToken;
             var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
-            var password = jwtToken.Claims.First(x => x.Type == "password").Value;
             var user = userService.GetById(userId);
-
-            
 
             if (user.Role.ToLower() != "admin")
             {

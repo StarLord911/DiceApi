@@ -77,7 +77,7 @@ namespace DiceApi.Controllers
 
         #region users
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getUsersByPage")]
         public async Task<PaginatedList<AdminUserInfo>> GetUsersByPage(GetUsersByPaginationRequest request)
         {
@@ -86,7 +86,7 @@ namespace DiceApi.Controllers
             return new PaginatedList<AdminUserInfo>(res.Items.Select(u => _mapper.Map<AdminUserInfo>(u)).ToList(), res.TotalPages, res.PageIndex);
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getMainPageStats")]
         public async Task<AdminMainPageStats> GetMainPageStats()
         {
@@ -101,12 +101,14 @@ namespace DiceApi.Controllers
             return result;
         }
 
+        [Authorize(true)]
         [HttpPost("updateUserInformation")]
         public async Task UpdateUserInformation(UpdateUserRequest request)
         {
             await _userService.UpdateUserInformation(request);
         }
 
+        [Authorize(true)]
         [HttpPost("findUserByName")]
         public async Task<PaginatedList<AdminUserInfo>> FindUsersByName(FindUserByNameRequest request)
         {
@@ -117,7 +119,7 @@ namespace DiceApi.Controllers
             return new PaginatedList<AdminUserInfo>(result, users.TotalPages, users.PageIndex);
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getUserById")]
         public async Task<AdminUser> GetUserById(GetByUserIdRequest request)
         {
@@ -153,7 +155,7 @@ namespace DiceApi.Controllers
             return mappedUser;
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getPromocodeActivateHistory")]
         public async Task<PaginatedList<PrimocodeActivation>> GetPromocodeActivateHistory(PromocodeActivateHisoryRequest request)
         {
@@ -176,7 +178,7 @@ namespace DiceApi.Controllers
             return new PaginatedList<PrimocodeActivation>(result, pageCount, request.PageNumber);
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getGamesStats")]
         public async Task<GamesStatsResponce> GetGamesStats(GetByUserIdRequest request)
         {
@@ -198,7 +200,7 @@ namespace DiceApi.Controllers
             return result;
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getGamesByUserId")]
         public async Task<PaginatedList<GameApiModel>> GetGamesByUserId(GetGamesByUserIdByPaginationRequest request)
         {
@@ -235,7 +237,7 @@ namespace DiceApi.Controllers
             return new PaginatedList<GameApiModel>(mappedGames, totalPages, request.PageNumber);
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("deleteUserById")]
         public async Task DeleteUserById(GetByUserIdRequest request)
         {
@@ -243,14 +245,14 @@ namespace DiceApi.Controllers
 
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getPaymantRequisitesByUserId")]
         public async Task<PaymentRequisite> GetPaymantRequisitesByUserId(GetByUserIdRequest request)
         {
             return await _paymentRequisitesRepository.GetPaymentRequisiteByUserId(request.UserId);
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getPaymantsByUserId")]
         public async Task<PaginatedList<Payment>> GetPaymantsByUserId(GetPaymentsByUserIdRequest request)
         {
@@ -267,7 +269,7 @@ namespace DiceApi.Controllers
             return new PaginatedList<Payment>(result, totalPages, request.Pagination.PageNumber);
         }
 
-        //[Authorize(true)]
+        [Authorize(true)]
         [HttpPost("getWithdrawalsByUserId")]
         public async Task<PaginatedList<Withdrawal>> GetWithdrawalsByUserId(GetWithdrawalsByUserId request)
         {
@@ -284,6 +286,7 @@ namespace DiceApi.Controllers
             return new PaginatedList<Withdrawal>(result, totalPages, request.Pagination.PageNumber);
         }
 
+        [Authorize(true)]
         [HttpPost("getMultyAccauntsByUserId")]
         public async Task<PaginatedList<UserMultyAccaunt>> GetMultyAccaunts(GetMultyAccauntsByUserIdRequest request)
         {
@@ -294,18 +297,21 @@ namespace DiceApi.Controllers
 
         #region promocodes
 
+        [Authorize(true)]
         [HttpPost("generatePromocode")]
         public async Task<string> GeneratePromocode(CreatePromocodeRequest request)
         {
             return await _promocodeService.CreatePromocode(request);
         }
 
+        [Authorize(true)]
         [HttpPost("getPromocodes")]
         public async Task<PaginatedList<PromocodeApiModel>> GetPromocodes(GetPromocodesByPaginationRequest request)
         {
             return await _promocodeService.GetPromocodesByPagination(request);
         }
 
+        [Authorize(true)]
         [HttpPost("getPromocodeByNameByLike")]
         public async Task<PaginatedList<PromocodeApiModel>> GetPromocodeByNameByLike(GetPromocodesByNameRequest request)
         {
@@ -316,6 +322,7 @@ namespace DiceApi.Controllers
 
         #region withdrawals
 
+        [Authorize(true)]
         [HttpPost("getWithdrawals")]
         public async Task<PaginatedList<Withdrawal>> GetWithdrawals(GetWithdrawalsRequest request)
         {
@@ -337,12 +344,14 @@ namespace DiceApi.Controllers
             return new PaginatedList<Withdrawal>(result, totalPages, request.Pagination.PageNumber);
         }
 
+        [Authorize(true)]
         [HttpPost("confirmWithdrawal")]
         public async Task ConfirmWithdrawals(WithdrawalRequest request)
         {
             await _withdrawalsService.СonfirmWithdrawal(request.Id);
         }
 
+        [Authorize(true)]
         [HttpPost("unconfirmWithdrawal")]
         public async Task UnconfirmWithdrawals(WithdrawalRequest request)
         {
@@ -353,12 +362,14 @@ namespace DiceApi.Controllers
 
         #region payments
 
+        [Authorize(true)]
         [HttpPost("getPayments")]
         public async Task<PaginatedList<Payment>> GetPayments(GetPaymentsRequest request)
         {
             return await _paymentService.GetPaginatedPayments(request);
         }
 
+        [Authorize(true)]
         [HttpPost("getPaymentWithdrawals")]
         public async Task<PaginatedList<Withdrawal>> GetPaymentWithdrawals(GetPaymentWithdrawalsRequest request)
         {
@@ -369,12 +380,14 @@ namespace DiceApi.Controllers
 
         #region cooperation
 
+        [Authorize(true)]
         [HttpPost("createCooperationRequest")]
         public async Task CreateCooperationRequest(CooperationRequest request)
         {
             await _cooperationRequestRepository.CreateCooperationRequest(request);
         }
 
+        [Authorize(true)]
         [HttpPost("getAllCooperationRequest")]
         public async Task<PaginatedList<CooperationRequest>> GetAllCooperationRequest(PaginationRequest request)
         {
@@ -395,18 +408,21 @@ namespace DiceApi.Controllers
 
         #region top dwGetUserPaymentWithdrawalInfoByPagination
 
+        [Authorize(true)]
         [HttpPost("getUserPaymentInfo")]
         public async Task<PaginatedList<UserPaymentInfo>> GetUserPaymentInfo(PaginationRequest request)
         {
             return await _userService.GetUserPaymentInfoByPagination(request);
         }
 
+        [Authorize(true)]
         [HttpPost("getUserPaymentWithdrawalInfo")]
         public async Task<PaginatedList<UserPaymentWithdrawalInfo>> GetUserPaymentWithdrawalInfo(PaginationRequest request)
         {
             return await _userService.GetUserPaymentWithdrawalInfoByPagination(request);
         }
 
+        [Authorize(true)]
         [HttpPost("getTopRefferals")]
         public async Task<PaginatedList<UserRefferalInfo>> GetTopRefferals(PaginationRequest request)
         {
@@ -417,12 +433,14 @@ namespace DiceApi.Controllers
 
         #region
 
+        [Authorize(true)]
         [HttpPost("getSettings")]
         public async Task<Settings> GetSettings()
         {
             return await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
         }
 
+        [Authorize(true)]
         [HttpPost("updateSettings")]
         public async Task UpdateSettings(Settings settings)
         {
