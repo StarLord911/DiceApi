@@ -34,7 +34,7 @@ namespace DiceApi
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services, IWebHostEnvironment env)
         {
             services.AddAutoMapper(typeof(Startup));
             services.AddSingleton<MappingProfile>();
@@ -80,10 +80,23 @@ namespace DiceApi
 
             ConfigHelper.LoadConfig(Configuration);
 
-            services.AddEasyCache(new CacheSettings() 
+            if (env.IsDevelopment())
             {
-                CacheProvider = CacheProvider.MemoryCache,
-            });
+                services.AddEasyCache(new CacheSettings()
+                {
+                    CacheProvider = CacheProvider.MemoryCache,
+                });
+            }
+            else
+            {
+                services.AddEasyCache(new CacheSettings()
+                {
+                    CacheProvider = CacheProvider.Redis,
+                    RedisSerialization = SerializationType.Newtonsoft,
+                    RedisConnectionString = "localhost:6379"
+                });
+            }
+            
 
             services.AddTransient<ILastGamesService, LastGamesService>();
             services.AddTransient<ILogRepository, LogRepository>();
@@ -134,7 +147,6 @@ namespace DiceApi
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiceApi v1"));
 
             app.UseRouting();
-
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseMiddleware<JwtMiddleware>();

@@ -429,102 +429,12 @@ namespace DiceApi.Controllers
         [HttpPost("updateSettings")]
         public async Task UpdateSettings(Settings settings)
         {
-             await _cacheService.UpdateCache<Settings>(CacheConstraints.SETTINGS_KEY, settings);
+             await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settings);
         }
 
         #endregion
 
-        [HttpPost("startFakeOnline")]
-        public async Task StartFakeOnline()
-        {
-            await Task.Run(async () =>
-            {
-                Random _random = new Random();
-
-                const int minDelayMilliseconds = 2000; // Минимальная задержка между отправками (2 секунды)
-                const int maxDelayMilliseconds = 8000; // Максимальная задержка между отправками (5 секунд)
-                int minUserCount = 43; // Минимальное число пользователей
-                int maxUserCount = 77; // Максимальное число пользователей
-                const int maxDifference = 2; // Максимальная разница между числами
-                FakeActiveHelper.FakeUserCount = 61;
-
-                while (true)
-                {
-                    if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
-                    {
-                        minUserCount = 11;
-                        maxUserCount = 20;
-                    }
-                    else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
-                    {
-                        minUserCount = 25;
-                        maxUserCount = 55;
-                    }
-                    else
-                    {
-                        minUserCount = 43;
-                        maxUserCount = 77;
-                    }
-
-                    if (FakeActiveHelper.FakeUserCount >= maxUserCount)
-                    {
-                        FakeActiveHelper.FakeUserCount -= 1;
-                    }
-                    if (FakeActiveHelper.FakeUserCount <= minUserCount)
-                    {
-                        FakeActiveHelper.FakeUserCount += 1;
-                    }
-
-                    int disconnectedUsers = _random.Next(-1, 0);
-                    FakeActiveHelper.FakeUserCount += disconnectedUsers;
-                    await _onlineContext.Clients.All.SendAsync("UserDisconnected", FakeActiveHelper.FakeUserCount + FakeActiveHelper.UserCount);
-
-                    int delayMilliseconds = _random.Next(minDelayMilliseconds, maxDelayMilliseconds + 1);
-                    await Task.Delay(delayMilliseconds);
-
-                    int connectedUsers = _random.Next(0, maxDifference);
-                    FakeActiveHelper.FakeUserCount += connectedUsers;
-
-                    await _onlineContext.Clients.All.SendAsync("UserConnected", FakeActiveHelper.FakeUserCount + FakeActiveHelper.UserCount);
-
-                    delayMilliseconds = _random.Next(minDelayMilliseconds, maxDelayMilliseconds + 1);
-                    await Task.Delay(delayMilliseconds);
-                }
-            }
-            );
-        }
-
-        [HttpPost("startFakeGames")]
-        public async Task StartFakeGames()
-        {
-            await Task.Run(async () =>
-            {
-                Random _random = new Random();
-
-                while (true)
-                {
-                    var apiModel = FakeActiveHelper.GetGameApiModel();
-                    var gameJson = JsonConvert.SerializeObject(apiModel);
-
-                    if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
-                    {
-                        await Task.Delay(new Random().Next(1000, 3000));
-
-                    }
-                    else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
-                    {
-                        await Task.Delay(new Random().Next(500, 1500));
-                    }
-                    else
-                    {
-                        await Task.Delay(new Random().Next(100, 500));
-                    }
-
-                    await _newGameContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
-                }
-            }
-           );
-        }
+        
 
         private int DivideWithCeiling(int dividend, int divisor)
         {
