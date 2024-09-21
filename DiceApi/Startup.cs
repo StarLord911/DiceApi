@@ -26,15 +26,18 @@ namespace DiceApi
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IWebHostEnvironment _env;
+
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
             Configuration = configuration;
+            _env = env;
         }
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        public void ConfigureServices(IServiceCollection services, IWebHostEnvironment env)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddAutoMapper(typeof(Startup));
             services.AddSingleton<MappingProfile>();
@@ -80,7 +83,7 @@ namespace DiceApi
 
             ConfigHelper.LoadConfig(Configuration);
 
-            if (env.IsDevelopment())
+            if (_env.IsDevelopment())
             {
                 services.AddEasyCache(new CacheSettings()
                 {
@@ -210,11 +213,7 @@ namespace DiceApi
                 cache.WriteCache(CacheConstraints.WINNINGS_TO_DAY, stats).GetAwaiter().GetResult();
             }
 
-            appLifetime.ApplicationStopping.Register(() =>
-            {
-                
-            });
-
+       
             JobManager.Initialize(new DropWinningsJob(cache));
         }
     }
