@@ -18,7 +18,7 @@ namespace DiceApi.Common
             var key = Encoding.ASCII.GetBytes("220fd41d670cecc84c27b91f8fac94bf0189d0299a219035a6a1ca9542cba9a3");
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString())),
+                Subject = new ClaimsIdentity(new[] { new Claim("id", user.Id.ToString()) }),
                 Expires = DateTime.UtcNow.AddDays(365),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
