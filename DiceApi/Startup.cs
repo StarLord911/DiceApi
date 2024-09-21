@@ -176,7 +176,7 @@ namespace DiceApi
                     {
                         MinesAntiminusBallance = 100000,
                         MinesMaxMultyplayer = 5,
-                        MinesMaxSuccesMineOpens = 15,
+                        MinesMaxSuccesMineOpens = 10,
                         MinesMaxWinSum = 5000
                     },
                     DiceGameActive = true,
