@@ -63,7 +63,7 @@ namespace DiceApi.Services.BackgroundServices
                         await Task.Delay(new Random().Next(500, 1500));
                     }
 
-                    if (_minutes.Contains(DateTime.Now.Minute) && DateTime.Now.Second == 27 && DateTime.Now.Second == 45)
+                    if (_minutes.Contains(DateTime.Now.Minute) && (DateTime.Now.Second == 27 || DateTime.Now.Second == 45))
                     {
                         var randoom = new Random();
                         await UpdateWithdrawalToDay(randoom.Next(2000, 3000) + randoom.NextDecimal());
