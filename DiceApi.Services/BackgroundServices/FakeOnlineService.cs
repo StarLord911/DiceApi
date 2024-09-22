@@ -37,8 +37,8 @@ namespace DiceApi.Services.BackgroundServices
                 {
                     if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
                     {
-                        minUserCount = 345;
-                        maxUserCount = 776;
+                        minUserCount = 130;
+                        maxUserCount = 272;
                     }
                     else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                     {
@@ -48,7 +48,7 @@ namespace DiceApi.Services.BackgroundServices
                     else
                     {
                         minUserCount = 345;
-                        maxUserCount = 776;
+                        maxUserCount = 650;
                     }
 
                     if (FakeActiveHelper.FakeUserCount >= maxUserCount)
