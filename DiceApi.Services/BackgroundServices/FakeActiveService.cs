@@ -21,6 +21,11 @@ namespace DiceApi.Services.BackgroundServices
         private IHubContext<LastGamesHub> _newGameContext;
         private ICacheService _cacheService;
 
+        private List<int> _minutes = new List<int>()
+        {
+            1,3,4,7,9,11,15,17,22,21,45,25,29,31,34,35,37,40,41,42,43,46,49,51,53,54,55,56,58,
+        };
+
         public FakeActiveService(IHubContext<LastGamesHub> hubContext, ICacheService cacheService)
         {
             _newGameContext = hubContext;
@@ -58,7 +63,7 @@ namespace DiceApi.Services.BackgroundServices
                         await Task.Delay(new Random().Next(500, 1500));
                     }
 
-                    if (DateTime.Now.Second == 5 && DateTime.Now.Second == 27 && DateTime.Now.Second == 45)
+                    if (_minutes.Contains(DateTime.Now.Minute) && DateTime.Now.Second == 27 && DateTime.Now.Second == 45)
                     {
                         var randoom = new Random();
                         await UpdateWithdrawalToDay(randoom.Next(2000, 3000) + randoom.NextDecimal());
@@ -83,9 +88,12 @@ namespace DiceApi.Services.BackgroundServices
         {
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
-            stats.WithdrawalToDay += amount;
+            if (stats.WinningToDay > stats.WithdrawalToDay + amount)
+            {
+                stats.WithdrawalToDay += amount;
 
-            await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
+                await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
+            }
         }
     }
 }
