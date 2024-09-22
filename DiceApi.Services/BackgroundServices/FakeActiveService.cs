@@ -2,6 +2,7 @@
 using DiceApi.Data;
 using DiceApi.Data.Data.Winning;
 using DiceApi.Services.SignalRHubs;
+using MathNet.Numerics;
 using MathNet.Numerics.Random;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
@@ -38,7 +39,7 @@ namespace DiceApi.Services.BackgroundServices
                     var apiModel = FakeActiveHelper.GetGameApiModel();
                     var gameJson = JsonConvert.SerializeObject(apiModel);
 
-                    if (apiModel.Win)
+                    if (apiModel.Win && _random.Next(0, 2) == 2)
                     {
                         await UpdateWinningToDay(Math.Round(apiModel.Sum * apiModel.Multiplier, 2));
                     }
@@ -57,7 +58,7 @@ namespace DiceApi.Services.BackgroundServices
                         await Task.Delay(new Random().Next(500, 1500));
                     }
 
-                    if (new Random().Next(1, 15) == 5)
+                    if (DateTime.Now.Second == 5 && DateTime.Now.Second == 27 && DateTime.Now.Second == 45)
                     {
                         var randoom = new Random();
                         await UpdateWithdrawalToDay(randoom.Next(2000, 3000) + randoom.NextDecimal());
@@ -73,7 +74,7 @@ namespace DiceApi.Services.BackgroundServices
         {
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
-            stats.WinningToDay += amount;
+            stats.WinningToDay += (amount / 2);
 
             await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }

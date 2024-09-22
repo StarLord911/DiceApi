@@ -72,7 +72,7 @@ namespace DiceApi.Services.BackgroundServices
 
                 foreach (var game in FakeActiveHelper.FakeHorseRaceActiveBet)
                 {
-                    await AddLastGames(game.UserName, game.BetSum, 0, color == game.HorseColor);
+                    await AddLastGames(game.UserName, game.BetSum, game.BetSum * 8, color == game.HorseColor);
                 }
 
                 if (bettedUserIds == null)
