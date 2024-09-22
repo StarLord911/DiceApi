@@ -39,7 +39,7 @@ namespace DiceApi.Services.BackgroundServices
                     var apiModel = FakeActiveHelper.GetGameApiModel();
                     var gameJson = JsonConvert.SerializeObject(apiModel);
 
-                    if (apiModel.Win && _random.Next(0, 2) == 2)
+                    if (apiModel.Win && _random.Next(0, 2) == 1)
                     {
                         await UpdateWinningToDay(Math.Round(apiModel.Sum * apiModel.Multiplier, 2));
                     }
