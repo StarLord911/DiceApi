@@ -63,10 +63,10 @@ namespace DiceApi.Services.BackgroundServices
                         await Task.Delay(new Random().Next(500, 1500));
                     }
 
-                    if (_minutes.Contains(DateTime.Now.Minute) && (DateTime.Now.Second == 27 || DateTime.Now.Second == 45))
+                    if (_minutes.Contains(DateTime.Now.Minute) && (DateTime.Now.Second == 27 || DateTime.Now.Second == 45 || DateTime.Now.Second == 55))
                     {
                         var randoom = new Random();
-                        await UpdateWithdrawalToDay(randoom.Next(2000, 3000) + randoom.NextDecimal());
+                        await UpdateWithdrawalToDay(randoom.Next(2000, 6000) + randoom.NextDecimal());
                     }
 
                     await _newGameContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
@@ -79,7 +79,7 @@ namespace DiceApi.Services.BackgroundServices
         {
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
-            stats.WinningToDay += (amount / 2);
+            stats.WinningToDay += Math.Round(amount / 2, 2);
 
             await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
@@ -90,7 +90,7 @@ namespace DiceApi.Services.BackgroundServices
 
             if (stats.WinningToDay > stats.WithdrawalToDay + amount)
             {
-                stats.WithdrawalToDay += amount;
+                stats.WithdrawalToDay += Math.Round(amount, 2);
 
                 await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
             }

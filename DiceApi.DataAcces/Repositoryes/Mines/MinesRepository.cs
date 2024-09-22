@@ -30,7 +30,7 @@ namespace DiceApi.DataAcces.Repositoryes
                     sum = minesGame.Sum,
                     win = minesGame.Win,
                     canWin = minesGame.CanWin,
-                    gameTime = DateTime.UtcNow,
+                    gameTime = DateTime.UtcNow.GetMSKDateTime(),
                 };
 
                 // SQL-запрос на вставку данных

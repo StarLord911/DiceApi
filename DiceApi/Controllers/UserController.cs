@@ -172,7 +172,7 @@ namespace DiceApi.Controllers
 
             if (wager != null)
             {
-                await _wageringRepository.UpdateWagering(request.UserId, wager.Wagering + (bonus * 20));
+                await _wageringRepository.UpdateWagering(request.UserId, wager.Wagering + (bonus * 10));
             }
             else
             {

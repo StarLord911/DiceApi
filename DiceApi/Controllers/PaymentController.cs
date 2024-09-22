@@ -46,7 +46,6 @@ namespace DiceApi.Controllers
         {
 
             var user = _userService.GetById(createPaymentRequest.UserId);
-            var paymentsSum = (await _paymentService.GetPaymentsByUserId(user.Id)).Where(p => p.Status == PaymentStatus.Payed).Sum(p => p.Amount);
 
             var payment = new Payment
             {

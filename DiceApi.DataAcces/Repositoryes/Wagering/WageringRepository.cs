@@ -88,11 +88,10 @@ namespace DiceApi.DataAcces.Repositoryes
         {
             using (IDbConnection connection = new SqlConnection(_connectionString))
             {
-                var wager = (await GetActiveWageringByUserId(userId)).Wagering;
 
                 var query = "update Wagering set wagering  = @Wager where id = @Id";
 
-                await connection.ExecuteAsync(query, new { Id = userId, Wager = wager + addWagerSub });
+                await connection.ExecuteAsync(query, new { Id = userId, Wager = addWagerSub });
             }
         }
     }

@@ -229,29 +229,32 @@ namespace DiceApi.Services.BackgroundServices
 
                 var random = new Random();
 
-                if (random.Next(0, 2) == 0)
+                if (i < 37)
                 {
-                    var iterCount = random.Next(1, 4);
-                    for (int x = 0; x < iterCount; x++)
+                    if (random.Next(0, 2) == 0)
                     {
-                        var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);
-
-                        var betSum = FakeActiveHelper.RandomDigits[random.Next(0, FakeActiveHelper.RandomDigits.Count)];
-
-                        var bet = new HorseRaceActiveBet()
+                        var iterCount = random.Next(1, 4);
+                        for (int x = 0; x < iterCount; x++)
                         {
-                            UserName = FakeActiveHelper.FakeNames[nameInex],
-                            BetSum = betSum,
-                            Multiplayer = 8,
-                            HorseColor = GetWinnedHorseColor()
-                        };
+                            var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);
 
-                        FakeActiveHelper.FakeHorseRaceActiveBet.Add(bet);
+                            var betSum = FakeActiveHelper.RandomDigits[random.Next(0, FakeActiveHelper.RandomDigits.Count)];
 
-                        var gameJson = JsonConvert.SerializeObject(bet);
+                            var bet = new HorseRaceActiveBet()
+                            {
+                                UserName = FakeActiveHelper.FakeNames[nameInex],
+                                BetSum = betSum,
+                                Multiplayer = 8,
+                                HorseColor = GetWinnedHorseColor()
+                            };
+
+                            FakeActiveHelper.FakeHorseRaceActiveBet.Add(bet);
+
+                            var gameJson = JsonConvert.SerializeObject(bet);
 
 
-                        await _horseBetsHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
+                            await _horseBetsHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
+                        }
                     }
                 }
 

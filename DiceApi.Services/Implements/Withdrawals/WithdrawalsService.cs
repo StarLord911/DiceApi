@@ -26,6 +26,9 @@ namespace DiceApi.Services.Implements
         private readonly ICacheService _cacheService;
         private readonly ILogRepository _logRepository;
 
+        private readonly IDiceService _diceService;
+        private readonly IMinesService _minesService;
+
         public WithdrawalsService(IWageringRepository wageringRepository,
             IUserService userService,
             IWithdrawalsRepository withdrawalsRepository,
@@ -110,18 +113,29 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
-            if (request.Amount < 1999 && request.WithdrawalType == WithdrawalType.Sbp)
+            if (request.Amount < 5299 && request.WithdrawalType == WithdrawalType.Sbp)
             {
                 responce.Succses = false;
-                responce.Message = $"Минимальная сумма вывода по СБП 1030";
+                responce.Message = $"Минимальная сумма вывода по СБП 5300";
 
                 return responce;
             }
 
-            if (request.Amount < 1999 && request.WithdrawalType == WithdrawalType.CardNumber)
+            if (request.Amount < 5299 && request.WithdrawalType == WithdrawalType.CardNumber)
             {
                 responce.Succses = false;
-                responce.Message = $"Минимальная сумма вывода по номеру карты 2000";
+                responce.Message = $"Минимальная сумма вывода по номеру карты 5300";
+
+                return responce;
+            }
+
+            var diceGameCount = (await _diceService.GetAllDiceGamesByUserId(request.UserId)).Count(g => g.GameTime.Day == DateTime.Now.GetMSKDateTime().Day);
+            var minesGameCount = (await _minesService.GetMinesGamesByUserId(request.UserId)).Count(g => g.GameTime.Day == DateTime.Now.GetMSKDateTime().Day);
+
+            if (diceGameCount + minesGameCount < 99)
+            {
+                responce.Succses = false;
+                responce.Message = $"Для вывода нужно сделать 100 ставок в Dice и Mines, вы сделали {diceGameCount + minesGameCount}";
 
                 return responce;
             }
@@ -208,10 +222,11 @@ namespace DiceApi.Services.Implements
 
             var res = await _paymentAdapterService.CreateWithdrawal(withdrawal);
 
-            await UpdateStatus(withdrawal.Id, WithdrawalStatus.AdapterHandle);
-
             await _withdrawalsRepository.UpdateFkWaletId(withdrawal.Id, res.Data.Id);
+
             await UpdateWithdrawalToDay(withdrawal.Amount);
+
+            await UpdateStatus(withdrawal.Id, WithdrawalStatus.AdapterHandle);
 
             await _logRepository.LogInfo($"Сonfirm withdrawal for user {withdrawal.UserId}, amount {withdrawal.Amount}");
         }

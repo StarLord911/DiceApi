@@ -158,7 +158,7 @@ namespace DiceApi.Services.Implements
                 Sum = request.Sum,
                 CanWin = winSum,
                 Win = isWin,
-                GameTime = DateTime.UtcNow
+                GameTime = DateTime.UtcNow.GetMSKDateTime()
             };
             await _diceGamesRepository.Add(diceGame);
             return diceGame;

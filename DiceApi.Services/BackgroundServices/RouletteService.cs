@@ -228,41 +228,44 @@ namespace DiceApi.Services.BackgroundServices
                     GameStates.IsRouletteGameRun = false;
                 }
 
-                var random = new Random();
-
-                if (random.Next(0, 2) == 0)
+                if (i < 38)
                 {
-                    var iterCount = random.Next(1, 3);
-                    for (int x = 0; x < iterCount; x++)
+                    var random = new Random();
+
+                    if (random.Next(0, 2) == 0)
                     {
-                        var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);
-
-                        var color = random.Next(0, 1);
-
-                        var betSum = FakeActiveHelper.RandomDigits[random.Next(0, FakeActiveHelper.RandomDigits.Count)];
-
-                        var bet = new RouletteActiveBet()
+                        var iterCount = random.Next(1, 3);
+                        for (int x = 0; x < iterCount; x++)
                         {
-                            UserName = FakeActiveHelper.FakeNames[nameInex],
-                            BetSum = betSum,
-                            Multiplayer = 2,
-                        };
+                            var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);
 
-                        if (new Random().Next(0, 6) > 4)
-                        {
-                            bet.IsColorBet = true;
-                            bet.BetColor = color == 0 ? "Red" : "Black";
+                            var color = random.Next(0, 1);
+
+                            var betSum = FakeActiveHelper.RandomDigits[random.Next(0, FakeActiveHelper.RandomDigits.Count)];
+
+                            var bet = new RouletteActiveBet()
+                            {
+                                UserName = FakeActiveHelper.FakeNames[nameInex],
+                                BetSum = betSum,
+                                Multiplayer = 2,
+                            };
+
+                            if (new Random().Next(0, 6) > 4)
+                            {
+                                bet.IsColorBet = true;
+                                bet.BetColor = color == 0 ? "Red" : "Black";
+                            }
+                            else
+                            {
+                                bet.BetNumber = new Random().Next(0, 18);
+                                bet.Multiplayer = 18;
+                            }
+
+                            var gameJson = JsonConvert.SerializeObject(bet);
+
+                            FakeActiveHelper.FakeRouletteActiveBet.Add(bet);
+                            await _rouletBetsHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
                         }
-                        else
-                        {
-                            bet.BetNumber = new Random().Next(0, 18);
-                            bet.Multiplayer = 18;
-                        }
-
-                        var gameJson = JsonConvert.SerializeObject(bet);
-
-                        FakeActiveHelper.FakeRouletteActiveBet.Add(bet);
-                        await _rouletBetsHub.Clients.All.SendAsync("ReceiveMessage", gameJson);
                     }
                 }
 
