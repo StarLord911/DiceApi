@@ -102,6 +102,7 @@ namespace DiceApi.Services.Implements
 
         public async Task<FkWaletWithdrawalStatusResponce> CreateWithdrawal(Withdrawal withdrawal)
         {
+            var errorMsg = string.Empty;
             try
             {
                 var dataWithBody = FreeKassHelper.GetWithdrawalRequest(withdrawal);
@@ -121,7 +122,7 @@ namespace DiceApi.Services.Implements
 
                     var response = await client.SendAsync(request);
 
-                    var rrr = DecodeUnicode(await response.Content.ReadAsStringAsync());
+                    errorMsg = DecodeUnicode(await response.Content.ReadAsStringAsync());
 
                     return SerializationHelper.Deserialize<FkWaletWithdrawalStatusResponce>(DecodeUnicode(await response.Content.ReadAsStringAsync()));
                 }
@@ -129,6 +130,7 @@ namespace DiceApi.Services.Implements
             catch (Exception ex)
             {
                 await _logRepository.LogError($"CreateWithdrawal error {withdrawal.Id} {ex.Message} {ex.StackTrace}");
+                ex.Source = errorMsg;
                 throw;
             }
         }

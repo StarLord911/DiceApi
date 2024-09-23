@@ -97,6 +97,11 @@ namespace DiceApi.Services.Implements
             .Select(offset => dateRange.AddDays(offset))
             .ToList();
 
+            if (request.DateRange == DateRange.Day)
+            {
+                result.Add(new DashBoardInformation());
+            }
+            
             foreach (var date in dateList)
             {
                 var info = new DashBoardInformation();
@@ -114,7 +119,6 @@ namespace DiceApi.Services.Implements
 
             if (request.DateRange == DateRange.Day)
             {
-                result.Insert(0, new DashBoardInformation());
                 result.Add(new DashBoardInformation());
             }
 
