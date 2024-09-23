@@ -35,7 +35,9 @@ namespace DiceApi.Services.Implements
             IPaymentAdapterService paymentAdapterService,
             IPaymentService paymentService,
             ICacheService cacheService,
-            ILogRepository logRepository)
+            ILogRepository logRepository,
+            IDiceService diceService,
+            IMinesService minesService)
         {
             _wageringRepository = wageringRepository;
             _userService = userService;
@@ -44,6 +46,8 @@ namespace DiceApi.Services.Implements
             _paymentService = paymentService;
             _cacheService = cacheService;
             _logRepository = logRepository;
+            _diceService = diceService;
+            _minesService = minesService;
         }
 
         public async Task<CreateWithdrawalResponce> CreateWithdrawalRequest(CreateWithdrawalRequest request)
@@ -129,15 +133,21 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
-            var diceGameCount = (await _diceService.GetAllDiceGamesByUserId(request.UserId)).Count(g => g.GameTime.Day == DateTime.Now.GetMSKDateTime().Day);
-            var minesGameCount = (await _minesService.GetMinesGamesByUserId(request.UserId)).Count(g => g.GameTime.Day == DateTime.Now.GetMSKDateTime().Day);
+            try
+            {//костыль
+                var diceGameCount = (await _diceService.GetAllDiceGamesByUserId(request.UserId)).Count(g => g.GameTime.Day == DateTime.Now.GetMSKDateTime().Day);
+                var minesGameCount = (await _minesService.GetMinesGamesByUserId(request.UserId)).Count(g => g.GameTime.Day == DateTime.Now.GetMSKDateTime().Day);
 
-            if (diceGameCount + minesGameCount < 99)
+                if (diceGameCount + minesGameCount < 99)
+                {
+                    responce.Succses = false;
+                    responce.Message = $"Для вывода нужно сделать 100 ставок в Dice и Mines, вы сделали {diceGameCount + minesGameCount}";
+
+                    return responce;
+                }
+            }
+            catch (Exception ex)
             {
-                responce.Succses = false;
-                responce.Message = $"Для вывода нужно сделать 100 ставок в Dice и Mines, вы сделали {diceGameCount + minesGameCount}";
-
-                return responce;
             }
 
             var withdrowal = new Withdrawal
