@@ -99,6 +99,11 @@ namespace DiceApi.Services.Implements
 
             if (request.DateRange == DateRange.Day)
             {
+                dateList.Add(DateTime.Now.GetMSKDateTime());
+            }
+
+            if (request.DateRange == DateRange.Day)
+            {
                 result.Add(new DashBoardInformation());
             }
             
