@@ -41,45 +41,94 @@ namespace DiceApi.Services.BackgroundServices
 
                 while (true)
                 {
-                    var apiModel = FakeActiveHelper.GetGameApiModel();
-                    var gameJson = JsonConvert.SerializeObject(apiModel);
-
-                    if (apiModel.Win && _random.Next(0, 2) == 1)
+                    try
                     {
-                        await UpdateWinningToDay(Math.Round(apiModel.Sum * apiModel.Multiplier, 2));
-                    }
+                        var apiModel = FakeActiveHelper.GetDiceGameApiModel();
+                        var gameJson = JsonConvert.SerializeObject(apiModel);
 
-                    if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
-                    {
-                        await Task.Delay(new Random().Next(1000, 2000));
+                        if (apiModel.Win)
+                        {
+                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 3), 2));
+                        }
 
-                    }
-                    else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
-                    {
-                        await Task.Delay(new Random().Next(1000, 2000));
-                    }
-                    else
-                    {
-                        await Task.Delay(new Random().Next(500, 1500));
-                    }
+                        if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
+                        {
+                            await Task.Delay(new Random().Next(300, 1000));
 
-                    if (_minutes.Contains(DateTime.Now.Minute) && (DateTime.Now.Second == 27 || DateTime.Now.Second == 45 || DateTime.Now.Second == 55))
-                    {
-                        var randoom = new Random();
-                        await UpdateWithdrawalToDay(randoom.Next(2000, 6000) + randoom.NextDecimal());
-                    }
+                        }
+                        else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
+                        {
+                            await Task.Delay(new Random().Next(300, 700));
+                        }
+                        else
+                        {
+                            await Task.Delay(new Random().Next(150, 300));
+                        }
 
-                    await _newGameContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+                        if (_minutes.Contains(DateTime.Now.Minute))
+                        {
+                            var randoom = new Random();
+                            await UpdateWithdrawalToDay(randoom.Next(5000, 11000) + randoom.NextDecimal());
+                        }
+
+                        await _newGameContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+                    }
+                    catch (Exception ex)
+                    {
+                    }
                 }
-            }
-          );
+            });
+
+            await Task.Run(async () =>
+            {
+                Random _random = new Random();
+
+                while (true)
+                {
+                    try
+                    {
+                        var apiModel = FakeActiveHelper.GetMinesGameApiModel();
+                        var gameJson = JsonConvert.SerializeObject(apiModel);
+
+                        if (apiModel.Win)
+                        {
+                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 3), 2));
+                        }
+
+                        if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
+                        {
+                            await Task.Delay(new Random().Next(300, 1000));
+
+                        }
+                        else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
+                        {
+                            await Task.Delay(new Random().Next(300, 700));
+                        }
+                        else
+                        {
+                            await Task.Delay(new Random().Next(300, 500));
+                        }
+
+                        if (_minutes.Contains(DateTime.Now.Minute))
+                        {
+                            var randoom = new Random();
+                            await UpdateWithdrawalToDay(randoom.Next(5000, 11000));
+                        }
+
+                        await _newGameContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
+                    }
+                    catch (Exception ex)
+                    {
+                    }
+                }
+            });
         }
 
         private async Task UpdateWinningToDay(decimal amount)
         {
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
-            stats.WinningToDay += Math.Round(amount / 2, 2);
+            stats.WinningToDay += Math.Round(amount);
 
             await _cacheService.UpdateCache(CacheConstraints.WINNINGS_TO_DAY, stats);
         }
@@ -88,7 +137,7 @@ namespace DiceApi.Services.BackgroundServices
         {
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
-            if (stats.WinningToDay > stats.WithdrawalToDay + amount)
+            if ((stats.WinningToDay - (stats.WithdrawalToDay + amount)) > 354651)
             {
                 stats.WithdrawalToDay += Math.Round(amount, 2);
 

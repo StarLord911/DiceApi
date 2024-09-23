@@ -218,6 +218,7 @@ namespace DiceApi.Services.BackgroundServices
         private async Task Taimer()
         {
             FakeActiveHelper.FakeRouletteActiveBet = new List<RouletteActiveBet>();
+            var settings = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
 
             for (int i = 40; i != 0; i--)
             {
@@ -228,7 +229,7 @@ namespace DiceApi.Services.BackgroundServices
                     GameStates.IsRouletteGameRun = false;
                 }
 
-                if (i < 38)
+                if (i < 38 && settings.RouletteGameActive)
                 {
                     var random = new Random();
 

@@ -39,7 +39,6 @@ namespace DiceApi.MiddleWares
 
         public async Task AttachUserToContext(HttpContext context, IUserService userService, string token)
         {
-            
             var tokenHandler = new JwtSecurityTokenHandler();
             // min 16 characters
             var key = Encoding.ASCII.GetBytes("220fd41d670cecc84c27b91f8fac94bf0189d0299a219035a6a1ca9542cba9a3");
@@ -53,6 +52,7 @@ namespace DiceApi.MiddleWares
             }, out SecurityToken validatedToken);
 
             var jwtToken = (JwtSecurityToken)validatedToken;
+
             var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
             var user = userService.GetById(userId);
 
@@ -71,22 +71,19 @@ namespace DiceApi.MiddleWares
 
         private async Task<bool> IsUserCorrect(HttpContext context, long userIdFromJwt)
         {
-            context.Request.EnableBuffering(); // Включаем буферизацию
+            context.Request.EnableBuffering();
 
             string requestBody;
 
             using (var reader = new StreamReader(context.Request.Body, leaveOpen: true))
             {
-                requestBody = await reader.ReadToEndAsync(); // Считываем тело запроса как строку
+                requestBody = await reader.ReadToEndAsync();
 
-                // Сбрасываем положение потока в начало для последующего использования
                 context.Request.Body.Position = 0;
             }
 
-            // Парсим строку JSON
             using (var jsonDocument = JsonDocument.Parse(requestBody))
             {
-                // Проверяем наличие и значение userId
                 if (jsonDocument.RootElement.TryGetProperty("userId", out JsonElement userIdElement))
                 {
                     var userId = userIdElement.GetInt64();
@@ -94,7 +91,6 @@ namespace DiceApi.MiddleWares
                 }
             }
 
-            // Если ключ userId не найден или не равен userIdFromJwt, возвращаем false
             return true;
         }
     }

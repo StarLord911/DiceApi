@@ -132,4 +132,19 @@ namespace DiceApi.Data
         [JsonProperty("data")]
         public InnerData Data { get; set; }
     }
+
+
+    //Ballance
+    public class FkWaletBallanceApiResponse
+    {
+        public string Status { get; set; }
+        public List<CurrencyData> Data { get; set; }
+    }
+
+    public class CurrencyData
+    {
+        [JsonProperty("currency_code")]
+        public string CurrencyCode { get; set; }
+        public decimal Value { get; set; }
+    }
 }

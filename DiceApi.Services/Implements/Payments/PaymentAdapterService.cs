@@ -81,12 +81,12 @@ namespace DiceApi.Services.Implements
 
         public async Task<decimal> GetCurrentBallance()
         {
-            if (_currentBallance == -1)
-            {
-                //_currentBallance = await GetBalanceAsync();
-            }
-            //пока захаркодил, тут нужно получать текущий баланс
-            return await Task.FromResult<decimal>(50000);
+           var signWithBody = CalculateSHA256Hash(_walletPrivateKey);
+
+            var responce = await SendRequest("https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/balance", null, signWithBody, HttpMethod.Get);
+            var result = SerializationHelper.Deserialize<FkWaletBallanceApiResponse>(responce);
+
+            return result.Data.FirstOrDefault(b => b.CurrencyCode == "RUB").Value;
         }
 
 

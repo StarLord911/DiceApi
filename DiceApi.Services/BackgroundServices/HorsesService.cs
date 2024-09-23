@@ -217,6 +217,8 @@ namespace DiceApi.Services.BackgroundServices
 
         private async Task Taimer()
         {
+            var settings = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
+
             FakeActiveHelper.FakeHorseRaceActiveBet = new List<HorseRaceActiveBet>();
             for (int i = 40; i != 0; i--)
             {
@@ -229,7 +231,7 @@ namespace DiceApi.Services.BackgroundServices
 
                 var random = new Random();
 
-                if (i < 37)
+                if (i < 37 && settings.HorseGameActive)
                 {
                     if (random.Next(0, 2) == 0)
                     {
