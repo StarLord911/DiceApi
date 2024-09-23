@@ -37,13 +37,13 @@ namespace DiceApi.Services.BackgroundServices
                 {
                     if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
                     {
-                        minUserCount = 130;
-                        maxUserCount = 272;
+                        minUserCount = 64;
+                        maxUserCount = 102;
                     }
                     else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                     {
                         minUserCount = 250;
-                        maxUserCount = 500;
+                        maxUserCount = 400;
                     }
                     else
                     {
