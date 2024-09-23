@@ -97,7 +97,7 @@ namespace DiceApi.Services.Implements
             .Select(offset => dateRange.AddDays(offset))
             .ToList();
 
-            if (request.DateRange == DateRange.Day)
+            if (request.DateRange == DateRange.Day && dateList.Count == 0)
             {
                 dateList.Add(DateTime.Now.GetMSKDateTime());
             }
