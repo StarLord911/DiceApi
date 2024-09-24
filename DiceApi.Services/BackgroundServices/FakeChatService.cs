@@ -118,7 +118,7 @@ namespace DiceApi.Services.BackgroundServices
 
                         await _hubContext.Clients.All.SendAsync("ReceiveMessage", chatJson);
 
-                        await Task.Delay(random.Next(60000, 160000));
+                        await Task.Delay(random.Next(120000, 160000));
                     }
 
                 }
