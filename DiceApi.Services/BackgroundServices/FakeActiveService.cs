@@ -49,7 +49,7 @@ namespace DiceApi.Services.BackgroundServices
 
                         if (apiModel.Win)
                         {
-                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 10), 2));
+                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 20), 2));
                         }
 
                         if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
@@ -96,7 +96,7 @@ namespace DiceApi.Services.BackgroundServices
         {
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
-            if ((stats.WinningToDay - (stats.WithdrawalToDay + amount)) > 854651)
+            if ((stats.WinningToDay - (stats.WithdrawalToDay + amount)) > 285021)
             {
                 stats.WithdrawalToDay += Math.Round(amount, 2);
 
