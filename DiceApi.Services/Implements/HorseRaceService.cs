@@ -133,7 +133,7 @@ namespace DiceApi.Services.Implements
 
             await _cacheService.WriteCache(CacheConstraints.HORSE_RACE_USER_BET + user.Id, request);
 
-            await _logRepository.LogInfo($"User {user.Id} set new bet in horses betSum: {betSum}");
+            await _logRepository.LogGame($"GAME HORSE User {user.Id} set new bet in horses betSum: {betSum}");
 
             foreach (var bet in request.HorseBets)
             {

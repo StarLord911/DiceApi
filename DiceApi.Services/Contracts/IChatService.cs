@@ -9,7 +9,7 @@ namespace DiceApi.Services.Contracts
 {
     public interface IChatService
     {
-        Task AddChatMessage(ChatMessage chatMessage);
+        Task AddChatMessage(ChatMessage chatMessage, bool isFake = false);
 
         Task<List<ChatMessage>> GetAllChatMessages();
     }

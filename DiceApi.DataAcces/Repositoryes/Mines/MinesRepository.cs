@@ -47,7 +47,7 @@ namespace DiceApi.DataAcces.Repositoryes
             using (var IDbConnection = new SqlConnection(_connectionString))
             {
                 
-                string sql = @"select * from MinesGame";
+                string sql = $@"select * from MinesGame where userId = {userId}";
 
                 // Выполнение запроса с diceParams Dapper
                 return (await IDbConnection.QueryAsync<MinesGame>(sql)).ToList();

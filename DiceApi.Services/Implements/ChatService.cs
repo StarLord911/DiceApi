@@ -26,18 +26,21 @@ namespace DiceApi.Services.Implements
             _chatMessagesHub = chatMessagesHub;
         }
 
-        public async Task AddChatMessage(ChatMessage chatMessage)
+        public async Task AddChatMessage(ChatMessage chatMessage, bool isFake = false)
         {
-            var user = await _userService.GetUserByName(chatMessage.UserName);
-
-            if (string.IsNullOrEmpty(chatMessage.Message))
+            if (!isFake)
             {
-                throw new Exception("Chat message is null");
-            }
+                var user = await _userService.GetUserByName(chatMessage.UserName);
 
-            if (user == null)
-            {
-                throw new Exception("User cannot find");
+                if (string.IsNullOrEmpty(chatMessage.Message))
+                {
+                    throw new Exception("Chat message is null");
+                }
+
+                if (user == null)
+                {
+                    throw new Exception("User cannot find");
+                }
             }
             
             var messages = await _cacheService.ReadCache<List<ChatMessage>>(CacheConstraints.CHAT_MESSAGES);

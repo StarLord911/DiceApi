@@ -26,16 +26,18 @@ namespace DiceApi.Controllers
         private readonly IMapper _mapper;
         private readonly ICacheService _cacheService;
         private readonly IWageringRepository _wageringRepository;
-
+        private readonly ILogRepository _logRepository;
 
         public UserController(IUserService userService,
             ICacheService cacheService,
             IWageringRepository wageringRepository,
+            ILogRepository logRepository,
             IMapper mapper)
         {
             _userService = userService;
             _cacheService = cacheService;
             _wageringRepository = wageringRepository;
+            _logRepository = logRepository;
 
             _mapper = mapper;
         }
@@ -186,6 +188,8 @@ namespace DiceApi.Controllers
 
                 await _wageringRepository.AddWearing(newWager);
             }
+
+            await _logRepository.LogInfo($"User {request.UserId} get dayly bonus {bonus}");
 
             await _userService.UpdateUserBallance(request.UserId, newBallance);
 

@@ -112,7 +112,7 @@ namespace DiceApi.Services.BackgroundServices
                         };
 
                         //TODO переделать, нужно брать юзера из бд и имя у юзера
-                        await _chatService.AddChatMessage(chatMessage);
+                        await _chatService.AddChatMessage(chatMessage, true);
 
                         var chatJson = JsonConvert.SerializeObject(chatMessage);
 

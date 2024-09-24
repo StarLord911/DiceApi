@@ -117,7 +117,7 @@ namespace DiceApi.Services
                 await _cacheService.UpdateCache(CacheConstraints.BETTED_ROULETTE_USERS, bettedUserIds);
             }
 
-            await _logRepository.LogInfo($"User {user.Id} set new bet in roulette betSum: {betSum}");
+            await _logRepository.LogGame($"GAME ROULETTE User {user.Id} set new bet in roulette betSum: {betSum}");
 
             await UpdateWageringAsync(request.UserId, betSum);
 
