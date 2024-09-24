@@ -1,4 +1,5 @@
-﻿using DiceApi.Services.Common;
+﻿using DiceApi.Common;
+using DiceApi.Services.Common;
 using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
@@ -36,15 +37,27 @@ namespace DiceApi.Services.BackgroundServices
 
                 while (true)
                 {
-                    if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
+                    var hour = DateTime.Now.GetMSKDateTime().Hour;
+
+                    if (hour > 2 && hour < 8)
                     {
                         minUserCount = 64;
                         maxUserCount = 102;
                     }
-                    else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
+                    else if (hour > 8 && hour < 12)
                     {
-                        minUserCount = 150;
-                        maxUserCount = 300;
+                        minUserCount = 108;
+                        maxUserCount = 135;
+                    }
+                    else if (hour > 12 && hour < 16)
+                    {
+                        minUserCount = 135;
+                        maxUserCount = 180;
+                    }
+                    else if (hour > 16 && hour < 19)
+                    {
+                        minUserCount = 250;
+                        maxUserCount = 340;
                     }
                     else
                     {
