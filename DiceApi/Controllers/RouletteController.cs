@@ -2,7 +2,7 @@
 using DiceApi.Data;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.Data.Roulette;
-using DiceApi.Services;
+using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;

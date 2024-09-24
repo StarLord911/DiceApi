@@ -17,6 +17,7 @@ using DiceApi.Services.Contracts;
 using DiceApi.Data.ApiReqRes.HorseRace;
 using Newtonsoft.Json;
 using DiceApi.Data.Data.Roulette;
+using DiceApi.Services.Common;
 
 namespace DiceApi.Services.BackgroundServices
 {

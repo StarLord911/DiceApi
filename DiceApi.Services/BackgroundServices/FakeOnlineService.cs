@@ -1,4 +1,5 @@
-﻿using DiceApi.Services.SignalRHubs;
+﻿using DiceApi.Services.Common;
+using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -42,8 +43,8 @@ namespace DiceApi.Services.BackgroundServices
                     }
                     else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                     {
-                        minUserCount = 250;
-                        maxUserCount = 400;
+                        minUserCount = 150;
+                        maxUserCount = 300;
                     }
                     else
                     {

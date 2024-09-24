@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DiceApi.Services
+namespace DiceApi.Services.Common
 {
     public static class FakeActiveHelper
     {
@@ -452,12 +452,12 @@ namespace DiceApi.Services
             14, 125, 131, 23, 75, 56, 45, 34, 118, 90,
             101, 15, 130, 47, 132, 81, 61, 39, 140, 45,
             140, 2, 137, 49, 87, 120, 70, 91, 87, 58, 12, 116, 10, 10, 85, 35, 18, 14, 75, 124, 114, 18, 15,
-            16, 79, 69, 67, 129, 128, 3, 132, 96, 10, 34, 29, 62, 42, 38, 131, 51, 9, 54, 45, 40, 31, 17, 6, 
+            16, 79, 69, 67, 129, 128, 3, 132, 96, 10, 34, 29, 62, 42, 38, 131, 51, 9, 54, 45, 40, 31, 17, 6,
             144, 38, 19, 90, 149, 55, 64, 100, 77, 13, 78, 90, 107, 79, 87, 86, 1, 19, 75, 96, 64, 16, 131, 22, 133,
-            90, 60, 134, 11, 112, 139, 16, 55, 18, 82, 76, 11, 20, 79, 17, 76, 4, 25, 59, 99, 30, 71, 50, 79, 95, 
-            1, 96, 33, 31, 77, 9, 99, 70, 91, 129, 85, 147, 97, 43, 68, 139, 138, 8, 101, 54, 8, 110, 24, 48, 80, 94, 
-            35, 14, 23, 50, 50, 21, 70, 97, 118, 39, 137, 27, 139, 94, 108, 95, 146, 63, 57, 33, 19, 62, 33, 140, 10, 8, 
-            7, 3, 35, 84, 41, 77, 30, 50, 37, 51, 120, 4, 119, 133, 63, 13, 130, 11, 18, 70, 67, 54, 103, 72, 23, 141, 
+            90, 60, 134, 11, 112, 139, 16, 55, 18, 82, 76, 11, 20, 79, 17, 76, 4, 25, 59, 99, 30, 71, 50, 79, 95,
+            1, 96, 33, 31, 77, 9, 99, 70, 91, 129, 85, 147, 97, 43, 68, 139, 138, 8, 101, 54, 8, 110, 24, 48, 80, 94,
+            35, 14, 23, 50, 50, 21, 70, 97, 118, 39, 137, 27, 139, 94, 108, 95, 146, 63, 57, 33, 19, 62, 33, 140, 10, 8,
+            7, 3, 35, 84, 41, 77, 30, 50, 37, 51, 120, 4, 119, 133, 63, 13, 130, 11, 18, 70, 67, 54, 103, 72, 23, 141,
             10, 10, 14, 5, 118, 28, 11, 41, 45, 16, 92, 105, 12, 39, 93, 78, 75, 103, 16, 37, 28, 45, 12, 107, 18, 39,
             10, 39, 16, 102, 149.03m, 132.57m, 22.09m, 4.58m, 1.38m, 54.58m, 95.48m, 73.23m, 28.62m,
             16.25m, 139.12m, 133.64m, 69.1m,
@@ -482,8 +482,7 @@ namespace DiceApi.Services
 
             var name = FakeNames[nameInex];
             var multiplier = (decimal)GetChanses()[random.Next(2, 9)][random.Next(2, 9)];
-            var randWin = random.Next(0, 1);
-            bool win = randWin == 1;
+            bool win = random.NextBoolean();
             var gameType = GameType.Mines;
 
             var apiModel = new GameApiModel
@@ -512,9 +511,8 @@ namespace DiceApi.Services
 
             var name = FakeNames[nameInex];
             var multiplier = random.Next(1, 5) + random.NextDecimal();
-            var randWin = random.Next(0, 1);
 
-            bool win = randWin == 1;
+            bool win = random.NextBoolean();
             var gameType = GameType.DiceGame;
             var apiModel = new GameApiModel
             {

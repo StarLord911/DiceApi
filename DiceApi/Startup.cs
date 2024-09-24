@@ -137,6 +137,7 @@ namespace DiceApi
 
             services.AddHostedService<FakeActiveService>();
             services.AddHostedService<FakeOnlineService>();
+            services.AddHostedService<FakeMinesGameService>();
 
 
             ConfigHelper.LoadConfig(Configuration);

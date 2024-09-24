@@ -19,6 +19,7 @@ using DiceApi.Services.Contracts;
 using DiceApi.Services.Implements;
 using DiceApi.Data.ApiReqRes.HorseRace;
 using Org.BouncyCastle.Math.EC.Multiplier;
+using DiceApi.Services.Common;
 
 namespace DiceApi.Services.BackgroundServices
 {
