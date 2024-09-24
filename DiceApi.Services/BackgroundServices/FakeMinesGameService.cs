@@ -48,12 +48,12 @@ namespace DiceApi.Services.BackgroundServices
 
                         if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
                         {
-                            await Task.Delay(new MersenneTwister().Next(500, 1000));
+                            await Task.Delay(new MersenneTwister().Next(1000, 1500));
 
                         }
                         else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                         {
-                            await Task.Delay(new MersenneTwister().Next(400, 700));
+                            await Task.Delay(new MersenneTwister().Next(700, 1300));
                         }
                         else
                         {
