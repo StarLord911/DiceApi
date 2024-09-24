@@ -126,7 +126,7 @@ namespace DiceApi.Services.BackgroundServices
                         {
                             Message = item,
                             SendDate = DateTime.Now.GetMSKDateTime().ToString("HH:mm"),
-                            UserName = FakeActiveHelper.FakeNames[nameInex]
+                            UserName = ReplaceAt(FakeActiveHelper.FakeNames[nameInex], 4, '*')
                         };
 
                         //TODO переделать, нужно брать юзера из бд и имя у юзера
@@ -146,6 +146,21 @@ namespace DiceApi.Services.BackgroundServices
             {
 
             }
+        }
+
+        private string ReplaceAt(string input, int index, char newChar)
+        {
+            if (index < 0 || index >= input.Length)
+            {
+                return input;
+            }
+
+            char[] chars = input.ToCharArray();
+            for (int i = index; i < input.Length; i++)
+            {
+                chars[i] = newChar;
+            }
+            return new string(chars);
         }
     }
 }
