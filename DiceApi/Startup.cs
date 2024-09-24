@@ -48,8 +48,7 @@ namespace DiceApi
                 options.AddPolicy("AllowAll",
                     builder =>
                     {
-                        builder.WithOrigins("https://gamecheck.life", "http://win-spin.org")
-                            .AllowAnyOrigin()
+                        builder.AllowAnyOrigin()
                             .AllowAnyMethod()
                             .AllowAnyHeader();
                     });
