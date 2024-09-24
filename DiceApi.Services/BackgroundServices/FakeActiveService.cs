@@ -96,7 +96,7 @@ namespace DiceApi.Services.BackgroundServices
         {
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
-            if ((stats.WinningToDay - (stats.WithdrawalToDay + amount)) > 285021)
+            if ((stats.WinningToDay - (stats.WithdrawalToDay + amount)) > 85000)
             {
                 stats.WithdrawalToDay += Math.Round(amount, 2);
 

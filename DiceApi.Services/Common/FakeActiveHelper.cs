@@ -491,7 +491,7 @@ namespace DiceApi.Services.Common
             }
 
             var name = FakeNames[nameInex];
-            var multiplier = random.Next(1, 5) + random.NextDecimal();
+            var multiplier = random.Next(1, 3) + random.NextDecimal();
 
             bool win = new MersenneTwister().NextBoolean();
             var gameType = GameType.DiceGame;

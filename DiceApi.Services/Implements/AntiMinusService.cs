@@ -11,8 +11,6 @@ namespace DiceApi.Services.Implements
 {
     public class AntiMinusService : IAntiMinusService
     {
-
-
         public bool CheckMinesAntiMinus(ActiveMinesGame minesGame, Settings settings)
         {
             if (minesGame.CanWin >= settings.MinesGameWinningSettings.MinesMaxWinSum)
@@ -25,12 +23,12 @@ namespace DiceApi.Services.Implements
                 return false;
             }
 
-            if (minesGame.OpenedCellsCount >= settings.MinesGameWinningSettings.MinesMaxSuccesMineOpens)
+            if (minesGame.CanWin >= settings.MinesGameWinningSettings.MinesAntiminusBallance)
             {
                 return false;
             }
-
-            if (minesGame.CanWin >= settings.MinesGameWinningSettings.MinesAntiminusBallance)
+            var rand = new Random().Next(0, 1);
+            if (minesGame.OpenedCellsCount >= (settings.MinesGameWinningSettings.MinesMaxSuccesMineOpens + rand))
             {
                 return false;
             }

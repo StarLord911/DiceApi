@@ -63,19 +63,21 @@ namespace DiceApi.Services.Implements
             var user = _userService.GetById(request.UserId);
 
             // Генерация случайного числа для определения выигрыша
-            var random = new Random().Next(1, 100);
 
             // Чтение и десериализация настроек из кеша
             var cache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
 
+            var isStreamer = UserRole.IsStreamer(user.Role);
             // Проверка возможности выигрыша на основе анти-минус логики
-            if (cache.DiceGameWinningSettings.DiceAntiminusBallance > request.Sum && !UserRole.IsStreamer(user.Role))
+            if (cache.DiceGameWinningSettings.DiceAntiminusBallance > request.Sum || isStreamer)
             {
-                var streamerBonus = UserRole.IsStreamer(user.Role)
+                var random = new Random().Next(1, 100);
+
+                var streamerBonus = isStreamer
                     ? 10
                     : 0;
 
-                var rand = UserRole.IsStreamer(user.Role)
+                var rand = isStreamer
                     ? random
                     : random + cache.DiceGameWinningSettings.DiceMinusPercent;
 
