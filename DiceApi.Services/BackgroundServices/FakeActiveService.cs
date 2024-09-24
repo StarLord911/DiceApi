@@ -38,7 +38,7 @@ namespace DiceApi.Services.BackgroundServices
         {
             await Task.Run(async () =>
             {
-                Random _random = new Random();
+                MersenneTwister _random = new MersenneTwister();
 
                 while (true)
                 {
@@ -49,27 +49,27 @@ namespace DiceApi.Services.BackgroundServices
 
                         if (apiModel.Win)
                         {
-                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 3), 2));
+                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 4), 2));
                         }
 
                         if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
                         {
-                            await Task.Delay(new Random().Next(1500, 500));
+                            await Task.Delay(new MersenneTwister().Next(1500, 500));
 
                         }
                         else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                         {
-                            await Task.Delay(new Random().Next(150, 700));
+                            await Task.Delay(new MersenneTwister().Next(150, 700));
                         }
                         else
                         {
-                            await Task.Delay(new Random().Next(150, 300));
+                            await Task.Delay(new MersenneTwister().Next(150, 300));
                         }
 
                         if (_minutes.Contains(DateTime.Now.Minute))
                         {
-                            var randoom = new Random();
-                            await UpdateWithdrawalToDay(randoom.Next(5000, 11000) + randoom.NextDecimal());
+                            var randoom = new MersenneTwister();
+                            await UpdateWithdrawalToDay(randoom.Next(5000, 10000) + randoom.NextDecimal());
                         }
 
                         await _newGameContext.Clients.All.SendAsync("ReceiveMessage", gameJson);

@@ -482,7 +482,7 @@ namespace DiceApi.Services.Common
 
             var name = FakeNames[nameInex];
             var multiplier = (decimal)GetChanses()[random.Next(2, 9)][random.Next(2, 9)];
-            bool win = random.NextBoolean();
+            bool win = new MersenneTwister().NextBoolean();
             var gameType = GameType.Mines;
 
             var apiModel = new GameApiModel
@@ -512,7 +512,7 @@ namespace DiceApi.Services.Common
             var name = FakeNames[nameInex];
             var multiplier = random.Next(1, 5) + random.NextDecimal();
 
-            bool win = random.NextBoolean();
+            bool win = new MersenneTwister().NextBoolean();
             var gameType = GameType.DiceGame;
             var apiModel = new GameApiModel
             {
