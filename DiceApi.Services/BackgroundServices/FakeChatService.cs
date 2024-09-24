@@ -80,7 +80,9 @@ namespace DiceApi.Services.BackgroundServices
             "АаХАХАХАХ",
             "максимум на ишаке будешь кататься",
             "На ишаке тоесть на тебе?",
-            "ЗАебали хуйню писать"
+            "ЗАебали хуйню писать",
+            "не спамьте пж"
+
         };
 
         private readonly IChatService _chatService;
@@ -117,7 +119,7 @@ namespace DiceApi.Services.BackgroundServices
                         var chatJson = JsonConvert.SerializeObject(chatMessage);
 
                         await _hubContext.Clients.All.SendAsync("ReceiveMessage", chatJson);
-
+                        
                         await Task.Delay(new TimeSpan(0,random.Next(1, 3), random.Next(1, 59)));
                     }
 
