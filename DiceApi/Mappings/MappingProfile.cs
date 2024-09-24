@@ -19,7 +19,7 @@ namespace DiceApi.Mappings
             CreateMap<User, UserApi>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-                .ForMember(dest => dest.Ballance, opt => opt.MapFrom(src => src.Ballance))
+                .ForMember(dest => dest.Ballance, opt => opt.MapFrom(src => Math.Round(src.Ballance, 2)))
                 .ForMember(dest => dest.OwnerId, opt => opt.MapFrom(src => src.OwnerId))
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
                 .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.IsActive))

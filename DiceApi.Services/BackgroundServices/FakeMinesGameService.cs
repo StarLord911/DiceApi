@@ -43,7 +43,7 @@ namespace DiceApi.Services.BackgroundServices
 
                         if (apiModel.Win)
                         {
-                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 4), 2));
+                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 10), 2));
                         }
 
                         if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
@@ -53,7 +53,7 @@ namespace DiceApi.Services.BackgroundServices
                         }
                         else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                         {
-                            await Task.Delay(new MersenneTwister().Next(1000, 1300));
+                            await Task.Delay(new MersenneTwister().Next(100, 800));
                         }
                         else
                         {

@@ -24,7 +24,7 @@ namespace DiceApi.Services.BackgroundServices
 
         private List<int> _minutes = new List<int>()
         {
-            1,3,4,7,9,11,15,17,22,21,45,25,29,31,34,35,37,40,41,42,43,46,49,51,53,54,55,56,58,
+            1,3,4,7,9,11,15,17,22,21,45,29,31,34,35,37,41,42,43,46,49,54,55,56,58,
         };
 
         public FakeActiveService(IHubContext<LastGamesHub> hubContext, ICacheService cacheService)
@@ -49,7 +49,7 @@ namespace DiceApi.Services.BackgroundServices
 
                         if (apiModel.Win)
                         {
-                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 4), 2));
+                            await UpdateWinningToDay(Math.Round(apiModel.Sum * (apiModel.Multiplier / 10), 2));
                         }
 
                         if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
@@ -59,11 +59,11 @@ namespace DiceApi.Services.BackgroundServices
                         }
                         else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                         {
-                            await Task.Delay(new MersenneTwister().Next(150, 700));
+                            await Task.Delay(new MersenneTwister().Next(70, 300));
                         }
                         else
                         {
-                            await Task.Delay(new MersenneTwister().Next(150, 300));
+                            await Task.Delay(new MersenneTwister().Next(10, 100));
                         }
 
                         if (_minutes.Contains(DateTime.Now.Minute))
@@ -96,7 +96,7 @@ namespace DiceApi.Services.BackgroundServices
         {
             var stats = await _cacheService.ReadCache<WinningStats>(CacheConstraints.WINNINGS_TO_DAY);
 
-            if ((stats.WinningToDay - (stats.WithdrawalToDay + amount)) > 354651)
+            if ((stats.WinningToDay - (stats.WithdrawalToDay + amount)) > 854651)
             {
                 stats.WithdrawalToDay += Math.Round(amount, 2);
 
