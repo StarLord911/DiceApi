@@ -48,17 +48,18 @@ namespace DiceApi.Services.BackgroundServices
 
                         if (DateTime.Now.Hour > 2 && DateTime.Now.Hour < 8)
                         {
-                            await Task.Delay(new MersenneTwister().Next(1200, 1500));
+                            await Task.Delay(new MersenneTwister().Next(3000, 5000));
 
                         }
                         else if (DateTime.Now.Hour > 8 && DateTime.Now.Hour < 15)
                         {
-                            await Task.Delay(new MersenneTwister().Next(100, 800));
+                            await Task.Delay(new MersenneTwister().Next(2000, 3000));
                         }
                         else
                         {
-                            await Task.Delay(new MersenneTwister().Next(300, 500));
+                            await Task.Delay(new MersenneTwister().Next(1500, 3000));
                         }
+
 
                         await _newGameContext.Clients.All.SendAsync("ReceiveMessage", gameJson);
                     }
