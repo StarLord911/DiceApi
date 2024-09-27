@@ -46,11 +46,6 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 var allUsers = GetAll();
 
-                if (allUsers.Any(u => u.Name == user.Name))
-                {
-                    throw new Exception("Is user contains");
-                }
-
                 string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent, registrationIp, telegramUserId, enableWithdrawal)
                                     VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent, @RegistrationIp, @TelegramUserId, @EnableWithdrawal)
                                     SELECT CAST(SCOPE_IDENTITY() AS int)";

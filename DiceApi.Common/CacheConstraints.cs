@@ -10,6 +10,9 @@ namespace DiceApi.Common
     {
         public const string MINES_KEY = "MINES_KEY_FOR_USER_";
 
+        public const string TOWER_KEY = "TOWER_KEY_FOR_USER_";
+
+
         public const string SETTINGS_KEY = "SETTINGS_KEY_";
 
         public const string EVERY_DAY_BONUS = "EVERY_DAY_BONUS_";

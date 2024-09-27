@@ -129,14 +129,15 @@ namespace DiceApi
             services.AddTransient<IHorseRaceService, HorseRaceService>();
             services.AddTransient<IRefferalService, RefferalService>();
             services.AddTransient<IAntiMinusService, AntiMinusService>();
+            services.AddTransient<ITowerGameService, TowerGameService>();
 
-            services.AddHostedService<RouleteService>();
-            services.AddHostedService<HorsesService>();
-            services.AddHostedService<PaymentConfirmService>();
+            //services.AddHostedService<RouleteService>();
+            //services.AddHostedService<HorsesService>();
+            //services.AddHostedService<PaymentConfirmService>();
 
-            services.AddHostedService<FakeActiveService>();
-            services.AddHostedService<FakeOnlineService>();
-            services.AddHostedService<FakeMinesGameService>();
+            //services.AddHostedService<FakeActiveService>();
+            //services.AddHostedService<FakeOnlineService>();
+            //services.AddHostedService<FakeMinesGameService>();
 
             services.AddHostedService<FakeChatService>();
 
