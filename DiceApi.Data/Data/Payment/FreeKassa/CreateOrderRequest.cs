@@ -147,4 +147,51 @@ namespace DiceApi.Data
         public string CurrencyCode { get; set; }
         public decimal Value { get; set; }
     }
+
+    #region transaction
+    public class TransactionRequest
+    {
+        [JsonProperty("to_wallet_id")]
+        public long ToWalletId { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal Amount { get; set; }
+
+        [JsonProperty("currency_id")]
+        public int CurrencyId { get; set; }
+
+        [JsonProperty("fee_from_balance")]
+        public decimal FeeFromBalance { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [JsonProperty("idempotence_key")]
+        public string IdempotenceKey { get; set; }
+    }
+
+    public class TransactionResponse
+    {
+        [JsonProperty("status")]
+        public string Status { get; set; }
+
+        [JsonProperty("data")]
+        public TransactionData Data { get; set; }
+    }
+
+    public class TransactionData
+    {
+        [JsonProperty("id")]
+        public int Id { get; set; }
+
+        [JsonProperty("from_wallet_number")]
+        public long FromWalletNumber { get; set; }
+
+        [JsonProperty("to_wallet_number")]
+        public long ToWalletNumber { get; set; }
+
+        [JsonProperty("status")]
+        public int Status { get; set; }
+    }
+    #endregion
 }

@@ -133,6 +133,15 @@ namespace DiceApi.Services.Implements
                 return responce;
             }
 
+
+            if (request.Amount < 99 && request.WithdrawalType == WithdrawalType.FkWalet)
+            {
+                responce.Succses = false;
+                responce.Message = $"Минимальная сумма вывода по FkWalet 100";
+
+                return responce;
+            }
+
             try
             {//костыль
                 var diceGameCount = (await _diceService.GetAllDiceGamesByUserId(request.UserId)).Count(g => g.GameTime.Day == DateTime.Now.GetMSKDateTime().Day);
@@ -157,7 +166,8 @@ namespace DiceApi.Services.Implements
                 CardNumber = request.CartNumber,
                 CreateDate = DateTime.UtcNow.GetMSKDateTime(),
                 Status = WithdrawalStatus.Moderation,
-                BankId = request.BankId
+                BankId = request.BankId,
+                PaymentType = request.WithdrawalType 
             };
 
             await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.Amount);
@@ -232,7 +242,7 @@ namespace DiceApi.Services.Implements
 
             var res = await _paymentAdapterService.CreateWithdrawal(withdrawal);
 
-            await _withdrawalsRepository.UpdateFkWaletId(withdrawal.Id, res.Data.Id);
+            await _withdrawalsRepository.UpdateFkWaletId(withdrawal.Id, res);
 
             await UpdateWithdrawalToDay(withdrawal.Amount);
 

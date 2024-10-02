@@ -164,7 +164,7 @@ namespace DiceApi.Controllers
                 return new GetDailyBonusByUserIdResponce { Message = "Нужно прикрепить телеграм.", Success = false};
             }
 
-            var bonus = new Random().Next(5);
+            var bonus = new Random().Next(1, 10);
 
             var newBallance = user.Ballance + bonus;
 

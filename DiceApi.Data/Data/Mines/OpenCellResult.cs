@@ -16,6 +16,8 @@ namespace DiceApi.Data
 
         public bool GameOver { get; set; }
 
+        public bool ThisFloorOpened { get; set; }
+
         public decimal CanWin { get; set; }
 
         public string Cells { get; set; }

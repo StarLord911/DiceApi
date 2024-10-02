@@ -11,6 +11,8 @@ namespace DiceApi.Data
         DiceGame = 0,
         Mines = 1,
         Roulette = 2,
-        Horses = 3
+        Horses = 3,
+        Tower = 4
+
     }
 }

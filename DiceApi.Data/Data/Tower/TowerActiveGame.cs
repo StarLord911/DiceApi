@@ -36,7 +36,7 @@ namespace DiceApi.Data.Data.Tower
 
         public TowerActiveGame(int minsCount)
         {
-            TowerFloor = 0;
+            TowerFloor = 1;
             _cells = GenerateMineField(minsCount);
             _gameOver = false;
             MinesCount = minsCount;
@@ -54,7 +54,7 @@ namespace DiceApi.Data.Data.Tower
 
         private List<List<TowerCell>> GenerateMineField(int mineCount)
         {
-            Random random = new Random();
+            var random = new Random();
             List<List<TowerCell>> mineField = new List<List<TowerCell>>();
 
             for (int i = 1; i <= 10; i++)
@@ -71,19 +71,59 @@ namespace DiceApi.Data.Data.Tower
 
             int minesPlaced = 0;
 
-            while (minesPlaced < mineCount)
+            foreach (var floor in mineField)
             {
-                int x = random.Next(0, 5);
-                int y = random.Next(0, 5);
+                while (minesPlaced < mineCount)
+                {
+                    int x = random.Next(1, 5);
 
-                //if (!mineField.FirstOrDefault(c => c.Floor == x && c.Position == y).IsMined)
-                //{
-                //    mineField.FirstOrDefault(c => c.Floor == x && c.Position == y).IsMined = true;
-                //    minesPlaced++;
-                //}
+                    if (!floor.FirstOrDefault(c => c.Position == x).IsMined)
+                    {
+                        floor.FirstOrDefault(c => c.Position == x).IsMined = true;
+                        minesPlaced++;
+                    }
+                }
+                minesPlaced = 0;
             }
+           
 
             return mineField;
+        }
+
+        public OpenCellResult OpenCell(int position)
+        {
+            if (_gameOver)
+            {
+                return new OpenCellResult { GameOver = true, IsCellOpened = false, FindMine = false };
+            }
+
+            var cells = _cells[TowerFloor - 1];
+
+            if (cells.Any(c => c.IsOpen))
+            {
+                return new OpenCellResult { GameOver = false, IsCellOpened = false, FindMine = false, ThisFloorOpened = true };
+            }
+
+            var cell = cells.FirstOrDefault(f => f.Position == position);
+
+            if (cell.IsOpen)
+            {
+                return new OpenCellResult { GameOver = false, IsCellOpened = true, FindMine = false };
+            }
+
+            if (cell.IsMined)
+            {
+                CanWin = 0;
+                _gameOver = true;
+                return new OpenCellResult { GameOver = true, IsCellOpened = false, FindMine = true };
+            }
+
+            Chances.TryGetValue(TowerFloor, out var chanse);
+
+            CanWin = (decimal)chanse * BetSum;
+            cell.IsOpen = true;
+            TowerFloor += 1;
+            return new OpenCellResult { CanWin = CanWin, GameOver = false, IsCellOpened = false, FindMine = false };
         }
     }
 

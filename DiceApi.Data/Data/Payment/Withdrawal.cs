@@ -30,5 +30,6 @@ namespace DiceApi.Data
 
         public int TryCount { get; set; }
 
+        public WithdrawalType PaymentType { get; set; }
     }
 }

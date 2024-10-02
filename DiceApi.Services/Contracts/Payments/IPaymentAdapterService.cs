@@ -32,7 +32,7 @@ namespace DiceApi.Services.Contracts
         /// Сделать вывод.
         /// </summary>
         /// <returns></returns>
-        Task<FkWaletWithdrawalStatusResponce> CreateWithdrawal(Withdrawal withdrawal);
+        Task<long> CreateWithdrawal(Withdrawal withdrawal);
 
         Task<FkWaletWithdrawalStatusResponce> GetWithdrawalStatusFkWalet(long fkWaletId);
 

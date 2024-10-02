@@ -22,6 +22,7 @@ namespace DiceApi.Data.Data.Payment.FreeKassa
     public enum WithdrawalType
     {
         Sbp = 42,
-        CardNumber = 0
+        CardNumber = 0,
+        FkWalet = 3
     }
 }

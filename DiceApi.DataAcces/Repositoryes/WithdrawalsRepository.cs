@@ -28,8 +28,8 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 connection.Open();
 
-                string insertQuery = $@"INSERT INTO Withdrawal (UserId, Amount, CardNumber, CreateDate, Status, BankId) 
-                                            VALUES (@UserId, @Amount, @CardNumber, @CreateDate, @Status, @BankId)";
+                string insertQuery = $@"INSERT INTO Withdrawal (UserId, Amount, CardNumber, CreateDate, Status, BankId, PaymentType) 
+                                            VALUES (@UserId, @Amount, @CardNumber, @CreateDate, @Status, @BankId, @PaymentType)";
 
                 await connection.ExecuteAsync(insertQuery, withdrawal);
 

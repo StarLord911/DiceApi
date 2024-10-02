@@ -48,6 +48,13 @@ namespace DiceApi.Services.Implements
 
             var activateHistory = await _promocodeActivationHistory.GetPromocodeActivates(promocode.PromoCode);
 
+            if (promocode.PromoCode != request.Promocode)
+            {
+                responce.Message = "Неверный промокод";
+                responce.Successful = false;
+                return responce;
+            }
+
             if (!promocode.IsActive)
             {
                 responce.Message = "Неверный промокод";

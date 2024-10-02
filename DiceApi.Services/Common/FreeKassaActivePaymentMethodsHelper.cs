@@ -40,6 +40,13 @@ namespace DiceApi.Services.Common
                     MethodId = 14,
                     MinDeposited = 10,
                     MaxDeposit = 100000
+                },
+                 new PaymentFreeKassaMethodInformation()
+                {
+                    MethodName = "FK WALET",
+                    MethodId = 1,
+                    MinDeposited = 10,
+                    MaxDeposit = 300000
                 }
             };
         }

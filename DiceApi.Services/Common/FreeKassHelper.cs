@@ -96,6 +96,27 @@ namespace DiceApi.Services
             return request;
         }
 
+        public static TransactionRequest GetTransactionRequest(Withdrawal withdrawal)
+        {
+            string numericPart = new string(withdrawal.CardNumber.Where(char.IsDigit).ToArray());
+
+            long.TryParse(numericPart, out long number);
+                
+            var request = new TransactionRequest()
+            {
+                Amount = withdrawal.Amount,
+                Description = "Description",
+                FeeFromBalance = 1,
+                IdempotenceKey = Guid.NewGuid().ToString(),
+                CurrencyId = 1,
+                ToWalletId = number,
+            };
+
+
+            return request;
+        }
+        
+
         public static string GetWithdrawalAvailableCurrencyes()
         {
             var request = new GetWithdrawalAvailableCurrencyesRequest()

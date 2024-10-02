@@ -90,7 +90,6 @@ namespace DiceApi.Services.Contracts
 
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
-        private readonly IMinesRepository _minesRepository;
         private readonly IAntiMinusService _antiMinusService;
         private readonly IWageringRepository _wageringRepository;
         private readonly ILastGamesService _lastGamesService;
@@ -105,7 +104,6 @@ namespace DiceApi.Services.Contracts
         {
             _cacheService = cacheService;
             _userService = userService;
-            _minesRepository = minesRepository;
             _antiMinusService = antiMinusService;
             _wageringRepository = wageringRepository;
 
@@ -134,12 +132,12 @@ namespace DiceApi.Services.Contracts
 
             if (user.Ballance <= request.Sum)
             {
-                return new CreateTowerGameResponce() { Succes = false, Info = "Lack of balance" };
+                return new CreateTowerGameResponce() { Succes = false, Info = "Низкий баланс" };
             }
 
             if (!user.IsActive)
             {
-                return new CreateTowerGameResponce() { Succes = false, Info = "User blocked" };
+                return new CreateTowerGameResponce() { Succes = false, Info = "Вы заблокированы" };
             }
 
             await UpdateWageringAsync(request.UserId, request.Sum);
@@ -148,7 +146,6 @@ namespace DiceApi.Services.Contracts
             await UpdateWageringAsync(request.UserId, request.Sum);
 
             var game = new TowerActiveGame(request.MinesCount);
-
             game.BetSum = request.Sum;
             game.UserId = request.UserId;
             game.Chances = coefficients[game.MinesCount];
@@ -161,9 +158,51 @@ namespace DiceApi.Services.Contracts
         }
         
 
-        public Task<OpenTowerCellResponce> OpenCell(OpenTowerCellRequest request)
+        public async Task<OpenTowerCellResponce> OpenCell(OpenTowerCellRequest request)
         {
-            throw new NotImplementedException();
+            var game = await _cacheService.ReadCache<TowerActiveGame>(CacheConstraints.TOWER_KEY + request.UserId);
+            
+            if (game == null || !game.IsActiveGame())
+            {
+                return new OpenTowerCellResponce()
+                {
+                    Message = "Game not found",
+                    Succes = false
+                };
+            }
+
+            // Open the cell in the game
+            var openResult = game.OpenCell(request.CellId);
+
+            if (openResult.ThisFloorOpened)
+            {
+                return new OpenTowerCellResponce
+                {
+                    Succes = true,
+                    Message = "This floor opened",
+                    Result = new OpenCellResult
+                    {
+                        FindMine = false,
+                        GameOver = false,
+                        ThisFloorOpened = true
+                    }
+                };
+            }
+
+            if (openResult.FindMine)
+            {
+                return await HandleMineFound(game, request);
+            }            
+
+            // Update game state in cache
+            await UpdateGameInCache(game, request.UserId);
+
+            return new OpenTowerCellResponce
+            {
+                Succes = true,
+                Message = "Game continue",
+                Result = openResult
+            };
         }
 
         public async Task<FinishTowerGameResponce> FinishGame(GetByUserIdRequest request)
@@ -175,26 +214,53 @@ namespace DiceApi.Services.Contracts
                 return new FinishTowerGameResponce { Succes = false, Message = "Game not found" };
             }
 
-            if (game.TowerFloor == 0)
+            if (game.TowerFloor == 1)
             {
                 return new FinishTowerGameResponce { Succes = false, Message = "Игру нельзя завершить" };
             }
 
-            await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
-
+            await _cacheService.DeleteCache(CacheConstraints.TOWER_KEY + request.UserId);
             var user = _userService.GetById(request.UserId);
             await _userService.UpdateUserBallance(request.UserId, user.Ballance + game.CanWin);
-            game.FinishGame = true;
-
-            var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
-
-            settingsCache.MinesGameWinningSettings.MinesAntiminusBallance -= game.CanWin;
-
-            await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settingsCache);
-
 
             return new FinishTowerGameResponce { Cells = SerializationHelper.Serialize(game.GetCells()), UserBallance = user.Ballance + game.CanWin };
         }
+
+        private async Task<OpenTowerCellResponce> HandleMineFound(TowerActiveGame game, OpenTowerCellRequest request)
+        {
+            await SaveGameAndDeleteCache(game, request.UserId);
+            await SendNewGameSocket(game);
+
+            return new OpenTowerCellResponce
+            {
+                Succes = false,
+                Message = "Game over",
+                Result = new OpenCellResult
+                {
+                    Cells = SerializationHelper.Serialize(game.GetCells()),
+                    FindMine = true,
+                    GameOver = true
+                }
+            };
+        }
+
+        private async Task SendNewGameSocket(TowerActiveGame game, string userName = null)
+        {
+            if (userName == null)
+            {
+                userName = _userService.GetById(game.UserId).Name;
+            }
+
+            await _lastGamesService.AddLastGames(userName, game.BetSum, Math.Round(game.CanWin, 2), game.FinishGame, GameType.Tower);
+        }
+
+        private async Task SaveGameAndDeleteCache(TowerActiveGame game, long userId)
+        {
+            //var mappedGame = _mapper.Map<MinesGame>(game);
+            //await _minesRepository.AddMinesGame(mappedGame);
+            await _cacheService.DeleteCache(CacheConstraints.TOWER_KEY + userId);
+        }
+
 
         private async Task UpdateWageringAsync(long userId, decimal sum)
         {
@@ -209,6 +275,11 @@ namespace DiceApi.Services.Contracts
                     await _wageringRepository.DeactivateWagering(wagering.Id);
                 }
             }
+        }
+
+        private async Task UpdateGameInCache(TowerActiveGame game, long userId)
+        {
+            await _cacheService.UpdateCache(CacheConstraints.TOWER_KEY + userId, game);
         }
     }
 }

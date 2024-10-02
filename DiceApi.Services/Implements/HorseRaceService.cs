@@ -104,7 +104,7 @@ namespace DiceApi.Services.Implements
                 };
             }
 
-            if (request.HorseBets.Any(b => b.BetSum > 5000))
+            if (request.HorseBets.Any(b => b.BetSum > 1000))
             {
                 return new CreateHorseBetResponce
                 {

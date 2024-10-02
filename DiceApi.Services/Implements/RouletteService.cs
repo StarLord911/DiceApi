@@ -95,7 +95,7 @@ namespace DiceApi.Services
                 };
             }
 
-            if (request.Bets.Any(b => b.BetSum > 5000))
+            if (request.Bets.Any(b => b.BetSum > 1000))
             {
                 return new CreateRouletteBetResponce()
                 {

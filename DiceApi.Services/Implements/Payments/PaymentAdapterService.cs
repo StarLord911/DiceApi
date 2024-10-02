@@ -1,6 +1,7 @@
 ﻿using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.Data.Payment;
+using DiceApi.Data.Data.Payment.FreeKassa;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.Services.Contracts;
 using Newtonsoft.Json;
@@ -100,8 +101,13 @@ namespace DiceApi.Services.Implements
             return result.GetSpbWithdrawalBanks;
         }
 
-        public async Task<FkWaletWithdrawalStatusResponce> CreateWithdrawal(Withdrawal withdrawal)
+        public async Task<long> CreateWithdrawal(Withdrawal withdrawal)
         {
+            if (withdrawal.PaymentType == WithdrawalType.FkWalet)
+            {
+                return await TransferFkWalet(withdrawal);
+            }
+
             var errorMsg = string.Empty;
             try
             {
@@ -123,8 +129,42 @@ namespace DiceApi.Services.Implements
                     var response = await client.SendAsync(request);
 
                     errorMsg = DecodeUnicode(await response.Content.ReadAsStringAsync());
+                    return SerializationHelper.Deserialize<FkWaletWithdrawalStatusResponce>(DecodeUnicode(await response.Content.ReadAsStringAsync())).Data.Id;
+                }
+            }
+            catch (Exception ex)
+            {
+                await _logRepository.LogError($"CreateWithdrawal error {withdrawal.Id} {ex.Message} {ex.StackTrace}");
+                ex.Source = errorMsg;
+                throw;
+            }
+        }
 
-                    return SerializationHelper.Deserialize<FkWaletWithdrawalStatusResponce>(DecodeUnicode(await response.Content.ReadAsStringAsync()));
+        public async Task<long> TransferFkWalet(Withdrawal withdrawal)
+        {
+            var errorMsg = string.Empty;
+
+            var dataWithBody = FreeKassHelper.GetTransactionRequest(withdrawal);
+            var jsonDataWithBody = JsonConvert.SerializeObject(dataWithBody);
+            var signWithBody = CalculateSHA256Hash(jsonDataWithBody + _walletPrivateKey);
+
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    var request = new HttpRequestMessage(HttpMethod.Post, "https://api.fkwallet.io/v1/b5d5b4c85a3bf3147e44303c835d0c9c/transfer");
+
+                    if (!string.IsNullOrEmpty(jsonDataWithBody))
+                    {
+                        request.Content = new StringContent(jsonDataWithBody, Encoding.UTF8, "application/json");
+                    }
+
+                    request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", signWithBody);
+
+                    var response = await client.SendAsync(request);
+                    errorMsg = DecodeUnicode(await response.Content.ReadAsStringAsync());
+
+                    return SerializationHelper.Deserialize<TransactionResponse>(DecodeUnicode(await response.Content.ReadAsStringAsync())).Data.Id;
                 }
             }
             catch (Exception ex)

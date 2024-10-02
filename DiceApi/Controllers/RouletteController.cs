@@ -32,7 +32,16 @@ namespace DiceApi.Controllers
                 return new CreateRouletteBetResponce()
                 {
                     Succesful = false,
-                    Message = "Дождитесь окончания игры"
+                    Message = "Дождитесь окончания игры."
+                };
+            }
+
+            if (request.Bets.Count > 3)
+            {
+                return new CreateRouletteBetResponce()
+                {
+                    Succesful = false,
+                    Message = "Максимально можно выбрать 3 лошади."
                 };
             }
 
