@@ -168,7 +168,7 @@ namespace DiceApi.Controllers
 
             var newBallance = user.Ballance + bonus;
 
-            await _cacheService.WriteCache(CacheConstraints.EVERY_DAY_BONUS + request.UserId, "true", TimeSpan.FromHours(24));
+            await _cacheService.WriteCache(CacheConstraints.EVERY_DAY_BONUS + request.UserId, "true", TimeSpan.FromDays(1));
 
             var wager = await _wageringRepository.GetActiveWageringByUserId(request.UserId);
 

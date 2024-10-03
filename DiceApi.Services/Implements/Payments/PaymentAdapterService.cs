@@ -24,7 +24,6 @@ namespace DiceApi.Services.Implements
         private decimal _currentBallance = -1;
         private string _walletPrivateKey = "wdtXREmm0ru0j5k55UqPUJfKleyZKy1nXfpAbNcsyQhckDyHf4";
 
-
         private readonly HttpClient _httpClient;
 
         private readonly ILogRepository _logRepository;
@@ -55,7 +54,7 @@ namespace DiceApi.Services.Implements
 
             if (response.IsSuccessStatusCode)
             {
-                await _logRepository.LogInfo($"CreatePaymentForm for user {request.UserId}" +  DecodeUnicode(jsonResponse));
+                await _logRepository.LogInfo($"CreatePaymentForm for user {request.UserId}" + DecodeUnicode(jsonResponse));
                 var result = SerializationHelper.Deserialize<CreateFreeKassaPaymentResponce>(jsonResponse);
 
                 return new CreatePaymentResponse

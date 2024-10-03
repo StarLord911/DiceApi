@@ -61,9 +61,9 @@ namespace DiceApi.Controllers
 
                 bool allInRange = dosCache.DateTimes.TakeLast(10).All(date => date >= d1 && date <= d2);
 
-                if (dosCache.Count >= 10 && allInRange)
+                if (dosCache.Count >= 1000 && allInRange)
                 {
-                    await _userService.DeleteUserById(createPaymentRequest.UserId);
+                    await _userService.UpdateUserInformation(new Data.ApiReqRes.UpdateUserRequest() { UserId = createPaymentRequest.UserId, BlockUser = true });
                     await _cacheService.DeleteCache(CacheConstraints.PAYMENT_DOS + createPaymentRequest.UserId);
 
                     return new CreatePaymentResponse()
@@ -181,9 +181,9 @@ namespace DiceApi.Controllers
 
                 bool allInRange = dosCache.DateTimes.TakeLast(10).All(date => date >= d1 && date <= d2);
 
-                if (dosCache.Count >= 10 && allInRange)
+                if (dosCache.Count >= 1000 && allInRange)
                 {
-                    await _userService.DeleteUserById(createWithdrawalRequest.UserId);
+                    await _userService.UpdateUserInformation(new Data.ApiReqRes.UpdateUserRequest() {UserId = createWithdrawalRequest.UserId, BlockUser = true });
                     await _cacheService.DeleteCache(CacheConstraints.PAYMENT_DOS + createWithdrawalRequest.UserId);
 
                     return new CreateWithdrawalResponce()

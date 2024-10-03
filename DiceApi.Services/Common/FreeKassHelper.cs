@@ -22,7 +22,7 @@ namespace DiceApi.Services
                 Email = "example@gmail.com",
                 I = (int)createPayment.PaymentType,
                 Ip = "61.4.112.166",
-                Nonce = DateTime.Now.Ticks,
+                Nonce = DateTime.Now.Microsecond,
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
                 PaymentId = paymentId.ToString()
             };
@@ -55,7 +55,7 @@ namespace DiceApi.Services
         {
             var request = new GetOrderByFreeKassaIdRequest()
             {
-                Nonce = DateTime.Now.Ticks,
+                Nonce = DateTime.Now.Microsecond,
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
                 OrderId = orderId
             };
@@ -121,7 +121,7 @@ namespace DiceApi.Services
         {
             var request = new GetWithdrawalAvailableCurrencyesRequest()
             {
-                Nonce = DateTime.Now.Ticks,
+                Nonce = DateTime.Now.Microsecond,
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
             };
 
