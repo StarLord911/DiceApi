@@ -47,6 +47,15 @@ namespace DiceApi.Controllers
 
             var user = _userService.GetById(createPaymentRequest.UserId);
 
+            if (!user.IsActive)
+            {
+                return new CreatePaymentResponse()
+                {
+                    Succesful = false,
+                    Message = "Вы заблокированы."
+                };
+            }
+
             var payment = new Payment
             {
                 Amount = createPaymentRequest.Amount,
@@ -122,6 +131,17 @@ namespace DiceApi.Controllers
         [HttpPost("createWithdrawal")]
         public async Task<CreateWithdrawalResponce> CreateWithdrawal(CreateWithdrawalRequest createWithdrawalRequest)
         {
+            var user = _userService.GetById(createWithdrawalRequest.UserId);
+
+            if (!user.IsActive)
+            {
+                return new CreateWithdrawalResponce()
+                {
+                    Succses = false,
+                    Message = "Вы заблокированы."
+                };
+            }
+
             return await _withdrawalsService.CreateWithdrawalRequest(createWithdrawalRequest);
         }
 
