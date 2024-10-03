@@ -40,5 +40,8 @@ namespace DiceApi.Common
 
 
         public const string LAST_GAMES_IN_SITE = "LAST_GAMES_IN_SITE";
+
+        public const string PAYMENT_DOS = "PAYMENT_DOS_";
+
     }
 }

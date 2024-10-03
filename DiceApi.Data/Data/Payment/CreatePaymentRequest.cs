@@ -32,4 +32,18 @@ namespace DiceApi.Data.Data.Payment
         public int OrderId { get; set; }
 
     }
+
+    public class PaymentDos
+    {
+        public PaymentDos()
+        {
+            DateTimes = new List<DateTime>();
+        }
+
+        public List<DateTime> DateTimes { get; set; }
+
+        public long UserId { get; set; }
+
+        public long Count { get; set; }
+    }
 }

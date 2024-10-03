@@ -15,6 +15,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using DiceApi.Services;
+using DiceApi.DataAcces.Repositoryes;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -28,24 +29,63 @@ namespace DiceApi.Controllers
         private readonly IPaymentAdapterService _paymentAdapterService;
         private readonly IWithdrawalsService _withdrawalsService;
         private readonly IUserService _userService;
+        private readonly ILogRepository _logRepository;
+        private readonly ICacheService _cacheService;
 
         public PaymentController(IPaymentService paymentService,
             IPaymentAdapterService paymentAdapterService,
             IWithdrawalsService withdrawalsService,
-            IUserService userService)
+            IUserService userService,
+            ILogRepository logRepository,
+            ICacheService cacheService)
         {
             _paymentService = paymentService;
             _paymentAdapterService = paymentAdapterService;
             _withdrawalsService = withdrawalsService;
             _userService = userService;
+            _logRepository = logRepository;
+            _cacheService = cacheService;
         }
 
         [Authorize]
         [HttpPost("createPayment")]
         public async Task<CreatePaymentResponse> CreatePayment(CreatePaymentRequest createPaymentRequest)
         {
+            await _logRepository.LogInfo($"CreatePaymentForm for user {createPaymentRequest.UserId}");
+
+            var dosCache = await _cacheService.ReadCache<PaymentDos>(CacheConstraints.PAYMENT_DOS + createPaymentRequest.UserId);
+            if (dosCache != null)
+            {
+                DateTime d1 = DateTime.Now.GetMSKDateTime().AddMinutes(-30);
+                DateTime d2 = DateTime.Now.GetMSKDateTime();
+
+                bool allInRange = dosCache.DateTimes.TakeLast(10).All(date => date >= d1 && date <= d2);
+
+                if (dosCache.Count >= 10 && allInRange)
+                {
+                    await _userService.DeleteUserById(createPaymentRequest.UserId);
+                    await _cacheService.DeleteCache(CacheConstraints.PAYMENT_DOS + createPaymentRequest.UserId);
+
+                    return new CreatePaymentResponse()
+                    {
+                        Succesful = false,
+                        Message = "Вы зоблокированы за DoS атаку"
+                    };
+
+                }
+
+                dosCache.Count += 1;
+                dosCache.DateTimes.Add(DateTime.Now.GetMSKDateTime());
+                await _cacheService.WriteCache(CacheConstraints.PAYMENT_DOS + createPaymentRequest.UserId, dosCache, TimeSpan.FromDays(1));
+            }
+            else
+            {
+                await _cacheService.WriteCache(CacheConstraints.PAYMENT_DOS + createPaymentRequest.UserId, new PaymentDos() { Count = 1, UserId = createPaymentRequest.UserId}, TimeSpan.FromDays(1));
+            }
+
 
             var user = _userService.GetById(createPaymentRequest.UserId);
+
 
             if (!user.IsActive)
             {
@@ -131,6 +171,38 @@ namespace DiceApi.Controllers
         [HttpPost("createWithdrawal")]
         public async Task<CreateWithdrawalResponce> CreateWithdrawal(CreateWithdrawalRequest createWithdrawalRequest)
         {
+            await _logRepository.LogInfo($"CreateWithdrawal for user {createWithdrawalRequest.UserId}");
+
+            var dosCache = await _cacheService.ReadCache<PaymentDos>(CacheConstraints.PAYMENT_DOS + createWithdrawalRequest.UserId);
+            if (dosCache != null)
+            {
+                DateTime d1 = DateTime.Now.GetMSKDateTime().AddMinutes(-30);
+                DateTime d2 = DateTime.Now.GetMSKDateTime();
+
+                bool allInRange = dosCache.DateTimes.TakeLast(10).All(date => date >= d1 && date <= d2);
+
+                if (dosCache.Count >= 10 && allInRange)
+                {
+                    await _userService.DeleteUserById(createWithdrawalRequest.UserId);
+                    await _cacheService.DeleteCache(CacheConstraints.PAYMENT_DOS + createWithdrawalRequest.UserId);
+
+                    return new CreateWithdrawalResponce()
+                    {
+                        Succses = false,
+                        Message = "Вы зоблокированы за DoS атаку"
+                    };
+
+                }
+
+                dosCache.Count += 1;
+                dosCache.DateTimes.Add(DateTime.Now.GetMSKDateTime());
+                await _cacheService.WriteCache(CacheConstraints.PAYMENT_DOS + createWithdrawalRequest.UserId, dosCache, TimeSpan.FromDays(1));
+            }
+            else
+            {
+                await _cacheService.WriteCache(CacheConstraints.PAYMENT_DOS + createWithdrawalRequest.UserId, new PaymentDos() { Count = 1, UserId = createWithdrawalRequest.UserId }, TimeSpan.FromDays(1));
+            }
+
             var user = _userService.GetById(createWithdrawalRequest.UserId);
 
             if (!user.IsActive)

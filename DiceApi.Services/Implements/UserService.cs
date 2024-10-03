@@ -4,6 +4,7 @@ using DiceApi.Data;
 using DiceApi.Data.Api;
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
+using DiceApi.Data.Data.Payment;
 using DiceApi.DataAcces.Repositoryes;
 using System;
 using System.Collections.Generic;
@@ -167,6 +168,8 @@ namespace DiceApi.Services
 
         public async Task DeleteUserById(long id)
         {
+            await _logRepository.LogInfo($"Delete user by id {id}");
+
             await _userRepository.DeleteUserById(id);
         }
 
