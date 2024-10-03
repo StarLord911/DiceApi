@@ -22,7 +22,7 @@ namespace DiceApi.Services
                 Email = "example@gmail.com",
                 I = (int)createPayment.PaymentType,
                 Ip = "61.4.112.166",
-                Nonce = DateTime.Now.GetMSKDateTime().Microsecond,
+                Nonce = DateTime.Now.GetMSKDateTime().Ticks,
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
                 PaymentId = paymentId.ToString()
             };
@@ -55,7 +55,7 @@ namespace DiceApi.Services
         {
             var request = new GetOrderByFreeKassaIdRequest()
             {
-                Nonce = DateTime.Now.GetMSKDateTime().Microsecond,
+                Nonce = DateTime.Now.GetMSKDateTime().Ticks,
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
                 OrderId = orderId
             };
@@ -121,7 +121,7 @@ namespace DiceApi.Services
         {
             var request = new GetWithdrawalAvailableCurrencyesRequest()
             {
-                Nonce = DateTime.Now.GetMSKDateTime().Microsecond,
+                Nonce = DateTime.Now.GetMSKDateTime().Ticks,
                 ShopId = int.Parse(ConfigHelper.GetConfigValue(ConfigerationNames.FreeKassaShopId)),
             };
 
@@ -134,16 +134,6 @@ namespace DiceApi.Services
             request.Signature = GetSignature(parameters);
 
             return JsonConvert.SerializeObject(request);
-        }
-
-        private static string GetBankSbpId(int id)
-        {
-            if (id == 1)
-            {
-                return "1enc00000004";
-            }
-
-            return "1enc00000111";
         }
 
         private static string GetSignature(Dictionary<string, string> pairs)
