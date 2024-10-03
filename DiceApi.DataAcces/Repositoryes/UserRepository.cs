@@ -46,8 +46,8 @@ namespace DiceApi.DataAcces.Repositoryes
             {
                 var allUsers = GetAll();
 
-                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent, registrationIp, telegramUserId, enableWithdrawal, paymentForWithdrawal)
-                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent, @RegistrationIp, @TelegramUserId, @EnableWithdrawal @PaymentForWithdrawal)
+                string query = @"INSERT INTO Users (name, password, ballance, ownerId, registrationDate, isActive, referalPercent, registrationIp, telegramUserId, enableWithdrawal)
+                                    VALUES (@Name, @Password, @Ballance, @OwnerId, @RegistrationDate, @IsActive, @ReferalPercent, @RegistrationIp, @TelegramUserId, @EnableWithdrawal)
                                     SELECT CAST(SCOPE_IDENTITY() AS int)";
 
                 var parameters = new
@@ -62,7 +62,6 @@ namespace DiceApi.DataAcces.Repositoryes
                     RegistrationIp = user.IpAddres,
                     TelegramUserId = user.TelegramUserId,
                     EnableWithdrawal = true,
-                    PaymentForWithdrawal = 300
                 };
 
                 var userId = await db.ExecuteScalarAsync<long>(query, parameters);
