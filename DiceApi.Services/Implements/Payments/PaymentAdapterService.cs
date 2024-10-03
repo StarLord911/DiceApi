@@ -195,7 +195,7 @@ namespace DiceApi.Services.Implements
 
                     if (response.IsSuccessStatusCode)
                     {
-                        await _logRepository.LogInfo("CreatePaymentForm" + DecodeUnicode(jsonResponse));
+                        await _logRepository.LogInfo("Get Order By Free Kassa Id" + DecodeUnicode(jsonResponse));
                         return SerializationHelper.Deserialize<OrderResponse>(jsonResponse).Orders.FirstOrDefault();
                     }
                     else
