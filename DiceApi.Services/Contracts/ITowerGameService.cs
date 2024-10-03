@@ -192,7 +192,21 @@ namespace DiceApi.Services.Contracts
             if (openResult.FindMine)
             {
                 return await HandleMineFound(game, request);
-            }            
+            }
+
+            if (openResult.GameOver)
+            {
+                await SendNewGameSocket(game);
+                openResult.Cells = SerializationHelper.Serialize(game.GetCells());
+
+                await _cacheService.DeleteCache(CacheConstraints.TOWER_KEY + request.UserId);
+                return new OpenTowerCellResponce
+                {
+                    Succes = true,
+                    Message = "Game win",
+                    Result = openResult
+                };
+            }
 
             // Update game state in cache
             await UpdateGameInCache(game, request.UserId);
@@ -209,7 +223,7 @@ namespace DiceApi.Services.Contracts
         {
             var game = await _cacheService.ReadCache<TowerActiveGame>(CacheConstraints.TOWER_KEY + request.UserId);
 
-            if (game == null || !game._gameOver)
+            if (game == null)
             {
                 return new FinishTowerGameResponce { Succes = false, Message = "Game not found" };
             }

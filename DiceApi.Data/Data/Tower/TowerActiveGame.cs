@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DiceApi.Data.Data.Tower
 {
@@ -123,6 +122,12 @@ namespace DiceApi.Data.Data.Tower
             CanWin = (decimal)chanse * BetSum;
             cell.IsOpen = true;
             TowerFloor += 1;
+
+            if (TowerFloor == 10)
+            {
+                return new OpenCellResult { CanWin = CanWin, GameOver = true, IsCellOpened = false, FindMine = false};
+            }
+
             return new OpenCellResult { CanWin = CanWin, GameOver = false, IsCellOpened = false, FindMine = false };
         }
     }
