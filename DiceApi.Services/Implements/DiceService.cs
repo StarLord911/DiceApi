@@ -81,6 +81,11 @@ namespace DiceApi.Services.Implements
                     ? random
                     : random + cache.DiceGameWinningSettings.DiceMinusPercent;
 
+                if (request.Persent < 5)
+                {
+                    rand -= cache.DiceGameWinningSettings.DiceMinusPercent;
+                }
+
                 if (request.Persent + streamerBonus > rand)
                 {
                     // Обработка выигрыша

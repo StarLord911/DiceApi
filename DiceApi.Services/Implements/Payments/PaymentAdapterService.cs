@@ -55,7 +55,7 @@ namespace DiceApi.Services.Implements
 
             if (response.IsSuccessStatusCode)
             {
-                await _logRepository.LogInfo("CreatePaymentForm" + DecodeUnicode(jsonResponse));
+                await _logRepository.LogInfo($"CreatePaymentForm for user {request.UserId}" +  DecodeUnicode(jsonResponse));
                 var result = SerializationHelper.Deserialize<CreateFreeKassaPaymentResponce>(jsonResponse);
 
                 return new CreatePaymentResponse
