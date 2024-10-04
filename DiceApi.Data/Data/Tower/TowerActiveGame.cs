@@ -141,10 +141,10 @@ namespace DiceApi.Data.Data.Tower
     public class TowerCell
     {
         [JsonProperty("floor")]
-        public int Floor { get; }
+        public int Floor { get; set; }
 
         [JsonProperty("position")]
-        public int Position { get; }
+        public int Position { get; set; }
 
         [JsonProperty("isMined")]
         public bool IsMined { get; set; }
