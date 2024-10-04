@@ -18,6 +18,8 @@ using DiceApi.Data.ApiReqRes.HorseRace;
 using Newtonsoft.Json;
 using DiceApi.Data.Data.Roulette;
 using DiceApi.Services.Common;
+using DiceApi.DataAcces.Repositoryes.Game;
+using DiceApi.Data.Data.Games;
 
 namespace DiceApi.Services.BackgroundServices
 {
@@ -32,9 +34,11 @@ namespace DiceApi.Services.BackgroundServices
         private readonly IHubContext<HorsesGameStartTaimerHub> _gameStartTaimerHub;
 
         private readonly ILogRepository _logRepository;
+        private readonly IGamesRepository _gamesRepository;
 
         public HorsesService(ICacheService cacheService, IUserService userService, IHubContext<HorseGameEndGameHub> hubContext, ILastGamesService lastGamesService,
-            ILogRepository logRepository, IHubContext<HorsesGameStartTaimerHub> gameStartTaimerHub, IHubContext<HorseGameBetsHub> horseBetsHub)
+            ILogRepository logRepository, IHubContext<HorsesGameStartTaimerHub> gameStartTaimerHub, IHubContext<HorseGameBetsHub> horseBetsHub,
+            IGamesRepository gamesRepository)
         {
             _cacheService = cacheService;
             _userService = userService;
@@ -43,6 +47,7 @@ namespace DiceApi.Services.BackgroundServices
             _logRepository = logRepository;
             _gameStartTaimerHub = gameStartTaimerHub;
             _horseBetsHub = horseBetsHub;
+            _gamesRepository = gamesRepository;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -135,9 +140,20 @@ namespace DiceApi.Services.BackgroundServices
                             : 0;
 
                         await AddLastGames(user.Name, bet.BetSum, bet.BetSum * 8, winSum != 0);
+
+                        var game = new GameModel();
+                        game.BetSum = bet.BetSum;
+                        game.UserId = user.Id;
+                        game.Win = winSum != 0;
+                        game.CanWin = bet.BetSum * 8;
+                        game.GameTime = DateTime.Now.GetMSKDateTime();
+                        game.GameType = GameType.Horses;
+                        await _gamesRepository.AddGame(game);
+
                     }
 
                     await _logRepository.LogGame(log.ToString());
+
                 }
             }
 
@@ -236,7 +252,7 @@ namespace DiceApi.Services.BackgroundServices
                 {
                     if (random.Next(0, 2) == 0)
                     {
-                        var iterCount = random.Next(1, 4);
+                        var iterCount = random.Next(1, 5);
                         for (int x = 0; x < iterCount; x++)
                         {
                             var nameInex = random.Next(0, FakeActiveHelper.FakeNames.Count);

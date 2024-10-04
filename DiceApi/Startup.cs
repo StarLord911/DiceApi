@@ -2,6 +2,7 @@ using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.Data.Winning;
 using DiceApi.DataAcces.Repositoryes;
+using DiceApi.DataAcces.Repositoryes.Game;
 using DiceApi.Mappings;
 using DiceApi.MiddleWares;
 using DiceApi.Services;
@@ -110,6 +111,7 @@ namespace DiceApi
             services.AddTransient<IPromocodeRepository, PromocodeRepository>();
             services.AddTransient<IPromocodeActivationHistory, PromocodeActivationHistory>();
             services.AddTransient<IWageringRepository, WageringRepository>();
+            
 
             //регаем репы.
             services.AddTransient<IPaymentRepository, PaymentRepository>();
@@ -117,6 +119,7 @@ namespace DiceApi
             services.AddTransient<IPaymentRequisitesRepository, PaymentRequisitesRepository>();
             services.AddTransient<ICooperationRequestRepository, CooperationRequestRepository>();
             services.AddTransient<IMinesRepository, MinesRepository>();
+            services.AddTransient<IGamesRepository, GamesRepository>();
 
             //регаем сервисы
             services.AddTransient<IPaymentService, PaymentService>();

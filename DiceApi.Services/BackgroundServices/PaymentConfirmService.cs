@@ -77,7 +77,7 @@ namespace DiceApi.Services.BackgroundServices
                             continue;
                         }
 
-                        if ((DateTime.UtcNow.GetMSKDateTime() - payment.CreatedAt).TotalMinutes > 30 && fkPayment.Currency.ToLower() != "usdt")
+                        if ((DateTime.UtcNow.GetMSKDateTime() - payment.CreatedAt).TotalMinutes > 30 && fkPayment.Currency.ToLower() == "usdt")
                         {
                             await _paymentService.UpdatePaymentStatus(payment.Id, Data.PaymentStatus.Error);
                             continue;
