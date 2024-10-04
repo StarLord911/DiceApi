@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -139,12 +140,16 @@ namespace DiceApi.Data.Data.Tower
 
     public class TowerCell
     {
+        [JsonProperty("floor")]
         public int Floor { get; }
 
+        [JsonProperty("position")]
         public int Position { get; }
 
+        [JsonProperty("isMined")]
         public bool IsMined { get; set; }
 
+        [JsonProperty("isOpen")]
         public bool IsOpen { get; set; }
 
         public TowerCell(int floor, int pos)
@@ -158,17 +163,18 @@ namespace DiceApi.Data.Data.Tower
 
     public class TowerCellApi
     {
-        [DataMember]
+        [JsonProperty("floor")]
         public int Floor { get; }
 
-        [DataMember]
+        [JsonProperty("position")]
         public int Position { get; }
 
-        [DataMember]
+        [JsonProperty("isMined")]
         public bool IsMined { get; set; }
 
-        [DataMember]
+        [JsonProperty("isOpen")]
         public bool IsOpen { get; set; }
+
 
         public TowerCellApi(int floor, int pos)
         {
