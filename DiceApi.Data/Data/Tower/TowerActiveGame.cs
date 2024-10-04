@@ -9,13 +9,20 @@ namespace DiceApi.Data.Data.Tower
 {
     public class TowerGameApiModel
     {
-        public string Cells { get; set; }
-
-        public int OpenedCount { get; set; }
+        public List<Floor> Floors { get; set; }
 
         public int MinesCount { get; set; }
 
         public decimal BetSum { get; set; }
+    }
+
+    public class Floor
+    {
+        public int FloorId { get; set; }
+
+        public bool IsOpen { get; set; }
+
+        public List<int> BombPositions { get; set; }
     }
 
     public class TowerActiveGame

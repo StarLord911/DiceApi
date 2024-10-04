@@ -169,12 +169,13 @@ namespace DiceApi.Services.Contracts
 
         public async Task<TowerGameApiModel> GetActiveTowerGameByUserId(GetByUserIdRequest request)
         {
-            var serializedGame = await _cacheService.ReadCache<TowerActiveGame>(CacheConstraints.MINES_KEY + request.UserId);
+            var serializedGame = await _cacheService.ReadCache<TowerActiveGame>(CacheConstraints.TOWER_KEY + request.UserId);
 
             if (serializedGame == null)
             {
                 return null;
             }
+
             if (!serializedGame.IsActiveGame())
             {
                 return null;
@@ -182,26 +183,32 @@ namespace DiceApi.Services.Contracts
 
             return new TowerGameApiModel()
             {
-                Cells = SerializationHelper.Serialize(MapCells(serializedGame.GetCells())),
+                Floors = MapCells(serializedGame.GetCells()),
                 MinesCount = serializedGame.MinesCount,
                 BetSum = serializedGame.BetSum
             };
 
         }
 
-        private List<List<TowerCellApi>> MapCells(List<List<TowerCell>> cells)
+        private List<Floor> MapCells(List<List<TowerCell>> cells)
         {
-            var res = new List<List<TowerCellApi>>();
+            var res = new List<Floor>();
             foreach (var item in cells)
             {
-                var list = new List<TowerCellApi>();
-                foreach (var cell in item)
-                {
+                var floor = new Floor();
 
+                floor.FloorId = item.FirstOrDefault().Floor;
+                floor.IsOpen = item.Any(c => c.IsOpen);
+
+                if (floor.IsOpen)
+                {
+                    floor.BombPositions = item.Where(c => c.IsMined == true).Select(c => c.Position).ToList();
                 }
+
+                res.Add(floor);
             }
 
-            return new List<List<TowerCellApi>>();
+            return res;
         }
 
         public async Task<OpenTowerCellResponce> OpenCell(OpenTowerCellRequest request)
