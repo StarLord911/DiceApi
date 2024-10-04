@@ -19,27 +19,20 @@ namespace DiceApi.Data.Data.Tower
 
     public class TowerActiveGame
     {
-        [DataMember]
         public List<List<TowerCell>> _cells;
 
-        [DataMember]
         public bool _gameOver;
 
         public bool FinishGame { get; set; }
 
-        [DataMember]
         public int MinesCount { get; set; }
 
-        [DataMember]
         public decimal BetSum { get; set; }
 
-        [DataMember]
         public long UserId { get; set; }
 
-        [DataMember]
         public Dictionary<int, double> Chances { get; set; }
 
-        [DataMember]
         public decimal CanWin { get; set; }
 
         public int TowerFloor { get; set; }
@@ -146,16 +139,12 @@ namespace DiceApi.Data.Data.Tower
 
     public class TowerCell
     {
-        [DataMember]
         public int Floor { get; }
 
-        [DataMember]
         public int Position { get; }
 
-        [DataMember]
         public bool IsMined { get; set; }
 
-        [DataMember]
         public bool IsOpen { get; set; }
 
         public TowerCell(int floor, int pos)
