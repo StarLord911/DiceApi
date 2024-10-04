@@ -6,6 +6,17 @@ using System.Text;
 
 namespace DiceApi.Data.Data.Tower
 {
+    public class TowerGameApiModel
+    {
+        public string Cells { get; set; }
+
+        public int OpenedCount { get; set; }
+
+        public int MinesCount { get; set; }
+
+        public decimal BetSum { get; set; }
+    }
+
     public class TowerActiveGame
     {
         [DataMember]
@@ -132,6 +143,7 @@ namespace DiceApi.Data.Data.Tower
         }
     }
 
+
     public class TowerCell
     {
         [DataMember]
@@ -147,6 +159,29 @@ namespace DiceApi.Data.Data.Tower
         public bool IsOpen { get; set; }
 
         public TowerCell(int floor, int pos)
+        {
+            Floor = floor;
+            Position = pos;
+            IsMined = false;
+            IsOpen = false;
+        }
+    }
+
+    public class TowerCellApi
+    {
+        [DataMember]
+        public int Floor { get; }
+
+        [DataMember]
+        public int Position { get; }
+
+        [DataMember]
+        public bool IsMined { get; set; }
+
+        [DataMember]
+        public bool IsOpen { get; set; }
+
+        public TowerCellApi(int floor, int pos)
         {
             Floor = floor;
             Position = pos;

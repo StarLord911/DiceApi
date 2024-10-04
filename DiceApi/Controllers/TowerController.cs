@@ -1,6 +1,8 @@
 ﻿using DiceApi.Attributes;
+using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.ApiReqRes.Tower;
+using DiceApi.Data.Data.Tower;
 using DiceApi.Data.Requests;
 using DiceApi.Services;
 using DiceApi.Services.Contracts;
@@ -40,6 +42,13 @@ namespace DiceApi.Controllers
         public async Task<FinishTowerGameResponce> FinishGame(GetByUserIdRequest request)
         {
             return await _towerGameService.FinishGame(request);
+        }
+
+        [Authorize]
+        [HttpPost("getTowerGame")]
+        public async Task<TowerGameApiModel> GetTowerGame(GetByUserIdRequest request)
+        {
+            return await _towerGameService.GetActiveTowerGameByUserId(request);
         }
 
         [HttpPost("getCoefficients")]

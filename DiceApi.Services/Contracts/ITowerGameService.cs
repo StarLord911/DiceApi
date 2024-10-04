@@ -24,6 +24,8 @@ namespace DiceApi.Services.Contracts
 
 
         Task<FinishTowerGameResponce> FinishGame(GetByUserIdRequest request);
+
+        Task<TowerGameApiModel> GetActiveTowerGameByUserId(GetByUserIdRequest request);
     }
 
     public class TowerGameService : ITowerGameService
@@ -96,10 +98,8 @@ namespace DiceApi.Services.Contracts
 
         public TowerGameService(ICacheService cacheService,
            IUserService userService,
-           IMinesRepository minesRepository,
            IAntiMinusService antiMinusService,
            IWageringRepository wageringRepository,
-           IMapper mapper,
            ILastGamesService lastGamesService)
         {
             _cacheService = cacheService;
@@ -113,6 +113,16 @@ namespace DiceApi.Services.Contracts
         public async Task<CreateTowerGameResponce> Create(CreateTowerGameRequest request)
         {
             var settingsCache = await _cacheService.ReadCache<Settings>(CacheConstraints.SETTINGS_KEY);
+
+            var activeGame = await _cacheService.ReadCache<TowerActiveGame>(CacheConstraints.TOWER_KEY + request.UserId);
+            if (activeGame != null && activeGame.IsActiveGame())
+            {
+                return new CreateTowerGameResponce
+                {
+                    Info = "Игра уже существует.",
+                    Succes = false
+                };
+            }
 
             if (!settingsCache.MinesGameActive)
             {
@@ -156,7 +166,43 @@ namespace DiceApi.Services.Contracts
 
             return new CreateTowerGameResponce() { Succes = true, Info = "Game created" };
         }
-        
+
+        public async Task<TowerGameApiModel> GetActiveTowerGameByUserId(GetByUserIdRequest request)
+        {
+            var serializedGame = await _cacheService.ReadCache<TowerActiveGame>(CacheConstraints.MINES_KEY + request.UserId);
+
+            if (serializedGame == null)
+            {
+                return null;
+            }
+            if (!serializedGame.IsActiveGame())
+            {
+                return null;
+            }
+
+            return new TowerGameApiModel()
+            {
+                Cells = SerializationHelper.Serialize(MapCells(serializedGame.GetCells())),
+                MinesCount = serializedGame.MinesCount,
+                BetSum = serializedGame.BetSum
+            };
+
+        }
+
+        private List<List<TowerCellApi>> MapCells(List<List<TowerCell>> cells)
+        {
+            var res = new List<List<TowerCellApi>>();
+            foreach (var item in cells)
+            {
+                var list = new List<TowerCellApi>();
+                foreach (var cell in item)
+                {
+
+                }
+            }
+
+            return new List<List<TowerCellApi>>();
+        }
 
         public async Task<OpenTowerCellResponce> OpenCell(OpenTowerCellRequest request)
         {
@@ -208,7 +254,6 @@ namespace DiceApi.Services.Contracts
                 };
             }
 
-            // Update game state in cache
             await UpdateGameInCache(game, request.UserId);
 
             return new OpenTowerCellResponce

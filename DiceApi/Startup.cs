@@ -134,30 +134,29 @@ namespace DiceApi
             services.AddTransient<IAntiMinusService, AntiMinusService>();
             services.AddTransient<ITowerGameService, TowerGameService>();
 
-            services.AddHostedService<RouleteService>();
-            services.AddHostedService<HorsesService>();
-            services.AddHostedService<PaymentConfirmService>();
+            if (!_env.IsDevelopment())
+            {
+                services.AddHostedService<RouleteService>();
+                services.AddHostedService<HorsesService>();
+                services.AddHostedService<PaymentConfirmService>();
 
-            services.AddHostedService<FakeActiveService>();
-            services.AddHostedService<FakeOnlineService>();
-            services.AddHostedService<FakeMinesGameService>();
+                services.AddHostedService<FakeActiveService>();
+                services.AddHostedService<FakeOnlineService>();
+                services.AddHostedService<FakeMinesGameService>();
 
-            services.AddHostedService<FakeChatService>();
+                services.AddHostedService<FakeChatService>();
+            }
 
-
-            ConfigHelper.LoadConfig(Configuration);
+                ConfigHelper.LoadConfig(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IHostApplicationLifetime appLifetime)
         {
-            if (_env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
+             app.UseDeveloperExceptionPage();
 
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiceApi v1"));
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "DiceApi v1"));
 
             app.UseRouting();
             app.UseCors("AllowAll");
