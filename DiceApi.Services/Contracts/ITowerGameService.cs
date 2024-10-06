@@ -229,6 +229,15 @@ namespace DiceApi.Services.Contracts
                 };
             }
 
+            if (request.CellId < 1 || request.CellId > 5)
+            {
+                return new OpenTowerCellResponce()
+                {
+                    Message = "Недопустимое дуйствие",
+                    Succes = false
+                };
+            }
+
             // Open the cell in the game
             var openResult = game.OpenCell(request.CellId);
 
