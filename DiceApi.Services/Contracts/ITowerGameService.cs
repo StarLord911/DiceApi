@@ -224,7 +224,7 @@ namespace DiceApi.Services.Contracts
             {
                 return new OpenTowerCellResponce()
                 {
-                    Message = "Game not found",
+                    Message = "Игра не найдена.",
                     Succes = false
                 };
             }
@@ -252,7 +252,7 @@ namespace DiceApi.Services.Contracts
                 return await HandleMineFound(game, request);
             }
 
-            if (openResult.GameOver)
+            if (game.TowerFloor == 11)
             {
                 await SendNewGameSocket(game);
                 openResult.Cells = SerializationHelper.Serialize(game.GetCells());
@@ -261,7 +261,7 @@ namespace DiceApi.Services.Contracts
                 return new OpenTowerCellResponce
                 {
                     Succes = true,
-                    Message = "Game win",
+                    Message = "Вы победили",
                     Result = openResult
                 };
             }

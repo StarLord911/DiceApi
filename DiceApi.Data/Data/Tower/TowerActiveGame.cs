@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using MathNet.Numerics.Random;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,7 +66,7 @@ namespace DiceApi.Data.Data.Tower
 
         private List<List<TowerCell>> GenerateMineField(int mineCount)
         {
-            var random = new Random();
+            var random = new MersenneTwister();
             List<List<TowerCell>> mineField = new List<List<TowerCell>>();
 
             for (int i = 1; i <= 10; i++)
