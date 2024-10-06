@@ -6,7 +6,6 @@ using DiceApi.Data.Requests;
 using DiceApi.Common;
 using DiceApi.Services.Common;
 using DiceApi.Services.Contracts;
-using FreeKassa.NET;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System;

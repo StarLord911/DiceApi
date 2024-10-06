@@ -14,6 +14,9 @@ namespace DiceApi.Controllers
     public class ThimblesController : ControllerBase
     {
         private readonly IThimblesService _thimblesService;
+
+
+
         public ThimblesController(IThimblesService thimblesService)
         {
             _thimblesService = thimblesService;
@@ -25,5 +28,7 @@ namespace DiceApi.Controllers
         {
             return await _thimblesService.Bet(request);
         }
+
+      
     }
 }

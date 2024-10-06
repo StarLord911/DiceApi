@@ -4,6 +4,7 @@ using DiceApi.Data.Data.Winning;
 using DiceApi.DataAcces.Repositoryes;
 using DiceApi.DataAcces.Repositoryes.Game;
 using DiceApi.Mappings;
+using DiceApi.Middlewares;
 using DiceApi.MiddleWares;
 using DiceApi.Services;
 using DiceApi.Services.BackgroundServices;
@@ -166,6 +167,8 @@ namespace DiceApi
             app.UseCors("AllowAll");
             app.UseHttpsRedirection();
             app.UseMiddleware<JwtMiddleware>();
+            app.UseMiddleware<SqlInjectionDetectionMiddleware>();
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
