@@ -18,11 +18,11 @@ namespace DiceApi.Controllers
             
         }
 
-        [Authorize]
-        [HttpPost("bet")]
-        public async Task<BetThimblesResponce> Bet(BetThimblesRequest request)
-        {
+        //[Authorize]
+        //[HttpPost("bet")]
+        //public async Task<BetThimblesResponce> Bet(BetThimblesRequest request)
+        //{
             
-        }
+        //}
     }
 }
