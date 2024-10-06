@@ -135,7 +135,7 @@ namespace DiceApi.Data.Data.Tower
             cell.IsOpen = true;
             TowerFloor += 1;
 
-            if (TowerFloor == 10)
+            if (TowerFloor == 11)
             {
                 return new OpenCellResult { CanWin = CanWin, GameOver = true, IsCellOpened = false, FindMine = false};
             }
