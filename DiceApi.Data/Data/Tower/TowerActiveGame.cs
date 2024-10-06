@@ -22,7 +22,7 @@ namespace DiceApi.Data.Data.Tower
 
         public bool IsOpen { get; set; }
 
-        public List<int> BombPositions { get; set; }
+        public int OpenedCellId { get; set; }
     }
 
     public class TowerActiveGame

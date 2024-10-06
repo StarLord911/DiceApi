@@ -41,28 +41,28 @@ namespace DiceApi.Services.BackgroundServices
 
                     if (hour > 2 && hour < 8)
                     {
-                        minUserCount = 64;
-                        maxUserCount = 102;
+                        minUserCount = 55;
+                        maxUserCount = 70;
                     }
                     else if (hour > 8 && hour < 12)
                     {
-                        minUserCount = 108;
-                        maxUserCount = 135;
+                        minUserCount = 70;
+                        maxUserCount = 100;
                     }
                     else if (hour > 12 && hour < 16)
                     {
-                        minUserCount = 135;
-                        maxUserCount = 180;
+                        minUserCount = 100;
+                        maxUserCount = 125;
                     }
                     else if (hour > 16 && hour < 19)
                     {
-                        minUserCount = 250;
-                        maxUserCount = 340;
+                        minUserCount = 125;
+                        maxUserCount = 180;
                     }
                     else
                     {
-                        minUserCount = 345;
-                        maxUserCount = 650;
+                        minUserCount = 180;
+                        maxUserCount = 300;
                     }
 
                     if (FakeActiveHelper.FakeUserCount >= maxUserCount)

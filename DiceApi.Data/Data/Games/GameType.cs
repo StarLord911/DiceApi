@@ -12,7 +12,7 @@ namespace DiceApi.Data
         Mines = 1,
         Roulette = 2,
         Horses = 3,
-        Tower = 4
-
+        Tower = 4,
+        Thimbles = 5
     }
 }

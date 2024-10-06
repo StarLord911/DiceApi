@@ -102,7 +102,7 @@ namespace DiceApi.Services
 
             await _logRepository.LogInfo($"UpdateUserBallance new ballance: {sum} old ballance: {user.Ballance} userId: {userId} ");
 
-            await _userRepository.UpdateUserBallance(userId, sum);
+            await _userRepository.UpdateUserBallance(userId, Math.Round(sum, 2));
         }
 
         public async Task<GetPaginatedDataByUserIdResponce<UserReferral>> GetRefferalsByUserId(GetReferalsByUserIdRequest request)

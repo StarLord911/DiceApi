@@ -204,7 +204,7 @@ namespace DiceApi.Services.BackgroundServices
 
         private async Task AddLastGames(string userName, decimal betSum, decimal canWin, bool win)
         {
-            //await _lastGamesService.AddLastGames(userName, betSum, canWin, win, GameType.Roulette);
+            await _lastGamesService.AddLastGames(userName, betSum, canWin, win, GameType.Roulette);
         }
 
         private async Task UpdateWinningToDay(decimal amount)

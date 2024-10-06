@@ -150,6 +150,11 @@ namespace DiceApi.Services.Contracts
                 return new CreateTowerGameResponce() { Succes = false, Info = "Вы заблокированы" };
             }
 
+            if (request.Sum < 1 || request.Sum > 100  )
+            {
+                return new CreateTowerGameResponce() { Succes = false, Info = "Ставка должна быть от 1 до 1000" };
+            }
+
             await UpdateWageringAsync(request.UserId, request.Sum);
 
 
@@ -202,7 +207,7 @@ namespace DiceApi.Services.Contracts
 
                 if (floor.IsOpen)
                 {
-                    floor.BombPositions = item.Where(c => c.IsMined == true).Select(c => c.Position).ToList();
+                    floor.OpenedCellId = item.FirstOrDefault(c => c.IsOpen == true).Position;
                 }
 
                 res.Add(floor);
@@ -289,7 +294,7 @@ namespace DiceApi.Services.Contracts
             var user = _userService.GetById(request.UserId);
             await _userService.UpdateUserBallance(request.UserId, user.Ballance + game.CanWin);
 
-            return new FinishTowerGameResponce { Cells = SerializationHelper.Serialize(game.GetCells()), UserBallance = user.Ballance + game.CanWin };
+            return new FinishTowerGameResponce { Succes = true, Cells = SerializationHelper.Serialize(game.GetCells()), UserBallance = user.Ballance + game.CanWin };
         }
 
         private async Task<OpenTowerCellResponce> HandleMineFound(TowerActiveGame game, OpenTowerCellRequest request)
