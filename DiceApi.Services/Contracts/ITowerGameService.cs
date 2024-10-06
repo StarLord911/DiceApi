@@ -93,19 +93,19 @@ namespace DiceApi.Services.Contracts
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
         private readonly IAntiMinusService _antiMinusService;
-        private readonly IWageringRepository _wageringRepository;
         private readonly ILastGamesService _lastGamesService;
+        private readonly IWageringService _wageringService;
 
         public TowerGameService(ICacheService cacheService,
            IUserService userService,
            IAntiMinusService antiMinusService,
-           IWageringRepository wageringRepository,
+           IWageringService wageringService,
            ILastGamesService lastGamesService)
         {
             _cacheService = cacheService;
             _userService = userService;
             _antiMinusService = antiMinusService;
-            _wageringRepository = wageringRepository;
+            _wageringService = wageringService;
 
             _lastGamesService = lastGamesService;
         }
@@ -150,7 +150,7 @@ namespace DiceApi.Services.Contracts
                 return new CreateTowerGameResponce() { Succes = false, Info = "Вы заблокированы" };
             }
 
-            if (request.Sum < 1 || request.Sum > 100  )
+            if (request.Sum < 1 || request.Sum > 1000  )
             {
                 return new CreateTowerGameResponce() { Succes = false, Info = "Ставка должна быть от 1 до 1000" };
             }
@@ -344,17 +344,7 @@ namespace DiceApi.Services.Contracts
 
         private async Task UpdateWageringAsync(long userId, decimal sum)
         {
-            var wagering = await _wageringRepository.GetActiveWageringByUserId(userId);
-
-            if (wagering != null && wagering.IsActive)
-            {
-                await _wageringRepository.UpdatePlayed(userId, sum);
-
-                if (wagering.Wagering < wagering.Played + sum)
-                {
-                    await _wageringRepository.DeactivateWagering(wagering.Id);
-                }
-            }
+            await _wageringService.UpdatePlayed(userId, sum);
         }
 
         private async Task UpdateGameInCache(TowerActiveGame game, long userId)

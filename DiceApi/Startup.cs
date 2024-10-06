@@ -9,6 +9,7 @@ using DiceApi.Services;
 using DiceApi.Services.BackgroundServices;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.Implements;
+using DiceApi.Services.Implements.Thimbles;
 using DiceApi.Services.Jobs;
 using DiceApi.Services.SignalRHubs;
 using EasyMemoryCache.Configuration;
@@ -111,7 +112,8 @@ namespace DiceApi
             services.AddTransient<IPromocodeRepository, PromocodeRepository>();
             services.AddTransient<IPromocodeActivationHistory, PromocodeActivationHistory>();
             services.AddTransient<IWageringRepository, WageringRepository>();
-            
+            services.AddTransient<IWageringService, WageringService>();
+
 
             //регаем репы.
             services.AddTransient<IPaymentRepository, PaymentRepository>();
@@ -133,6 +135,8 @@ namespace DiceApi
             services.AddTransient<IRefferalService, RefferalService>();
             services.AddTransient<IAntiMinusService, AntiMinusService>();
             services.AddTransient<ITowerGameService, TowerGameService>();
+            services.AddTransient<IThimblesService, ThimblesService>();
+
 
             if (!_env.IsDevelopment())
             {

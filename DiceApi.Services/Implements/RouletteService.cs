@@ -100,7 +100,7 @@ namespace DiceApi.Services
                 return new CreateRouletteBetResponce()
                 {
                     Succesful = false,
-                    Message = "Максимальная ставка 5000."
+                    Message = "Максимальная ставка 1000."
                 };
             }
 

@@ -36,12 +36,12 @@ namespace DiceApi.Controllers
                 };
             }
 
-            if (request.Bets.Count > 3)
+            if (request.Bets.Count > 10)
             {
                 return new CreateRouletteBetResponce()
                 {
                     Succesful = false,
-                    Message = "Максимально можно выбрать 3 лошади."
+                    Message = "Максимально можно выбрать 10 ставки."
                 };
             }
 

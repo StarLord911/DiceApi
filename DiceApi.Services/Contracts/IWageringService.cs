@@ -11,6 +11,6 @@ namespace DiceApi.Services.Contracts
     /// </summary>
     public interface IWageringService
     {
-
+        Task UpdatePlayed(long userId, decimal sum);
     }
 }

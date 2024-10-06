@@ -1,7 +1,9 @@
 ﻿using DiceApi.Common;
 using DiceApi.Data.ApiReqRes.Thimble;
 using DiceApi.Data.Data.Games;
+using DiceApi.DataAcces.Repositoryes;
 using DiceApi.DataAcces.Repositoryes.Game;
+using DiceApi.Services.Contracts;
 using MathNet.Numerics.Random;
 using System;
 using System.Collections.Generic;
@@ -20,6 +22,7 @@ namespace DiceApi.Services.Implements.Thimbles
     {
         private readonly IGamesRepository _gamesRepository;
         private readonly IUserService _userService;
+        private readonly IWageringService _wageringService;
 
         public ThimblesService(IGamesRepository gamesRepository,
             IUserService userService)
@@ -51,6 +54,8 @@ namespace DiceApi.Services.Implements.Thimbles
                     Win = false
                 };
             }
+
+            await _wageringService.UpdatePlayed(user.Id, request.BetSum);
 
             await _userService.UpdateUserBallance(request.UserId, user.Ballance - request.BetSum);
 

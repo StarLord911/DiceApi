@@ -87,7 +87,7 @@ namespace DiceApi.Data.Data.Tower
             {
                 while (minesPlaced < mineCount)
                 {
-                    int x = random.Next(1, 5);
+                    int x = random.Next(1, 6);
 
                     if (!floor.FirstOrDefault(c => c.Position == x).IsMined)
                     {

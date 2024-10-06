@@ -75,14 +75,6 @@ namespace DiceApi.Services.Implements
                 };
             }
 
-            if (request.HorseBets.Any(s => s.BetSum < 1))
-            {
-                return new CreateHorseBetResponce
-                {
-                    Message = "Минимальная ставка 1руб.",
-                    Succes = false
-                };
-            }
 
             var betSum = request.HorseBets.Sum(b => b.BetSum);
 
@@ -108,7 +100,7 @@ namespace DiceApi.Services.Implements
             {
                 return new CreateHorseBetResponce
                 {
-                    Message = "Максимальная ставка 5000.",
+                    Message = "Максимальная ставка 1000.",
                     Succes = false
                 };
             }
