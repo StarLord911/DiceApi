@@ -4,9 +4,11 @@ using DiceApi.Data;
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
 using DiceApi.Data.ApiReqRes.Tower;
+using DiceApi.Data.Data.Games;
 using DiceApi.Data.Data.Tower;
 using DiceApi.Data.Requests;
 using DiceApi.DataAcces.Repositoryes;
+using DiceApi.DataAcces.Repositoryes.Game;
 using DiceApi.Services.Implements;
 using System;
 using System.Collections.Generic;
@@ -95,18 +97,20 @@ namespace DiceApi.Services.Contracts
         private readonly IAntiMinusService _antiMinusService;
         private readonly ILastGamesService _lastGamesService;
         private readonly IWageringService _wageringService;
+        private readonly IGamesRepository _gamesRepository;
 
         public TowerGameService(ICacheService cacheService,
            IUserService userService,
            IAntiMinusService antiMinusService,
            IWageringService wageringService,
-           ILastGamesService lastGamesService)
+           ILastGamesService lastGamesService,
+           IGamesRepository gamesRepository)
         {
             _cacheService = cacheService;
             _userService = userService;
             _antiMinusService = antiMinusService;
             _wageringService = wageringService;
-
+            _gamesRepository = gamesRepository;
             _lastGamesService = lastGamesService;
         }
 
@@ -140,7 +144,7 @@ namespace DiceApi.Services.Contracts
                 return new CreateTowerGameResponce() { Succes = false, Info = $"Change mines count. Mines count = {request.MinesCount}" };
             }
 
-            if (user.Ballance <= request.Sum)
+            if (user.Ballance < request.Sum)
             {
                 return new CreateTowerGameResponce() { Succes = false, Info = "Низкий баланс" };
             }
@@ -299,7 +303,9 @@ namespace DiceApi.Services.Contracts
                 return new FinishTowerGameResponce { Succes = false, Message = "Игру нельзя завершить" };
             }
 
-            await _cacheService.DeleteCache(CacheConstraints.TOWER_KEY + request.UserId);
+            await SaveGameAndDeleteCache(game, request.UserId);
+            await SendNewGameSocket(game);
+            
             var user = _userService.GetById(request.UserId);
             await _userService.UpdateUserBallance(request.UserId, user.Ballance + game.CanWin);
 
@@ -336,8 +342,18 @@ namespace DiceApi.Services.Contracts
 
         private async Task SaveGameAndDeleteCache(TowerActiveGame game, long userId)
         {
-            //var mappedGame = _mapper.Map<MinesGame>(game);
-            //await _minesRepository.AddMinesGame(mappedGame);
+            var db = new GameModel()
+            {
+                UserId = userId,
+                BetSum = game.BetSum,
+                CanWin = game.CanWin,
+                Win = game.FinishGame,
+                GameTime = DateTime.UtcNow.GetMSKDateTime(),
+                GameType = GameType.Tower
+            };
+
+            await _gamesRepository.AddGame(db);
+
             await _cacheService.DeleteCache(CacheConstraints.TOWER_KEY + userId);
         }
 

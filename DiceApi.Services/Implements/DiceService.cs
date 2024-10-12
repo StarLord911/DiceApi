@@ -9,27 +9,29 @@ using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.Data.Winning;
 using DiceApi.Data.ApiReqRes;
+using DiceApi.DataAcces.Repositoryes.Game;
+using DiceApi.Data.Data.Games;
 
 namespace DiceApi.Services.Implements
 {
     public class DiceService : IDiceService
     {
         private readonly IUserService _userService;
-        private readonly IDiceGamesRepository _diceGamesRepository;
         private readonly IWageringRepository _wageringRepository;
         private readonly ICacheService _cacheService;
         private readonly ILastGamesService _lastGamesService;
         private readonly ILogRepository _logRepository;
+        private readonly IGamesRepository _gamesRepository;
 
         public DiceService(IUserService userService,
-            IDiceGamesRepository diceGamesRepository,
             ILogRepository logRepository,
             IWageringRepository wageringRepository,
             ICacheService cacheService,
-            ILastGamesService lastGamesService)
+            ILastGamesService lastGamesService,
+            IGamesRepository gamesRepository)
         {
+            _gamesRepository = gamesRepository;
             _userService = userService;
-            _diceGamesRepository = diceGamesRepository;
             _logRepository = logRepository;
             _wageringRepository = wageringRepository;
             _cacheService = cacheService;
@@ -128,9 +130,9 @@ namespace DiceApi.Services.Implements
             return response;
         }
 
-        private async Task UpdateLastGames(DiceGame diceGame, User user)
+        private async Task UpdateLastGames(GameModel diceGame, User user)
         {
-            await _lastGamesService.AddLastGames(user.Name, diceGame.Sum, diceGame.CanWin, diceGame.Win, GameType.DiceGame);
+            await _lastGamesService.AddLastGames(user.Name, diceGame.BetSum, diceGame.CanWin, diceGame.Win, GameType.DiceGame);
         }
 
         // Метод для обработки выигрыша
@@ -156,18 +158,18 @@ namespace DiceApi.Services.Implements
         }
 
         // Метод для создания записи новой игры в базе данных
-        private async Task<DiceGame> CreateDiceGameEntryAsync(DiceRequest request, bool isWin, decimal winSum)
+        private async Task<GameModel> CreateDiceGameEntryAsync(DiceRequest request, bool isWin, decimal winSum)
         {
-            var diceGame = new DiceGame
+            var diceGame = new GameModel
             {
                 UserId = request.UserId,
-                Persent = request.Persent,
-                Sum = request.Sum,
+                BetSum = request.Sum,
                 CanWin = winSum,
                 Win = isWin,
-                GameTime = DateTime.UtcNow.GetMSKDateTime()
+                GameTime = DateTime.UtcNow.GetMSKDateTime(),
+                GameType = GameType.DiceGame
             };
-            await _diceGamesRepository.Add(diceGame);
+            await _gamesRepository.AddGame(diceGame);
             return diceGame;
         }
 
@@ -187,14 +189,12 @@ namespace DiceApi.Services.Implements
             }
         }
 
-        public async Task<List<DiceGame>> GetLastGames()
-        {
-            return await _diceGamesRepository.GetLastGames();
-        }
+       
 
         public async Task<List<DiceGame>> GetAllDiceGamesByUserId(long userId)
         {
-            return await _diceGamesRepository.GetByUserId(userId);
+            //TODO
+            return Enumerable.Empty<DiceGame>().ToList();
         }
 
         private async Task UpdateWinningToDay(decimal amount)

@@ -12,7 +12,5 @@ namespace DiceApi.Services.Contracts
         Task<DiceResponce> StartDice(DiceRequest request);
 
         Task<List<DiceGame>> GetAllDiceGamesByUserId(long userId);
-
-        Task<List<DiceGame>> GetLastGames();
     }
 }

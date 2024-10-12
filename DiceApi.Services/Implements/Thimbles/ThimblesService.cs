@@ -45,7 +45,6 @@ namespace DiceApi.Services.Implements.Thimbles
 
         public async Task<BetThimblesResponce> Bet(BetThimblesRequest request)
         {
-            GetOrCreateHash(44);
             var user = _userService.GetById(request.UserId);
 
             if (user.Ballance < request.BetSum)

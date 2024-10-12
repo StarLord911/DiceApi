@@ -3,9 +3,11 @@ using DiceApi.Common;
 using DiceApi.Data;
 using DiceApi.Data.ApiModels;
 using DiceApi.Data.ApiReqRes;
+using DiceApi.Data.Data.Games;
 using DiceApi.Data.Data.Winning;
 using DiceApi.Data.Requests;
 using DiceApi.DataAcces.Repositoryes;
+using DiceApi.DataAcces.Repositoryes.Game;
 using DiceApi.Services.Contracts;
 using DiceApi.Services.SignalRHubs;
 using Microsoft.AspNetCore.SignalR;
@@ -21,10 +23,10 @@ namespace DiceApi.Services
     {
         private readonly ICacheService _cacheService;
         private readonly IUserService _userService;
-        private readonly IMinesRepository _minesRepository;
         private readonly IAntiMinusService _antiMinusService;
         private readonly IWageringRepository _wageringRepository;
         private readonly ILastGamesService _lastGamesService;
+        private readonly IGamesRepository _gamesRepository;
 
         private readonly Dictionary<int, List<double>> chanses = new Dictionary<int, List<double>>
         {
@@ -57,20 +59,20 @@ namespace DiceApi.Services
 
         public MinesService(ICacheService cacheService,
             IUserService userService,
-            IMinesRepository minesRepository,
             IAntiMinusService antiMinusService,
             IWageringRepository wageringRepository,
             IMapper mapper,
-            ILastGamesService lastGamesService)
+            ILastGamesService lastGamesService,
+            IGamesRepository gamesRepository)
         {
             _cacheService = cacheService;
             _userService = userService;
-            _minesRepository = minesRepository;
             _antiMinusService = antiMinusService;
             _wageringRepository = wageringRepository;
 
             _mapper = mapper;
             _lastGamesService = lastGamesService;
+            _gamesRepository = gamesRepository;
         }
         #region public methods
 
@@ -169,7 +171,6 @@ namespace DiceApi.Services
                 return new FinishMinesGameResponce { Succes = false, Message = "Игру нельзя завершить" };
             }
 
-            await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + request.UserId);
 
             var user = _userService.GetById(request.UserId);
             await _userService.UpdateUserBallance(request.UserId, user.Ballance + game.CanWin);
@@ -181,8 +182,8 @@ namespace DiceApi.Services
 
             await _cacheService.UpdateCache(CacheConstraints.SETTINGS_KEY, settingsCache);
 
-            var mappedGame = _mapper.Map<MinesGame>(game);
-            await _minesRepository.AddMinesGame(mappedGame);
+
+            await SaveGameAndDeleteCache(game, user.Id);
 
             await SendNewGameSocket(game, user.Name);
 
@@ -305,7 +306,10 @@ namespace DiceApi.Services
         /// </summary>
         public async Task<List<MinesGame>> GetMinesGamesByUserId(long userId)
         {
-            return await _minesRepository.GetMinesGamesByUserId(userId);
+            //TODO
+            return Enumerable.Empty<MinesGame>().ToList();
+
+            //return await _minesRepository.GetMinesGamesByUserId(userId);
         }
         #endregion
 
@@ -396,8 +400,18 @@ namespace DiceApi.Services
 
         private async Task SaveGameAndDeleteCache(ActiveMinesGame game, long userId)
         {
-            var mappedGame = _mapper.Map<MinesGame>(game);
-            await _minesRepository.AddMinesGame(mappedGame);
+            var db = new GameModel()
+            {
+                UserId = userId,
+                BetSum = game.BetSum,
+                CanWin = game.CanWin,
+                Win = game.FinishGame,
+                GameTime = DateTime.UtcNow.GetMSKDateTime(),
+                GameType = GameType.Mines
+            };
+
+            await _gamesRepository.AddGame(db);
+            
             await _cacheService.DeleteCache(CacheConstraints.MINES_KEY + userId);
         }
 
